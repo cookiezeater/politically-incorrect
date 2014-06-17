@@ -34,9 +34,8 @@ winner: Player,
 judge: Player}</code></pre>
 
 - Table:
-<pre><code>
-{deck: [Cards], (Many-to-many relationship)
-black: Cards}
+<pre><code>{deck: [Cards], (Many-to-many relationship)
+black: Cards}</code></pre>
 
 
 ## URLs
