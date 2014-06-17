@@ -9,33 +9,45 @@ A card game for Android
 # API Architecture
 ## Models
 - Cards:
-<pre><code>{text: String,
-rank: Integer,
-meta: Object}</code></pre>
+
+|Column Name|Value
+|-----------|-----------
+|text       |String
+|rank       |Integer
+|meta       |Object
 
 - Player:
-<pre><code>{username: String,
-password: Hash,
-email: String,
-first_name: String,
-last_name: String,
-matches: [Match], (Many-to-many relationship)
-friends: [Player], (Many-to-many relationship)
-wins: Integer,
-losses: Integer}</code></pre>
 
-- Match: (column "played" should equal "participants" when status is "JUDGE")
-<pre><code>{status: String, (PENDING | JUDGE | OTHERS | ENDED)
-pending: [Player], (Many-to-many relationship)
-participants: [Player], (Many-to-many relationship)
-played: [Player], (Many-to-many relationship)
-table: Table, (One-to-one relationship)
-winner: Player,
-judge: Player}</code></pre>
+|Column Name|Value
+|-----------|-----------
+|username   |String
+|password   |Hash
+|email      |String
+|first_name |String
+|last_name  |String   
+|matches    |[Match] Many-to-many relationship
+|friends    |[Player] Many-to-many relationship
+|wins       |Integer
+|losses     |Integer
+
+- Match: 
+
+|Column Name |Value
+|------------|------------
+|status      |String
+|pending     |[Player] Many-to-many relationship
+|participants|[Player] Many-to-many relationship
+|played      |[Player] This should equal "participants" when status is "JUDGE"
+|table       |Table
+|winner      |Player
+|judge       |Player
 
 - Table:
-<pre><code>{deck: [Cards], (Many-to-many relationship)
-black: Cards}</code></pre>
+
+|Column Name |Value
+|------------|------------
+|deck        |[Cards]
+|black       |Cards
 
 
 ## URLs
