@@ -35,9 +35,9 @@ A card game for Android
 
 - State:
 
-|player|match|score
-|----|----|----
-|Player|Match|Integer
+|player|match|score|hand
+|----|----|----|----
+|Player|Match|Integer|[Cards]
 
 
 ## URLs
