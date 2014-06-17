@@ -24,7 +24,7 @@ A card game for Android
 
 |status|state|pending|participants|played|table|winner|judge
 |----|----|----|----|----|----|----|----
-|String(0)|State|[Player]|[Player]|[Player](1)|Table|Player|Player
+|String: PENDING/JUDGE/OTHERS/ENDED|State|[Player]|[Player]|[Player]: Empty when status is JUDGE|Table|Player|Player
 
 
 - Table:
