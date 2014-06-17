@@ -34,7 +34,7 @@ A card game for Android
 
 |Column Name |Value
 |------------|------------
-|status      |String
+|status      |String PENDING | OTHERS | JUDGE | ENDED
 |pending     |[Player] Many-to-many relationship
 |participants|[Player] Many-to-many relationship
 |played      |[Player] This should equal "participants" when status is "JUDGE"
