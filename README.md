@@ -9,7 +9,9 @@ A card game for Android
 # API Architecture
 ## Models
 - Cards:
-<pre><code>{text: String}</code></pre>
+<pre><code>{text: String,
+rank: Integer,
+meta: Object}</code></pre>
 
 - Player:
 <pre><code>{username: String,
@@ -22,12 +24,20 @@ friends: [Player], (Many-to-many relationship)
 wins: Integer,
 losses: Integer}</code></pre>
 
-- Match:
+- Match: (column "played" should equal "participants" when status is "JUDGE")
 <pre><code>{status: String, (PENDING | JUDGE | OTHERS | ENDED)
 pending: [Player], (Many-to-many relationship)
 participants: [Player], (Many-to-many relationship)
+played: [Player], (Many-to-many relationship)
+table: Table, (One-to-one relationship)
 winner: Player,
 judge: Player}</code></pre>
+
+- Table:
+<pre><code>
+{deck: [Cards], (Many-to-many relationship)
+black: Cards}
+
 
 ## URLs
 ### Cards
