@@ -8,6 +8,9 @@ A card game for Android
 
 # API Architecture
 ## Models
+- [] denotes MTM relationship
+- *[] denotes OTM relationship
+
 ### Cards
 |text|rank|meta|white
 |----|----|----|----
@@ -21,7 +24,7 @@ A card game for Android
 ### Match
 |status|state|pending|table|winner
 |----|----|----|----|----|----|----
-|String: PENDING/ONGOING/ENDED|State|[Player]|Table|Player
+|String: PENDING/ONGOING/ENDED|*[State]|[Player]|Table|Player
 
 ### Table
 |deck|black
