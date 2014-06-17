@@ -34,12 +34,12 @@ A card game for Android
 
 - State:
 
-|player|match|score|hand|played|judge
-|----|----|----|----|----|----
-|Player|Match|Integer|[Cards]|Cards|Integer
+|player|match|score  |hand   |played|judged |
+|------|-----|-------|-------|------|-------|
+|Player|Match|Integer|[Cards]|Cards |Integer|
+[State][test]
 
-
-## URLs
+## Routes
 ### Cards
 - POST /cards/new
 - GET /cards/id
