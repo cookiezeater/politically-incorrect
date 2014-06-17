@@ -24,6 +24,7 @@ losses: Integer}</code></pre>
 
 - Match:
 <pre><code>{status: String, (PENDING | ONGOING | ENDED)
+pending: [Player], (Many-to-many relationship)
 participants: [Player], (Many-to-many relationship)
 winner: Player,
 judge: Player}</code></pre>
