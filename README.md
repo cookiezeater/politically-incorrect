@@ -2,7 +2,7 @@
 A card game for Android
 
 # Directory Structure
-- /android: contains Android app
+- /android/: contains Android app
 - /views.py: view controllers and routes
 - /models.py: contains ORM models
 
