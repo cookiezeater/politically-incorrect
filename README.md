@@ -22,10 +22,9 @@ A card game for Android
 
 - Match: 
 
-|status|state|pending|participants|table|winner|judge
+|status|state|pending|table|winner
 |----|----|----|----|----|----|----
-|String: PENDING/JUDGE/OTHERS/ENDED|State|[Player]|[Player]|Table|Player|Player
-
+|String: PENDING/ONGOING/ENDED|State|[Player]|Table|Player
 
 - Table:
 
@@ -35,9 +34,9 @@ A card game for Android
 
 - State:
 
-|player|match|score|hand|played
-|----|----|----|----|----
-|Player|Match|Integer|[Cards]|Cards
+|player|match|score|hand|played|judge
+|----|----|----|----|----|----
+|Player|Match|Integer|[Cards]|Cards|Integer
 
 
 ## URLs
