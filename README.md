@@ -10,44 +10,34 @@ A card game for Android
 ## Models
 - Cards:
 
-|Column Name|Value
-|-----------|-----------
-|text       |String
-|rank       |Integer
-|meta       |Object
+|text|rank|meta
+|----|----|----
+|String|Integer|Object
 
 - Player:
 
-|Column Name|Value
-|-----------|-----------
-|username   |String
-|password   |Hash
-|email      |String
-|first_name |String
-|last_name  |String   
-|matches    |[Match] Many-to-many relationship
-|friends    |[Player] Many-to-many relationship
-|wins       |Integer
-|losses     |Integer
+|username|password|email|first_name|last_name|matches|friends|wins|losses
+|----|----|----|----|----|----|----|----|----
+|String|Hash|String|String|String|[Match]|[Player]|Integer|Integer
 
 - Match: 
 
-|Column Name |Value
-|------------|------------
-|status      |String PENDING/OTHERS/JUDGE/ENDED
-|pending     |[Player] Many-to-many relationship
-|participants|[Player] Many-to-many relationship
-|played      |[Player] This should equal "participants" when status is "JUDGE"
-|table       |Table
-|winner      |Player
-|judge       |Player
+|status|state|pending|participants|played|table|winner|judge
+|----|----|----|----|----|----|----|----
+|String(0)|State|[Player]|[Player]|[Player](1)|Table|Player|Player
+
 
 - Table:
 
-|Column Name |Value
-|------------|------------
-|deck        |[Cards]
-|black       |Cards
+|deck|black
+|----|----
+|[Cards]|Cards
+
+- State:
+
+|player|match|score
+|----|----|----
+|Player|Match|Integer
 
 
 ## URLs
