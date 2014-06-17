@@ -10,9 +10,9 @@ A card game for Android
 ## Models
 - Cards:
 
-|text|rank|meta
-|----|----|----
-|String|Integer|Object
+|text|rank|meta|white
+|----|----|----|----
+|String|Integer|Object|Boolean
 
 - Player:
 
