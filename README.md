@@ -8,36 +8,30 @@ A card game for Android
 
 # API Architecture
 ## Models
-- Cards:
-
+### Cards:
 |text|rank|meta|white
 |----|----|----|----
 |String|Integer|Object|Boolean
 
-- Player:
-
+### Player
 |username|password|email|first_name|last_name|matches|friends|wins|losses
 |----|----|----|----|----|----|----|----|----
 |String|Hash|String|String|String|[Match]|[Player]|Integer|Integer
 
-- Match: 
-
+### Match
 |status|state|pending|table|winner
 |----|----|----|----|----|----|----
 |String: PENDING/ONGOING/ENDED|State|[Player]|Table|Player
 
-- Table:
-
+### Table
 |deck|black
 |----|----
 |[Cards]|Cards
 
-- State:
-
+### State
 |player|match|score  |hand   |played|judged |
 |------|-----|-------|-------|------|-------|
 |Player|Match|Integer|[Cards]|Cards |Integer|
-[State][test]
 
 ## Routes
 ### Cards
