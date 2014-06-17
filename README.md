@@ -8,7 +8,7 @@ A card game for Android
 
 # API Architecture
 ## Models
-### Cards:
+### Cards
 |text|rank|meta|white
 |----|----|----|----
 |String|Integer|Object|Boolean
