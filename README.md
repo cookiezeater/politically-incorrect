@@ -1,6 +1,12 @@
 # Friends Against Humanity
 A card game for Android
 
+# Development Setup
+Make sure postgres.app is open!
+<pre><code>$ createdb fah_dev
+$ export DATABASE_URL=postgresql://localhost/fah_dev
+$ export APP_SETTINGS=config.DevelopmentConfig</code></pre>
+
 # Directory Structure
 - /android/: contains Android app
 - /views.py: view controllers and routes
@@ -10,6 +16,7 @@ A card game for Android
 ## Models
 - [] denotes MTM relationship
 - *[] denotes OTM relationship
+- []* denotes MTO relationship
 
 ### Cards
 |text|rank|meta|white
@@ -24,7 +31,7 @@ A card game for Android
 ### Match
 |status|state|pending|table|winner
 |----|----|----|----|----|----|----
-|String: PENDING/ONGOING/ENDED|*[State]|[Player]|Table|Player
+|String: PENDING/ONGOING/ENDED|*[State]|[Player]|Table|[Player]*
 
 ### Table
 |deck|black
@@ -34,7 +41,7 @@ A card game for Android
 ### State
 |player|match|score  |hand   |played|judged |
 |------|-----|-------|-------|------|-------|
-|Player|Match|Integer|[Cards]|Cards |Integer|
+|Player|Match|Integer|[Cards]|*[Cards]|Integer|
 
 ## Routes
 ### Cards
