@@ -6,6 +6,8 @@
     - docs
 """
 
+from views import db
+from sqlalchemy.dialects.postgresql import JSON
 from sqlalchemy import Table, Column, Boolean, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.ext.declarative import declarative_base
@@ -42,7 +44,6 @@ class Card(Base):
 
     def white(self):
         raise NotImplementedError
-
 
 class Player(Base):
     """
@@ -90,7 +91,6 @@ class Player(Base):
     def all_matches(self):
         raise NotImplementedError
 
-
 class Match(Base):
     """
     @todo:
@@ -126,7 +126,6 @@ class Match(Base):
     def status(self):
         raise NotImplementedError
 
-
 class Table(Base):
     __tablename__ = 'tables'
 
@@ -140,7 +139,6 @@ class Table(Base):
 
     def __str__(self):
         return "Table"
-
 
 class State(Base):
     __tablename__ = 'states'
