@@ -8,7 +8,7 @@ from flask import jsonify, request
 def hello():
     return "Hello World!"
 
-@app.route("/cards/", methods=["GET"])
+@app.route("/cards", methods=["GET"])
 def get_all_cards():
     cards = Card.query.all()
     cards = {card.text: card.id for card in cards}
@@ -19,7 +19,7 @@ def get_card(card_id):
     card = Card.query.get(card_id)
     return jsonify(card=card.text)
 
-@app.route("/cards/", methods=["POST"])
+@app.route("/cards", methods=["POST"])
 def create_card():
     content = request.json
 
