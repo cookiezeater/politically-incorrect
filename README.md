@@ -2,6 +2,9 @@
 A card game for Android
 
 # Development Setup
+Make a new virtual env. Then,
+<pre><code>$ pip install -r requirements.txt</code></pre>
+
 Make sure postgres.app is open.
 <pre><code>$ createdb fah_dev
 $ export DATABASE_URL=postgresql://localhost/fah_dev
@@ -17,6 +20,11 @@ Run the app:
 - create a card
 - get all cards as json
 - get a card with its id
+
+# Todo
+- secret key for auth
+- add all core features
+- add oauth and social signup
 
 # Directory Structure
 - /android/: contains Android app
@@ -61,7 +69,7 @@ Run the app:
 |/cards/new|POST|create a new card
 |/cards/id|GET|retrieve card info
 |/cards/id|DELETE|remove card
-|/cards/|GET|retrieve a list of all cards
+|/cards/|GET|retrieve a list of all cards (this is temporary)
 
 ### Player
 |url|verb|description
@@ -70,7 +78,6 @@ Run the app:
 |/players/id|GET|get player info
 |/players/id|PUT|update player info
 |/players/id|DELETE|delete a player
-|/players/id/befriend|GET|send or accept a friend request
 
 ### Match
 |url|verb|description
@@ -78,4 +85,3 @@ Run the app:
 |/match/new|POST|create a new match
 |/match/id|GET|get match info
 |/match/id|PUT|update match
-|/match/id/join|GET|join a match after being given an invite
