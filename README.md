@@ -7,8 +7,16 @@ Make sure postgres.app is open.
 $ export DATABASE_URL=postgresql://localhost/fah_dev
 $ export APP_SETTINGS=config.DevelopmentConfig</code></pre>
 
+Make the app executable. (less typing)
+<pre><code>$ chmod +x views.py</code></pre>
+
 Run the app:
-<pre><code>$ python views.py</code></pre>
+<pre><code>$ ./views.py</code></pre>
+
+# What Works Right Now
+- create a card
+- get all cards as json
+- get a card with its id
 
 # Directory Structure
 - /android/: contains Android app
