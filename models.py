@@ -6,20 +6,14 @@
     - docs
 """
 
-from views import db
-from sqlalchemy.dialects.postgresql import JSON
-from sqlalchemy import Table, Column, Boolean, Integer, String, ForeignKey
-from sqlalchemy.orm import relationship, backref
-from sqlalchemy.ext.declarative import declarative_base
+from app import app, db
 
-Base = declarative_base()
+# association_table = db.Table('association', db.Model.metadata,
+#     db.Column('left_id', db.Integer, db.ForeignKey('left.id')),
+#     db.Column('right_id', db.Integer, db.ForeignKey('right.id'))
+# )
 
-association_table = Table('association', Base.metadata,
-    Column('left_id', Integer, ForeignKey('left.id')),
-    Column('right_id', Integer, ForeignKey('right.id'))
-)
-
-class Card(Base):
+class Card(db.Model):
     """
     Represents a player-made card. Scaffold should contain
     default Cards Against Humanity cards for testing purposes.
@@ -27,11 +21,11 @@ class Card(Base):
 
     __tablename__ = 'cards'
 
-    id = Column(Integer, primary_key=True)
-    text = Column(String(120), unique=True)
-    rank = Column(Integer)
-    white = Column(Boolean)
-    meta = Column(String(500))
+    id = db.Column(db.Integer, primary_key=True)
+    text = db.Column(db.String(120), unique=True)
+    rank = db.Column(db.Integer)
+    white = db.Column(db.Boolean)
+    meta = db.Column(db.String(500))
 
     def __init__(self, text=None, rank=0, white=True, meta=""):
         self.text = text
@@ -39,123 +33,127 @@ class Card(Base):
         self.white = white
         self.meta = meta
 
+    def __repr__(self):
+        return self.__str__()
+
     def __str__(self):
-        return "{} Card: {}".format("White" if white else "Black", self.text)
+        return "{} Card: {}".format("White" if self.white else "Black", self.text)
 
     def white(self):
         raise NotImplementedError
 
-class Player(Base):
-    """
-    Represents a player.
-    """
 
-    __tablename__ = 'players'
+# class Player(db.Model):
+#     """
+#     Represents a player.
+#     """
 
-    id = Column(Integer, primary_key=True)
-    username = Column(String(50), unique=True)
-    email = Column(String(120), unique=True)
-    first_name = Column(String(50))
-    last_name = Column(String(50))
-    matches = relationship("Match",
-                    secondary=association_table) # Many-to-many relationship
-    friends = relationship("Player",
-                    secondary=association_table) # Many-to-many relationship
-    wins = Column(Integer)
-    losses = Column(Integer)
+#     __tablename__ = 'players'
 
-    def __init__(self, username=None, email=None,
-                    first_name="", last_name=""):
-        self.username = username
-        self.email = email
-        self.first_name = first_name
-        self.last_name = last_name
+#     id = db.Column(db.Integer, primary_key=True)
+#     username = db.Column(db.String(50), unique=True)
+#     email = db.Column(db.String(120), unique=True)
+#     first_name = db.Column(db.String(50))
+#     last_name = db.Column(db.String(50))
+#     matches = db.relationship("Match",
+#                     secondary=association_table) # Many-to-many db.relationship
+#     friends = db.relationship("Player",
+#                     secondary=association_table) # Many-to-many db.relationship
+#     wins = db.Column(db.Integer)
+#     losses = db.Column(db.Integer)
 
-        self.matches = None
-        self.friends = None
-        self.wins = 0
-        self.losses = 0
+#     def __init__(self, username=None, email=None,
+#                     first_name="", last_name=""):
+#         self.username = username
+#         self.email = email
+#         self.first_name = first_name
+#         self.last_name = last_name
 
-    def __str__(self):
-        return "Player {}: {}".format(self.username, self.email)
+#         self.matches = None
+#         self.friends = None
+#         self.wins = 0
+#         self.losses = 0
 
-    def friends(self):
-        raise NotImplementedError
+#     def __str__(self):
+#         return "Player {}: {}".format(self.username, self.email)
 
-    def ended_matches(self):
-        raise NotImplementedError
+#     def friends(self):
+#         raise NotImplementedError
 
-    def ongoing_matches(self):
-        raise NotImplementedError
+#     def ended_matches(self):
+#         raise NotImplementedError
 
-    def all_matches(self):
-        raise NotImplementedError
+#     def ongoing_matches(self):
+#         raise NotImplementedError
 
-class Match(Base):
-    """
-    @todo:
-        - add table-level enforcement of status choices
-    """
+#     def all_matches(self):
+#         raise NotImplementedError
 
-    STATUSES = "PENDING", "ONGOING", "ENDED"
+# class Match(db.Model):
+#     """
+#     @todo:
+#         - add table-level enforcement of status choices
+#     """
 
-    __tablename__ = 'matches'
+#     STATUSES = "PENDING", "ONGOING", "ENDED"
 
-    id = Column(Integer, primary_key=True)
-    status = Column(String(7))
-    state = relationship("State", backref="matches") # One-to-many relationship
-    pending = relationship("Player",
-                    secondary=association_table) # Many-to-many relationship
-    table = relationship("Table",
-                    uselist=False, backref="matches") # One-to-one relationship
+#     __tablename__ = 'matches'
 
-    # Many-to-one relationship
-    winner_id = Column(Integer, ForeignKey('player.id'))
-    winner = relationship("Player")
+#     id = db.Column(db.Integer, primary_key=True)
+#     status = db.Column(db.String(7))
+#     state = db.relationship("State", db.backref="matches") # One-to-many db.relationship
+#     pending = db.relationship("Player",
+#                     secondary=association_table) # Many-to-many db.relationship
+#     table = db.relationship("db.Table",
+#                     uselist=False, db.backref="matches") # One-to-one db.relationship
 
-    def __init__(self, host=None, status="PENDING",
-                    state=None, pending=[], table=None,
-                    winner_id=-1, winner=None):
-        raise NotImplementedError
+#     # Many-to-one db.relationship
+#     winner_id = db.Column(db.Integer, db.ForeignKey('player.id'))
+#     winner = db.relationship("Player")
 
-    def __str__(self):
-        players = "get_all_players"
-        raise NotImplementedError
-        return "Match players: {}, status: {}, judge: {}".format(players, self.status, self.judge)
+#     def __init__(self, host=None, status="PENDING",
+#                     state=None, pending=[], table=None,
+#                     winner_id=-1, winner=None):
+#         raise NotImplementedError
 
-    def status(self):
-        raise NotImplementedError
+#     def __str__(self):
+#         players = "get_all_players"
+#         raise NotImplementedError
+#         return "Match players: {}, status: {}, judge: {}".format(players, self.status, self.judge)
 
-class Table(Base):
-    __tablename__ = 'tables'
+#     def status(self):
+#         raise NotImplementedError
 
-    id = Column(Integer, primary_key=True)
-    deck = relationship("Card",
-                secondary=association_table) # Many-to-many relationship
-    black = relationship("Card", backref="tables") # Many-to-one relationship
+# class db.Table(db.Model):
+#     __tablename__ = 'tables'
 
-    def __init__(self, deck=[], black=None):
-        raise NotImplementedError
+#     id = db.Column(db.Integer, primary_key=True)
+#     deck = db.relationship("Card",
+#                 secondary=association_table) # Many-to-many db.relationship
+#     black = db.relationship("Card", db.backref="tables") # Many-to-one db.relationship
 
-    def __str__(self):
-        return "Table"
+#     def __init__(self, deck=[], black=None):
+#         raise NotImplementedError
 
-class State(Base):
-    __tablename__ = 'states'
+#     def __str__(self):
+#         return "db.Table"
 
-    id = Column(Integer, primary_key=True)
-    player = relationship("Player", backref="states") # Many-to-one relationship
-    match = relationship("Match",
-                    uselist=False, backref="states") # One-to-one relationship
-    score = Column(Integer)
-    hand = relationship("Card",
-                    secondary=association_table) # Many-to-many relationship
-    played = relationship("Card", backref="states") # Many-to-one relationship
-    judged = Column(Integer)
+# class State(db.Model):
+#     __tablename__ = 'states'
 
-    def __init__(self, player=None, match=None, score=0,
-                    hand=[], played=None, judged=0):
-        raise NotImplementedError
+#     id = db.Column(db.Integer, primary_key=True)
+#     player = db.relationship("Player", db.backref="states") # Many-to-one db.relationship
+#     match = db.relationship("Match",
+#                     uselist=False, db.backref="states") # One-to-one db.relationship
+#     score = db.Column(db.Integer)
+#     hand = db.relationship("Card",
+#                     secondary=association_table) # Many-to-many db.relationship
+#     played = db.relationship("Card", db.backref="states") # Many-to-one db.relationship
+#     judged = db.Column(db.Integer)
 
-    def __str__(self):
-        return "State: Player {}, Match {}".format(self.player, self.match)
+#     def __init__(self, player=None, match=None, score=0,
+#                     hand=[], played=None, judged=0):
+#         raise NotImplementedError
+
+#     def __str__(self):
+#         return "State: Player {}, Match {}".format(self.player, self.match)

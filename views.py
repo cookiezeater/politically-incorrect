@@ -1,11 +1,6 @@
-import os
-from flask import Flask
-from flask.ext.sqlalchemy import SQLAlchemy
+from app import app, db
 from models import *
-
-app = Flask(__name__)
-app.config.from_object(os.environ['APP_SETTINGS'])
-db = SQLAlchemy(app)
+from flask import jsonify
 
 @app.route("/")
 def hello():
@@ -13,10 +8,10 @@ def hello():
 
 @app.route("/cards/")
 def cards():
-    card = Card("Test card", 0, True, "")
-    print card
-    return card
+    cards = Card.query.all()
+    cards = {card.text: "white" if card.white else "black" for card in cards}
+    return jsonify(**cards)
 
 if __name__ == "__main__":
-    print os.environ['APP_SETTINGS']
+    db.create_all()
     app.run(debug=True)
