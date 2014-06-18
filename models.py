@@ -39,10 +39,6 @@ class Card(db.Model):
     def __str__(self):
         return "{} Card: {}".format("White" if self.white else "Black", self.text)
 
-    def white(self):
-        raise NotImplementedError
-
-
 # class Player(db.Model):
 #     """
 #     Represents a player.
