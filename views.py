@@ -32,6 +32,13 @@ def update_card(card_id):
     db.session.commit()
     return jsonify(status="success")
 
+@app.route("/cards/<int:card_id>", methods=["DELETE"])
+def update_card(card_id):
+    card = Card.query.get(card_id)
+    db.session.delete(card)
+    db.session.commit()
+    return jsonify(status="success")
+
 @app.route("/cards", methods=["POST"])
 def create_card():
     content = request.json
