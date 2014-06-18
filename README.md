@@ -2,10 +2,13 @@
 A card game for Android
 
 # Development Setup
-Make sure postgres.app is open!
+Make sure postgres.app is open.
 <pre><code>$ createdb fah_dev
 $ export DATABASE_URL=postgresql://localhost/fah_dev
 $ export APP_SETTINGS=config.DevelopmentConfig</code></pre>
+
+Run the app:
+<pre><code>$ python views.py</code></pre>
 
 # Directory Structure
 - /android/: contains Android app
