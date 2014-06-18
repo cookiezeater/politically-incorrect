@@ -1,12 +1,7 @@
 #!/usr/bin/env python
-
 from app import app
 from models import *
 from flask import jsonify, request
-
-@app.route("/")
-def hello():
-    return "Hello World!"
 
 @app.route("/cards", methods=["GET"])
 def get_all_cards():
