@@ -19,6 +19,19 @@ def get_card(card_id):
     card = Card.query.get(card_id)
     return jsonify(card=card.text)
 
+@app.route("/cards/<int:card_id>", methods=["PUT"])
+def update_card(card_id):
+    card = Card.query.get(card_id)
+    content = request.json
+    
+    card.text = content["text"]
+    card.rank = 0
+    card.white = bool(content["white"])
+    
+    db.session.add(card)
+    db.session.commit()
+    return jsonify(status="success")
+
 @app.route("/cards", methods=["POST"])
 def create_card():
     content = request.json
@@ -29,6 +42,8 @@ def create_card():
     db.session.add(card)
     db.session.commit()
     return jsonify(status="success")
+
+@app.route("
 
 if __name__ == "__main__":
     db.create_all()
