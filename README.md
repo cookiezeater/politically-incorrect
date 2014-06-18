@@ -68,6 +68,7 @@ Run the app:
 |---|----|-----
 |/cards/new|POST|create a new card
 |/cards/id|GET|retrieve card info
+|/cards/id|PUT|edit card
 |/cards/id|DELETE|remove card
 |/cards/|GET|retrieve a list of all cards (this is temporary)
 
