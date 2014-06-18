@@ -3,18 +3,18 @@ A card game for Android
 
 # Development Setup
 Make a new virtual env. Then,
-<pre><code>$ pip install -r requirements.txt</code></pre>
+<pre><code>(venv) $ pip install -r requirements.txt</code></pre>
 
 Make sure postgres.app is open.
-<pre><code>$ createdb fah_dev
-$ export DATABASE_URL=postgresql://localhost/fah_dev
-$ export APP_SETTINGS=config.DevelopmentConfig</code></pre>
+<pre><code>(venv) $ createdb fah_dev
+(venv) $ export DATABASE_URL=postgresql://localhost/fah_dev
+(venv) $ export APP_SETTINGS=config.DevelopmentConfig</code></pre>
 
 Make the app executable. (less typing)
-<pre><code>$ chmod +x views.py</code></pre>
+<pre><code>(venv) $ chmod +x views.py</code></pre>
 
 Run the app:
-<pre><code>$ ./views.py</code></pre>
+<pre><code>(venv) $ ./views.py</code></pre>
 
 # What Works Right Now
 - create a card
