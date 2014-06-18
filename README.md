@@ -42,24 +42,32 @@ Run the app:
 |[Cards]|Cards
 
 ### State
-|player|match|score  |hand   |played|judged |
-|------|-----|-------|-------|------|-------|
-|Player|Match|Integer|[Cards]|*[Cards]|Integer|
+|player|match|score  |hand   |played|judged
+|------|-----|-------|-------|------|-------
+|Player|Match|Integer|[Cards]|*[Cards]|Integer
 
 ## Routes
 ### Cards
-- POST /cards/new
-- GET /cards/id
-- DELETE /cards/id
+|url|verb|description
+|---|----|-----
+|/cards/new|POST|create a new card
+|/cards/id|GET|retrieve card info
+|/cards/id|DELETE|remove card
+|/cards/|GET|retrieve a list of all cards
 
 ### Player
-- POST /players/new
-- GET /players/id
-- DELETE /players/id
-- GET /players/id/befriend (accept or send a friend request)
+|url|verb|description
+|---|----|-----
+|/players/new|POST|create a new player
+|/players/id|GET|get player info
+|/players/id|PUT|update player info
+|/players/id|DELETE|delete a player
+|/players/id/befriend|GET|send or accept a friend request
 
 ### Match
-- POST /match/new
-- GET /match/id
-- DELETE /match/id
-- GET /match/id/join (join a match after being given an invite)
+|url|verb|description
+|---|----|-----
+|/match/new|POST|create a new match
+|/match/id|GET|get match info
+|/match/id|PUT|update match
+|/match/id/join|GET|join a match after being given an invite
