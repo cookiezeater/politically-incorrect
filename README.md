@@ -70,12 +70,10 @@ Run the app:
 |/players/id|GET|get player info
 |/players/id|PUT|update player info
 |/players/id|DELETE|delete a player
-|/players/id/befriend|GET|send or accept a friend request
 
 ### Match
 |url|verb|description
 |---|----|-----
 |/match/new|POST|create a new match
 |/match/id|GET|get match info
-|/match/id|PUT|update match
-|/match/id/join|GET|join a match after being given an invite
+|/match/id|PUT|update match state
