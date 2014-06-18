@@ -6,7 +6,7 @@
     - docs
 """
 
-from app import app, db
+from app import db
 
 # association_table = db.Table('association', db.Model.metadata,
 #     db.Column('left_id', db.Integer, db.ForeignKey('left.id')),
