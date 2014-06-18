@@ -33,7 +33,7 @@ def update_card(card_id):
     return jsonify(status="success")
 
 @app.route("/cards/<int:card_id>", methods=["DELETE"])
-def update_card(card_id):
+def delete_card(card_id):
     card = Card.query.get(card_id)
     db.session.delete(card)
     db.session.commit()
