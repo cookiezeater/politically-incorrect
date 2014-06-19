@@ -91,8 +91,11 @@ class Player(db.Model):
     # A player has many states, but a state can only have one player.
     states = db.relationship('State', backref='players')
 
-    def __init__(self, username=None, email=None,
-                    first_name="", last_name=""):
+    def __init__(self,
+                username=None,
+                email=None,
+                first_name="",
+                last_name=""):
         self.username = username
         self.email = email
         self.first_name = first_name
@@ -155,7 +158,8 @@ class Match(db.Model):
     def __str__(self):
         players = "get_all_players"
         raise NotImplementedError
-        return "Match players: {}, status: {}, judge: {}".format(players, self.status, self.judge)
+        return "Match players: {}, status: {}, judge: {}".format(
+                    players, self.status, self.judge)
 
 class State(db.Model):
     __tablename__ = 'states'
