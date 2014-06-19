@@ -25,6 +25,7 @@ Run the app:
 - secret key for auth
 - add all core features
 - add oauth and social signup
+- convert this readme to a wiki
 
 ## Directory Structure
 - /android/: contains Android app
@@ -48,14 +49,9 @@ Run the app:
 |String|Hash|String|String|String|[Match]|[Player]|Integer|Integer
 
 #### Match
-|status|state|pending|table|winner
-|----|----|----|----|----|----|----
-|String: PENDING/ONGOING/ENDED|*[State]|[Player]|Table|[Player]*
-
-#### Table
-|deck|black
-|----|----
-|[Cards]|Cards
+|status|state|pending|table|winner|deck|black
+|----|----|----|----|----|----|----|----|----
+|String: PENDING/ONGOING/ENDED|*[State]|[Player]|Table|[Player]*|[Cards]|Cards
 
 #### State
 |player|match|score  |hand   |played|judged
