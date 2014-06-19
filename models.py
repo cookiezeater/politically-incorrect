@@ -6,7 +6,7 @@
     - docs
 """
 
-from app import app, db
+from app import db
 
 # association_table = db.Table('association', db.Model.metadata,
 #     db.Column('left_id', db.Integer, db.ForeignKey('left.id')),
@@ -38,10 +38,6 @@ class Card(db.Model):
 
     def __str__(self):
         return "{} Card: {}".format("White" if self.white else "Black", self.text)
-
-    def white(self):
-        raise NotImplementedError
-
 
 # class Player(db.Model):
 #     """
