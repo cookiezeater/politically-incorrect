@@ -73,13 +73,12 @@ class Player(db.Model):
 
     # One-to-many:
     # A match only has one winner, but a winner can have many won matches.
-    wins = db.relationship('Match', backref='players')
+    wins = db.relationship('Match', backref='winner')
 
     # Many-to-many:
     # A player has many friends,
     # and any friend can have many friends
-    friends = db.relationship("Player", secondary=players_to_players,
-                                backref="players")
+    friends = db.relationship("Player", secondary=players_to_players)
 
     # Many-to-many:
     # A player can be in many matches,
@@ -89,7 +88,7 @@ class Player(db.Model):
 
     # One-to-many:
     # A player has many states, but a state can only have one player.
-    states = db.relationship('State', backref='players')
+    states = db.relationship('State', backref='player')
 
     def __init__(self,
                 username=None,
@@ -184,7 +183,7 @@ class State(db.Model):
     # Many-to-one:
     # A state has one played card,
     # but a card can have many states in which it is played.
-    played = db.relationship("Card", backref="states")
+    played_id = db.Column(db.Integer, db.ForeignKey('cards.id'))
 
     def __init__(self, player=None, match=None, score=0,
                     hand=[], played=None, judged=0):

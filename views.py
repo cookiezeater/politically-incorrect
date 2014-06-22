@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+
 from app import app
 from models import *
 from flask import jsonify, request
@@ -18,11 +19,11 @@ def get_card(card_id):
 def update_card(card_id):
     card = Card.query.get(card_id)
     content = request.json
-    
+
     card.text = content["text"]
     card.rank = 0
     card.white = bool(content["white"])
-    
+
     db.session.add(card)
     db.session.commit()
     return jsonify(status="success")
