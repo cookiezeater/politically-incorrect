@@ -38,8 +38,8 @@ class Card(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
     text = db.Column(db.String(120), unique=True)
-    rank = db.Column(db.Integer)
     white = db.Column(db.Boolean)
+    rank = db.Column(db.Integer)
     meta = db.Column(db.String(500))
 
     # One-to-many:
@@ -47,11 +47,9 @@ class Card(db.Model):
     # but a black card can be in many matches.
     matches = db.relationship('Match', backref='cards')
 
-    def __init__(self, text=None, rank=0, white=True, meta=""):
+    def __init__(self, text=None, white=True):
         self.text = text
-        self.rank = rank
         self.white = white
-        self.meta = meta
 
     def __str__(self):
         return "{} Card: {}".format("White" if self.white else "Black",

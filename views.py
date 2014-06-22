@@ -21,7 +21,6 @@ def update_card(card_id):
     content = request.json
 
     card.text = content["text"]
-    card.rank = 0
     card.white = bool(content["white"])
 
     db.session.add(card)
@@ -30,6 +29,12 @@ def update_card(card_id):
 
 @app.route("/cards/<int:card_id>", methods=["DELETE"])
 def delete_card(card_id):
+    """
+    This is unstable right now because
+    deleting a card cascades to all the matches
+    it was used in.
+    """
+
     card = Card.query.get(card_id)
     db.session.delete(card)
     db.session.commit()
@@ -39,8 +44,11 @@ def delete_card(card_id):
 def create_card():
     content = request.json
     card = Card(text=content["text"],
-                rank=0,
                 white=bool(content["white"]))
+
+    card.rank = 0
+    card.meta = ""
+    card.matches = []
 
     db.session.add(card)
     db.session.commit()
