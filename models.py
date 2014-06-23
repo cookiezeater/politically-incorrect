@@ -47,7 +47,7 @@ class Card(db.Model):
     # but a black card can be in many matches.
     matches = db.relationship('Match', backref='cards')
 
-    def __init__(self, text=None, white=True):
+    def __init__(self, text=None, white=True, rank=0, meta=""):
         self.text = text
         self.white = white
 
