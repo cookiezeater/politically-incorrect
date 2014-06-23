@@ -46,10 +46,6 @@ def create_card():
     card = Card(text=content["text"],
                 white=bool(content["white"]))
 
-    card.rank = 0
-    card.meta = ""
-    card.matches = []
-
     db.session.add(card)
     db.session.commit()
     return jsonify(status="success")
