@@ -1,7 +1,8 @@
-import os
-from flask import Flask
-from flask.ext.sqlalchemy import SQLAlchemy
+#!/usr/bin/env python
+from routes.player import *
+from routes.card import *
+from common import app, db
 
-app = Flask(__name__)
-app.config.from_object(os.environ['APP_SETTINGS'])
-db = SQLAlchemy(app)
+if __name__ == "__main__":
+    db.create_all()
+    app.run()
