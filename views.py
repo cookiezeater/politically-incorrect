@@ -59,6 +59,13 @@ def create_user():
     db.session.commit()
     return jsonify(status="success")
 
+@app.route("/users", methods=["GET"])
+def get_all_users():
+    players = Player.query.all()
+    players = {player.email: player.id
+                for player in players}
+    return jsonify(**players)
+
 if __name__ == "__main__":
     db.create_all()
     app.run()
