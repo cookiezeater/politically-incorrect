@@ -16,17 +16,6 @@ Make the app executable. (less typing)
 Run the app:
 <pre><code>(venv) $ ./app.py</code></pre>
 
-## What Works Right Now
-- create a card
-- get all cards as json
-- get a card with its id
-
-## Todo
-- secret key for auth
-- add all core features
-- add oauth and social signup
-- convert this readme to a wiki
-
 ## Directory Structure
 - /android/: contains Android app
 - /routes: controllers and routes
