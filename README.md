@@ -11,10 +11,10 @@ Make sure postgres.app is open.
 (venv) $ export APP_SETTINGS=config.DevelopmentConfig</code></pre>
 
 Make the app executable. (less typing)
-<pre><code>(venv) $ chmod +x views.py</code></pre>
+<pre><code>(venv) $ chmod +x app.py</code></pre>
 
 Run the app:
-<pre><code>(venv) $ ./views.py</code></pre>
+<pre><code>(venv) $ ./app.py</code></pre>
 
 ## What Works Right Now
 - create a card
