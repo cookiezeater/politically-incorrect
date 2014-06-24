@@ -94,7 +94,7 @@ class Player(db.Model):
 
     def __init__(self,
                 username="",
-                password=""
+                password="",
                 email="",
                 first_name="",
                 last_name=""):
@@ -103,9 +103,10 @@ class Player(db.Model):
         self.first_name = first_name
         self.last_name = last_name
 
-        self.matches = None
-        self.friends = None
-        self.wins = 0
+        self.matches = []
+        self.friends = []
+        self.states = []
+        self.wins = []
         self.losses = 0
 
     def __str__(self):

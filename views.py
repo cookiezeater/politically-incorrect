@@ -54,7 +54,7 @@ def create_user():
                     content["password"],
                     content["email"],
                     content["first_name"],
-                content["last_name"])
+                    content["last_name"])
     db.session.add(player)
     db.session.commit()
     return jsonify(status="success")
