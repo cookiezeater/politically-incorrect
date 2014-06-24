@@ -19,10 +19,8 @@ def get_card(card_id):
 def update_card(card_id):
     card = Card.query.get(card_id)
     content = request.json
-
     card.text = content["text"]
     card.white = bool(content["white"])
-
     db.session.add(card)
     db.session.commit()
     return jsonify(status="success")
@@ -43,10 +41,20 @@ def delete_card(card_id):
 @app.route("/cards", methods=["POST"])
 def create_card():
     content = request.json
-    card = Card(text=content["text"],
-                white=bool(content["white"]))
-
+    card = Card(content["text"],
+                bool(content["white"]))
     db.session.add(card)
+    db.session.commit()
+    return jsonify(status="success")
+
+@app.route("/users", methods=["POST"])
+def create_user():
+    content = request.json
+    user = User(content["username"],
+                content["email"],
+                content["first_name"],
+                content["last_name"])
+    db.session.add(user)
     db.session.commit()
     return jsonify(status="success")
 
