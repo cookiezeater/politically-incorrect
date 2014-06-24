@@ -93,8 +93,9 @@ class Player(db.Model):
     states = db.relationship('State', backref='player')
 
     def __init__(self,
-                username=None,
-                email=None,
+                username="",
+                password=""
+                email="",
                 first_name="",
                 last_name=""):
         self.username = username

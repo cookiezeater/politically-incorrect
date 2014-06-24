@@ -50,11 +50,12 @@ def create_card():
 @app.route("/users", methods=["POST"])
 def create_user():
     content = request.json
-    user = User(content["username"],
-                content["email"],
-                content["first_name"],
+    player = Player(content["username"],
+                    content["password"],
+                    content["email"],
+                    content["first_name"],
                 content["last_name"])
-    db.session.add(user)
+    db.session.add(player)
     db.session.commit()
     return jsonify(status="success")
 
