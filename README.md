@@ -29,8 +29,12 @@ Run the app:
 
 ## Directory Structure
 - /android/: contains Android app
-- /views.py: view controllers and routes
-- /models.py: contains ORM models
+- /routes: controllers and routes
+- /models: contains ORM models
+- /app.py: run the server
+
+## Import Structure
+![arch](./architecture.png)
 
 ## API Architecture
 #### Cards
