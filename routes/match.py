@@ -6,7 +6,7 @@ def get_all_matches():
     matches = Match.query.all()
     matches = {"matches":
                     [{"id": match.id,
-                      "players": match.players,
+                      "pending": [player.id for player in match.pending],
                       "states": [str(state) for state in match.states],
                       "status": match.status}
                       for match in matches]}
@@ -17,7 +17,6 @@ def get_all_matches():
 def get_match(match_id):
     match = Match.query.get(match_id)
     return jsonify(id=match.id,
-                   players=match.players,
                    states=match.states,
                    status=match.status)
 
