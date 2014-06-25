@@ -21,7 +21,7 @@ def update_card(card_id):
     if "text" in content:
         card.text = content["text"]
     if "white" in content:
-        card.white = content["white"][0].upper() == "T"
+        card.white = content["white"]
     db.session.add(card)
     db.session.commit()
     return jsonify(status="success")
@@ -44,8 +44,9 @@ def delete_card(card_id):
 @app.route("/cards", methods=["POST"])
 def create_card():
     content = request.json
+    return jsonify(status="failure")
     card = Card(content["text"],
-                content["white"][0].upper() == "T")
+                content["white"])
     db.session.add(card)
     db.session.commit()
     return jsonify(status="success")
