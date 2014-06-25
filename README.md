@@ -24,7 +24,7 @@ We use [Postman](www.getpostman.com) for testing. A basic test suite is located 
 - /routes: controllers and routes
 - /models: contains ORM models
 - /app.py: run the server
-- /tests: basic tests
+- /tests/: basic tests
 
 ## Import Structure
 ![arch](./architecture.png)
