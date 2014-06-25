@@ -17,6 +17,10 @@ class Match(db.Model):
 
     status = db.Column(db.String(7))
 
+    # Many-to-one:
+    # A match only has one host, but a host can have many matches.
+    host_id = db.Column(db.Integer, db.ForeignKey("players.id"))
+
     # One-to-many:
     # A match has many states, but a state can only have one match.
     states = db.relationship("State", backref="match")
@@ -24,7 +28,8 @@ class Match(db.Model):
     # Many-to-many:
     # A match can have many pending players,
     # and a pending player can have many pending matches.
-    pending = db.relationship("Player", secondary=matches_to_players)
+    pending = db.relationship("Player", secondary=matches_to_players,
+                                backref="invited")
 
     # Many-to-one:
     # A match only has one winner, but a winner can have many won matches.
@@ -40,8 +45,8 @@ class Match(db.Model):
     # but a black card can be in many matches.
     black_id = db.Column(db.Integer, db.ForeignKey("cards.id"))
 
-    def __init__(self, host):
-        self.host = host
+    def __init__(self, host_id):
+        self.host_id = host_id
 
         self.status = "PENDING"
         self.states = []

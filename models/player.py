@@ -1,16 +1,16 @@
 from models.shared import *
 
-players_to_matches = db.Table('p2m', db.Model.metadata,
-    db.Column('players_id', db.Integer, db.ForeignKey('players.id')),
-    db.Column('matches_id', db.Integer, db.ForeignKey('matches.id')))
+players_to_matches = db.Table("p2m", db.Model.metadata,
+    db.Column("players_id", db.Integer, db.ForeignKey("players.id")),
+    db.Column("matches_id", db.Integer, db.ForeignKey("matches.id")))
 
-players_to_players = db.Table('p2p', db.Model.metadata,
-    db.Column('players_id', db.Integer, db.ForeignKey('players.id')),
-    db.Column('players_id', db.Integer, db.ForeignKey('players.id')))
+players_to_players = db.Table("p2p", db.Model.metadata,
+    db.Column("players_id", db.Integer, db.ForeignKey("players.id")),
+    db.Column("players_id", db.Integer, db.ForeignKey("players.id")))
 
 
 class Player(db.Model):
-    __tablename__ = 'players'
+    __tablename__ = "players"
     id = db.Column(db.Integer, primary_key=True)
 
     username = db.Column(db.String(50), unique=True)
@@ -21,7 +21,13 @@ class Player(db.Model):
 
     # One-to-many:
     # A match only has one winner, but a winner can have many won matches.
-    wins = db.relationship('Match', backref='winner')
+    hosting = db.relationship("Match", backref="host",
+                                foreign_keys="[Match.host_id]")
+
+    # One-to-many:
+    # A match only has one winner, but a winner can have many won matches.
+    wins = db.relationship("Match", backref="winner",
+                            foreign_keys="[Match.winner_id]")
 
     # Many-to-many:
     # A player has many friends,
@@ -36,7 +42,7 @@ class Player(db.Model):
 
     # One-to-many:
     # A player has many states, but a state can only have one player.
-    states = db.relationship('State', backref='player')
+    states = db.relationship("State", backref="player")
 
     def __init__(self,
                  username="",
@@ -50,6 +56,7 @@ class Player(db.Model):
         self.last_name = last_name
 
         self.losses = 0
+        self.hosting = []
         self.wins = []
         self.friends = []
         self.matches = []

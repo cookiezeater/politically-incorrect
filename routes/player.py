@@ -15,7 +15,8 @@ def get_player(player_id):
     return jsonify(username=player.username,
                    email=player.email,
                    first_name=player.first_name,
-                   last_name=player.last_name)
+                   last_name=player.last_name,
+                   invited=[invitation.id for invitation in player.invited])
 
 
 @app.route("/players/<int:player_id>", methods=["PUT"])

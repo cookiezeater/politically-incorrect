@@ -2,6 +2,7 @@
 from routes.player import *
 from routes.card import *
 from routes.match import *
+from routes.game import *
 from common import app, db
 
 if __name__ == "__main__":
