@@ -21,7 +21,7 @@ def update_card(card_id):
     if "text" in content:
         card.text = content["text"]
     if "white" in content:
-        card.white = bool(content["white"])
+        card.white = content["white"][0].upper() == "T"
     db.session.add(card)
     db.session.commit()
     return jsonify(status="success")
