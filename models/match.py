@@ -56,7 +56,4 @@ class Match(db.Model):
         self.black_id = None
 
     def __str__(self):
-        players = "get_all_players"
         raise NotImplementedError
-        return "Match players: {}, status: {}, judge: {}".format(
-            players, self.status, self.judge)
