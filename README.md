@@ -89,3 +89,23 @@ Cards do not require backrefs.
 |/matches/id |GET |get match info             |
 |/matches/id |PUT |update match               |
 |/matches    |GET |get all matches (temporary)|
+
+### Example POST Requests
+All requests must have <code>Content-Type: application/json</code> headers.
+#### POST /matches
+<pre><code>{
+	"player_id": "1"
+}</code></pre>
+#### POST /players
+<pre><code>{
+	"username": "user",
+	"password": "pass",
+	"email": "e@mail.com",
+	"first_name": "joe",
+	"last_name": "obama"
+}</code></pre>
+#### POST /cards
+<pre><code>{
+	"text": "Generic poop joke.",
+	"white": "false"
+}</code></pre>
