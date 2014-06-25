@@ -25,7 +25,7 @@ def get_match(match_id):
 @app.route("/matches", methods=["POST"])
 def create_match():
     content = request.json
-    player_id = int(content["player_id"])
+    player_id = content["player_id"]
     match = Match(player_id)
     state = State(player_id, match.id)
     db.session.add(state)
