@@ -1,16 +1,16 @@
 from routes.shared import *
 
 
-@app.route("/users", methods=["GET"])
-def get_all_users():
+@app.route("/players", methods=["GET"])
+def get_all_players():
     players = Player.query.all()
     players = {player.email: player.id
                for player in players}
     return jsonify(**players)
 
 
-@app.route("/users/<int:player_id>", methods=["GET"])
-def get_user(player_id):
+@app.route("/players/<int:player_id>", methods=["GET"])
+def get_player(player_id):
     player = Player.query.get(player_id)
     return jsonify(username=player.username,
                    email=player.email,
@@ -18,8 +18,8 @@ def get_user(player_id):
                    last_name=player.last_name)
 
 
-@app.route("/users/<int:player_id>", methods=["PUT"])
-def get_user(player_id):
+@app.route("/players/<int:player_id>", methods=["PUT"])
+def update_player(player_id):
     player = Player.query.get(player_id)
     content = request.json
     if "username" in content:
@@ -37,8 +37,18 @@ def get_user(player_id):
     return jsonify(status="success")
 
 
-@app.route("/users", methods=["POST"])
-def create_user():
+@app.route("/players/<int:player_id>", methods=["DELETE"])
+def delete_player(player_id):
+    """Deleting a player cascades to all of its relationships."""
+
+    player = Card.query.get(player_id)
+    db.session.delete(player)
+    db.session.commit()
+    return jsonify(status="success")
+
+
+@app.route("/players", methods=["POST"])
+def create_player():
     content = request.json
     player = Player(content["username"],
                     content["password"],
