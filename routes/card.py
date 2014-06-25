@@ -45,7 +45,7 @@ def delete_card(card_id):
 def create_card():
     content = request.json
     card = Card(content["text"],
-                bool(content["white"]))
+                content["white"][0].upper() == "T")
     db.session.add(card)
     db.session.commit()
     return jsonify(status="success")
