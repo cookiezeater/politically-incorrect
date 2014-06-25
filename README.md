@@ -107,5 +107,5 @@ All requests must have <code>Content-Type: application/json</code> headers.
 #### POST /cards
 <pre><code>{
 	"text": "Generic poop joke.",
-	"white": "false"
+	"white": "True"
 }</code></pre>
