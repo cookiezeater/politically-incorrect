@@ -26,7 +26,6 @@ def accept_invite(match_id):
     match = Match.query.get(match_id)
     assert match.host_id != content["acceptor_id"]
     acceptor = Player.query.get(content["acceptor_id"])
-    print acceptor.invited
     assert match in acceptor.invited
     acceptor.invited.remove(match)
     state = State(acceptor.id, match.id)
