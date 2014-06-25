@@ -30,9 +30,14 @@ class State(db.Model):
     # but a card can have many states in which it is played.
     played_id = db.Column(db.Integer, db.ForeignKey('cards.id'))
 
-    def __init__(self, player=None, match=None, score=0,
-                 hand=[], played=None, judged=0):
-        raise NotImplementedError
+    def __init__(self, player_id=None, match_id=None):
+        self.player_id = player_id
+        self.match_id = match_id
+
+        self.score = 0
+        self.judged = 0
+        self.hand = []
+        self.played_id = None
 
     def __str__(self):
-        return "State: Player {}, Match {}".format(self.player, self.match)
+        return "State for p{} in m{}".format(self.player_id, self.match_id)

@@ -49,11 +49,11 @@ class Player(db.Model):
         self.first_name = first_name
         self.last_name = last_name
 
-        self.matches = []
-        self.friends = []
-        self.states = []
-        self.wins = []
         self.losses = 0
+        self.wins = []
+        self.friends = []
+        self.matches = []
+        self.states = []
 
     def __str__(self):
         return "Player {}: {}".format(self.username, self.email)
