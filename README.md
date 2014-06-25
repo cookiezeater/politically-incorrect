@@ -16,11 +16,15 @@ Make the app executable. (less typing)
 Run the app:
 <pre><code>(venv) $ ./app.py</code></pre>
 
+## Testing
+We use [Postman](www.getpostman.com) for testing. A basic test suite is located in the tests directory.
+
 ## Directory Structure
 - /android/: contains Android app
 - /routes: controllers and routes
 - /models: contains ORM models
 - /app.py: run the server
+- /tests: basic tests
 
 ## Import Structure
 ![arch](./architecture.png)
