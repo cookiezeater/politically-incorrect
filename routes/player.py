@@ -40,9 +40,12 @@ def delete_player(player_id):
     """Deleting a player cascades to all of its relationships."""
 
     player = Card.query.get(player_id)
-    db.session.delete(player)
-    db.session.commit()
-    return jsonify(status="success")
+    if player:
+        db.session.delete(player)
+        db.session.commit()
+        return jsonify(status="success")
+    else:
+        return jsonify(status="failure: player does not exist.")
 
 @app.route("/players", methods=["POST"])
 def create_player():
