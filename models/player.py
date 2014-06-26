@@ -8,6 +8,7 @@ players_to_players = db.Table("p2p", db.Model.metadata,
     db.Column("players_id", db.Integer, db.ForeignKey("players.id")),
     db.Column("players_id", db.Integer, db.ForeignKey("players.id")))
 
+
 class Player(db.Model):
     __tablename__ = "players"
     id = db.Column(db.Integer, primary_key=True)

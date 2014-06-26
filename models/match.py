@@ -8,6 +8,7 @@ matches_to_cards = db.Table("m2c", db.Model.metadata,
     db.Column("matches_id", db.Integer, db.ForeignKey("matches.id")),
     db.Column("cards_id", db.Integer, db.ForeignKey("cards.id")))
 
+
 class Match(db.Model):
     STATUSES = "PENDING", "ONGOING", "ENDED"
 

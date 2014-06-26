@@ -1,10 +1,12 @@
 from routes.shared import *
 
+
 @app.route("/cards", methods=["GET"])
 def get_all_cards():
     cards = Card.query.all()
     cards = {card.text: [card.id for card in cards]}
     return jsonify(**cards)
+
 
 @app.route("/cards/<int:card_id>", methods=["GET"])
 def get_card(card_id):
@@ -13,6 +15,7 @@ def get_card(card_id):
         return jsonify(card=card.text, white=card.white)
     else:
         return jsonify("No card found with that id.")
+
 
 @app.route("/cards/<int:card_id>", methods=["PUT"])
 def update_card(card_id):
@@ -29,6 +32,7 @@ def update_card(card_id):
     else:
         return jsonify("No card found with that id.")
 
+
 @app.route("/cards/<int:card_id>", methods=["DELETE"])
 def delete_card(card_id):
     """
@@ -43,6 +47,7 @@ def delete_card(card_id):
         return jsonify(status="success")
     else:
         return jsonify("No card found with that id.")
+
 
 @app.route("/cards", methods=["POST"])
 def create_card():
