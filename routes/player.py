@@ -47,6 +47,9 @@ def delete_player(player_id):
 @app.route("/players", methods=["POST"])
 def create_player():
     content = request.json
+    prev_player = Player.query.filter(Player.email == content["email"])
+    if prev_player:
+        return jsonify(status="Email is associated with another player.")
     player = Player(content["username"],
                     content["password"],
                     content["email"],
