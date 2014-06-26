@@ -1,6 +1,4 @@
 from models.shared import *
-
-
 class Card(db.Model):
     """
     Represents a player-made card. Scaffold should contain

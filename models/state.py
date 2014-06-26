@@ -4,7 +4,6 @@ states_to_cards = db.Table('s2c', db.Model.metadata,
     db.Column('states_id', db.Integer, db.ForeignKey('states.id')),
     db.Column('cards_id', db.Integer, db.ForeignKey('cards.id')))
 
-
 class State(db.Model):
     __tablename__ = 'states'
     id = db.Column(db.Integer, primary_key=True)
