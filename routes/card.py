@@ -44,7 +44,6 @@ def delete_card(card_id):
 @app.route("/cards", methods=["POST"])
 def create_card():
     content = request.json
-    return jsonify(status="failure")
     card = Card(content["text"],
                 content["white"])
     db.session.add(card)
