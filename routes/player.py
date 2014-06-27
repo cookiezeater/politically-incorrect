@@ -12,11 +12,15 @@ def get_all_players():
 @app.route("/players/<int:player_id>", methods=["GET"])
 def get_player(player_id):
     player = Player.query.get(player_id)
-    return jsonify(username=player.username,
-                   email=player.email,
-                   first_name=player.first_name,
-                   last_name=player.last_name,
-                   invited=[invitation.id for invitation in player.invited])
+    if player:
+        player = Player.query.get(player_id)
+        return jsonify(username=player.username,
+                       email=player.email,
+                       first_name=player.first_name,
+                       last_name=player.last_name,
+                       )
+    else:
+        return jsonify(status="failure: player does not exist.")
 
 
 @app.route("/players/<int:player_id>", methods=["PUT"])
@@ -37,7 +41,6 @@ def update_player(player_id):
     db.session.commit()
     return jsonify(status="success")
 
-
 @app.route("/players/<int:player_id>", methods=["DELETE"])
 def delete_player(player_id):
     """Deleting a player cascades to all of its relationships."""
@@ -47,10 +50,12 @@ def delete_player(player_id):
     db.session.commit()
     return jsonify(status="success")
 
-
 @app.route("/players", methods=["POST"])
 def create_player():
     content = request.json
+    prev_player = Player.query.filter(Player.email == content["email"])
+    if prev_player:
+        return jsonify(status="Email is associated with another player.")
     player = Player(content["username"],
                     content["password"],
                     content["email"],

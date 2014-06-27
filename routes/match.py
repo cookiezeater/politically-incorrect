@@ -16,10 +16,12 @@ def get_all_matches():
 @app.route("/matches/<int:match_id>", methods=["GET"])
 def get_match(match_id):
     match = Match.query.get(match_id)
-    return jsonify(id=match.id,
-                   states=match.states,
-                   status=match.status)
-
+    if match:
+      return jsonify(id=match.id,
+                     states=match.states,
+                     status=match.status)
+    else:
+      return jsonify("Match not found with that id.")
 
 @app.route("/matches", methods=["POST"])
 def create_match():
