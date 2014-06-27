@@ -22,12 +22,12 @@ class Player(db.Model):
     # One-to-many:
     # A match only has one winner, but a winner can have many won matches.
     hosting = db.relationship("Match", backref="host",
-                                foreign_keys="[Match.host_id]")
+                              foreign_keys="[Match.host_id]")
 
     # One-to-many:
     # A match only has one winner, but a winner can have many won matches.
     wins = db.relationship("Match", backref="winner",
-                            foreign_keys="[Match.winner_id]")
+                           foreign_keys="[Match.winner_id]")
 
     # Many-to-many:
     # A player has many friends,

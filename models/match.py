@@ -29,7 +29,7 @@ class Match(db.Model):
     # A match can have many pending players,
     # and a pending player can have many pending matches.
     pending = db.relationship("Player", secondary=matches_to_players,
-                                backref="invited")
+                              backref="invited")
 
     # Many-to-one:
     # A match only has one winner, but a winner can have many won matches.

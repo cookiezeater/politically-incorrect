@@ -5,23 +5,21 @@ from routes.shared import *
 def get_all_matches():
     matches = Match.query.all()
     matches = {"matches":
-                    [{"id": match.id,
-                      "pending": [player.id for player in match.pending],
-                      "states": [str(state) for state in match.states],
-                      "status": match.status}
-                      for match in matches]}
+               [{"id": match.id,
+                 "pending": [player.id for player in match.pending],
+                 "states": [str(state) for state in match.states],
+                 "status": match.status}
+                for match in matches]}
     return jsonify(**matches)
 
 
 @app.route("/matches/<int:match_id>", methods=["GET"])
 def get_match(match_id):
-    match = Match.query.get(match_id)
-    if match:
-      return jsonify(id=match.id,
-                     states=match.states,
-                     status=match.status)
-    else:
-      return jsonify("Match not found with that id.")
+    match = Match.query.get_or_404(match_id)
+    return jsonify(id=match.id,
+                   states=match.states,
+                   status=match.status)
+
 
 @app.route("/matches", methods=["POST"])
 def create_match():

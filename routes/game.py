@@ -4,9 +4,9 @@ from routes.shared import *
 @app.route("/matches/<int:match_id>/invite", methods=["POST"])
 def invite_player(match_id):
     content = request.json
-    match = Match.query.get(match_id)
+    match = Match.query.get_or_404(match_id)
     assert match.host_id == content["inviter"]
-    match.pending.append(Player.query.get(content["invitee"]))
+    match.pending.append(Player.query.get_or_404(content["invitee"]))
     db.session.add(match)
     db.session.commit()
     return jsonify(status="success")
@@ -23,9 +23,9 @@ def accept_invite(match_id):
     """
 
     content = request.json
-    match = Match.query.get(match_id)
+    match = Match.query.get_or_404(match_id)
     assert match.host_id != content["acceptor_id"]
-    acceptor = Player.query.get(content["acceptor_id"])
+    acceptor = Player.query.get_or_404(content["acceptor_id"])
     assert match in acceptor.invited
     acceptor.invited.remove(match)
     state = State(acceptor.id, match.id)

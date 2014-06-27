@@ -10,27 +10,21 @@ def get_all_cards():
 
 @app.route("/cards/<int:card_id>", methods=["GET"])
 def get_card(card_id):
-    card = Card.query.get(card_id)
-    if card:
-        return jsonify(card=card.text, white=card.white)
-    else:
-        return jsonify("No card found with that id.")
+    card = Card.query.get_or_404(card_id)
+    return jsonify(card=card.text, white=card.white)
 
 
 @app.route("/cards/<int:card_id>", methods=["PUT"])
 def update_card(card_id):
-    card = Card.query.get(card_id)
-    if card:
-        content = request.json
-        if "text" in content:
-            card.text = content["text"]
-        if "white" in content:
-            card.white = content["white"]
-        db.session.add(card)
-        db.session.commit()
-        return jsonify(status="success")
-    else:
-        return jsonify("No card found with that id.")
+    card = Card.query.get_or_404(card_id)
+    content = request.json
+    if "text" in content:
+        card.text = content["text"]
+    if "white" in content:
+        card.white = content["white"]
+    db.session.add(card)
+    db.session.commit()
+    return jsonify(status="success")
 
 
 @app.route("/cards/<int:card_id>", methods=["DELETE"])
@@ -40,13 +34,10 @@ def delete_card(card_id):
     deleting a card cascades to all the matches
     it was used in.
     """
-    card = Card.query.get(card_id)
-    if card:
-        db.session.delete(card)
-        db.session.commit()
-        return jsonify(status="success")
-    else:
-        return jsonify("No card found with that id.")
+    card = Card.query.get_or_404(card_id)
+    db.session.delete(card)
+    db.session.commit()
+    return jsonify(status="success")
 
 
 @app.route("/cards", methods=["POST"])
