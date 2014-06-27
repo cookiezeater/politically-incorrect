@@ -54,5 +54,8 @@ def create_player():
                     content["first_name"],
                     content["last_name"])
     db.session.add(player)
-    db.session.commit()
+    try:
+        db.session.commit()
+    except IntegrityError as e:
+        return jsonify(status="failure", message="Username or email in-use.")
     return jsonify(status="success")
