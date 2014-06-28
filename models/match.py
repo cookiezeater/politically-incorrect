@@ -16,6 +16,7 @@ class Match(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
     status = db.Column(db.String(7))
+    max_players = db.Column(db.Integer)
 
     # Many-to-one:
     # A match only has one host, but a host can have many matches.
@@ -35,6 +36,10 @@ class Match(db.Model):
     # A match only has one winner, but a winner can have many won matches.
     winner_id = db.Column(db.Integer, db.ForeignKey("players.id"))
 
+    # Many-to-one:
+    # A match only has one judge, but a player can judge many matches.
+    judge_id = db.Column(db.Integer, db.ForeignKey("players.id"))
+
     # Many-to-many:
     # A match has many cards in a deck,
     # and cards can have many decks in many matches.
@@ -45,8 +50,9 @@ class Match(db.Model):
     # but a black card can be in many matches.
     black_id = db.Column(db.Integer, db.ForeignKey("cards.id"))
 
-    def __init__(self, host_id):
+    def __init__(self, host_id, max_players):
         self.host_id = host_id
+        self.max_players = max_players
 
         self.status = "PENDING"
         self.states = []

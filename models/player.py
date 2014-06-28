@@ -29,6 +29,11 @@ class Player(db.Model):
     wins = db.relationship("Match", backref="winner",
                            foreign_keys="[Match.winner_id]")
 
+    # One-to-many:
+    # A match only has one judge, but a player can judge many matches.
+    judging = db.relationship("Match", backref="judge",
+                              foreign_keys="[Match.judge_id]")
+
     # Many-to-many:
     # A player has many friends,
     # and any friend can have many friends

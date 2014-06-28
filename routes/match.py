@@ -25,7 +25,9 @@ def get_match(match_id):
 def create_match():
     content = request.json
     player_id = content["player_id"]
-    match = Match(player_id)
+    max_players = content["max_players"]
+    assert 3 <= max_players <= 10
+    match = Match(player_id, max_players)
     state = State(player_id, match.id)
     db.session.add(state)
     match.states.append(state)
