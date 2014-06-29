@@ -4,7 +4,7 @@ from routes.shared import *
 @app.route("/cards", methods=["GET"])
 def get_all_cards():
     cards = Card.query.all()
-    cards = {card.text: [card.id for card in cards]}
+    cards = {card.text: card.id for card in cards}
     return jsonify(**cards)
 
 
