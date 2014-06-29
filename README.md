@@ -16,6 +16,19 @@ Make the app executable. (less typing)
 Run the app:
 <pre><code>(venv) $ ./app.py</code></pre>
 
+## Game Logic
+1. create match: <code>create_match()</code>
+2. invite people: <code>invite_player()</code>
+3. enough people accept: <code>accept_invite()</code>
+4. person with lowest judged count is current judge,
+   previous judge.judge_count incremented,
+   hands are filled to 10 cards: <code>new_round()</code>
+5. people (async) make moves while views are updated: <code>make_move()</code>
+6. when everyone has gone, cards are revealed: <code>round_status()</code>
+7. judge makes a choice, winner's points increment: <code>choose()</code>
+8. everyone has seen the choice: <code>continue()</code>
+9. repeat from 4 until someone gets 15 points, then: <code>end_game()</code>
+
 ## Testing
 We use [Postman](www.getpostman.com) for testing. A basic test suite is located in the tests directory.
 
