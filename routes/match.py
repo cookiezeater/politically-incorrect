@@ -4,14 +4,20 @@ from routes.shared import *
 @app.route("/matches", methods=["GET"])
 def get_all_matches():
     matches = Match.query.all()
-    matches = {"matches":
-               [{"id": match.id,
-                 "max_players": match.max_players,
-                 "pending": [player.id for player in match.pending],
-                 "states": [str(state) for state in match.states],
-                 "status": match.status}
-                for match in matches]}
-    return jsonify(**matches)
+    return jsonify(**{"matches":
+                      [{"id": match.id,
+                        "host": match.host_id,
+                        "max_players": match.max_players,
+                        "status": match.status,
+                        "states": [str(state) for state in match.states],
+                        "pending": [player.id for player in match.pending],
+                        "winner": match.winner_id,
+                        "judge": State.query.filter_by(match_id=match.id,
+                                                       judge=True)
+                                 .first().player_id,
+                        "deck": [card.text for card in match.deck],
+                        "black": Card.query.get(match.black_id).text}
+                       for match in matches]})
 
 
 @app.route("/matches/<int:match_id>", methods=["GET"])
@@ -32,10 +38,11 @@ def create_match():
     state = State(player_id, match.id)
     db.session.add(state)
     match.states.append(state)
-    match.deck = Card.query.all() # temporary
+    match.deck = Card.query.all()  # temporary
     db.session.add(match)
     db.session.commit()
     return jsonify(status="success")
+
 
 @app.route("/matches/<int:match_id>", methods=["DELETE"])
 def delete_match(match_id):
