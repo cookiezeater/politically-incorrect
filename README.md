@@ -111,7 +111,7 @@ Cards do not require backrefs.
 All requests must have <code>Content-Type: application/json</code> headers.
 #### POST /matches
 <pre><code>{
-	"player_id": "1"
+	"player_id": 1
 }</code></pre>
 #### POST /players
 <pre><code>{
@@ -124,5 +124,5 @@ All requests must have <code>Content-Type: application/json</code> headers.
 #### POST /cards
 <pre><code>{
 	"text": "Generic poop joke.",
-	"white": "True"
+	"white": true
 }</code></pre>
