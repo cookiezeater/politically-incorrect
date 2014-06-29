@@ -54,7 +54,6 @@ class Match(db.Model):
         self.states = []
         self.pending = []
         self.winner_id = None
-        self.judge_id = None
         self.deck = []
         self.black_id = None
 
