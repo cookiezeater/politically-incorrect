@@ -46,6 +46,7 @@ def new_round(match):
             old_judge = state
             old_judge.judged += 1
             db.session.add(old_judge)
+            break
     white_cards = filter(lambda card: card.white, match.deck)
     for state in match.states:
         state.played_id = None
@@ -107,12 +108,16 @@ def make_move(match_id):
     content = request.json
     match = Match.query.get_or_404(match_id)
     assert match.status == "ONGOING"
+    judge = State.query.filter_by(match=match_id,
+                                  judge=True).first()
+    assert content["player_id"] != judge.player_id
     assert content["player_id"] in [state.player_id for state in match.states]
-    state = match.state.get(player_id=content["player_id"])
+    state = State.query.filter_by(player_id=content["player_id"],
+                                  match_id=match_id).first()
     assert not state.played_id
     card = Card.query.get(content["card_id"])
     assert card in state.hand
-    state.played_id = card
+    state.played_id = card.id
     db.session.add(match)
     db.session.add(state)
     db.session.commit()
@@ -129,11 +134,18 @@ def round_status(match_id):
     content = request.json
     match = Match.query.get(match_id)
     assert content["player_id"] in [state.player_id for state in match.states]
+    try:
+        round_winner = State.query.filter_by(match_id=match_id,
+                                             round_winner=True) \
+                       .first().player_id
+    except:
+        round_winner = None
     if all([state.viewed_round_end for state in match.states]):
         return jsonify(status="success", round_state="ended")
     return jsonify(status="success",
                    round_state="ongoing",
-                   **{state.player_id: None if not state.played_id else
+                   round_winner=round_winner,
+                   **{str(state.player_id): None if not state.played_id else
                       Card.query.get(state.played_id).text
                       for state in match.states})
 
@@ -169,12 +181,17 @@ def choose_winner(match_id):
     match = Match.query.get_or_404(match_id)
     assert round_ended(match)
     assert content["judge_id"] != content["winner_id"]
-    assert content["judge_id"] == match.judge_id
+    assert content["judge_id"] == State.query.filter_by(
+                                        player_id=content["judge_id"],
+                                        match_id=match_id,
+                                        judge=True).first().player_id
     assert content["winner_id"] in [state.player_id for state in match.states]
-    winner = match.states.get(player_id=content["winner_id"])
+    winner = State.query.filter_by(player_id=content["winner_id"],
+                                   match_id=match_id).first()
     winner.round_winner = True
     db.session.add(winner)
-    db.session.add()
+    db.session.commit()
+    return jsonify(status="success")
 
 
 @app.route("/matches/<int:match_id>/acknowledge", methods=["POST"])
