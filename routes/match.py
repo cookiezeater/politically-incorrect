@@ -6,6 +6,7 @@ def get_all_matches():
     matches = Match.query.all()
     matches = {"matches":
                [{"id": match.id,
+                 "max_players": match.max_players,
                  "pending": [player.id for player in match.pending],
                  "states": [str(state) for state in match.states],
                  "status": match.status}
@@ -31,6 +32,14 @@ def create_match():
     state = State(player_id, match.id)
     db.session.add(state)
     match.states.append(state)
+    match.deck = Card.query.all() # temporary
     db.session.add(match)
+    db.session.commit()
+    return jsonify(status="success")
+
+@app.route("/matches/<int:match_id>", methods=["DELETE"])
+def delete_match(match_id):
+    match = Match.query.get(match_id)
+    db.session.delete(match)
     db.session.commit()
     return jsonify(status="success")

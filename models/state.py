@@ -11,6 +11,7 @@ class State(db.Model):
 
     score = db.Column(db.Integer)
     judged = db.Column(db.Integer)
+    judge = db.Column(db.Boolean)
     round_winner = db.Column(db.Boolean)
     viewed_round_end = db.Column(db.Boolean)
 
@@ -38,6 +39,7 @@ class State(db.Model):
 
         self.score = 0
         self.judged = 0
+        self.judge = False
         self.round_winner = False
         self.viewed_round_end = False
         self.hand = []

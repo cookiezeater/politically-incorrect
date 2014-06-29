@@ -1,4 +1,5 @@
 from routes.shared import *
+from random import randint
 
 
 @app.route("/matches/<int:match_id>/invite", methods=["POST"])
@@ -6,6 +7,7 @@ def invite_player(match_id):
     content = request.json
     match = Match.query.get_or_404(match_id)
     assert match.host_id == content["inviter"]
+    assert content["invitee"] not in [state.player_id for state in match.states]
     match.pending.append(Player.query.get_or_404(content["invitee"]))
     db.session.add(match)
     db.session.commit()
@@ -26,7 +28,7 @@ def accept_invite(match_id):
     content = request.json
     match = Match.query.get_or_404(match_id)
     assert match.host_id != content["acceptor_id"]
-    assert len(match.states) <= match.max_players
+    assert len(match.states) < match.max_players
     acceptor = Player.query.get_or_404(content["acceptor_id"])
     assert match in acceptor.invited
     acceptor.invited.remove(match)
@@ -39,20 +41,27 @@ def accept_invite(match_id):
 
 
 def new_round(match):
-    if match.judge:
-        match.judge.judged += 1
-    match.judge = min(match.states, key=lambda state: state.judged)
+    for state in match.states:
+        if state.judge:
+            old_judge = state
+            old_judge.judged += 1
+            db.session.add(old_judge)
+    white_cards = filter(lambda card: card.white, match.deck)
     for state in match.states:
         state.played_id = None
+        state.viewed_round_end = False
+        state.judge = False
         if state.round_winner:
             state.score += 1
         state.round_winner = False
-        state.viewed_round_end = False
         while len(state.hand) < 10:
-            state.hand.add(match.deck[random.randint(0, len(match.deck) - 1)])
+            state.hand.append(white_cards[randint(0, len(white_cards) - 1)])
         db.session.add(state)
+    new_judge = min(match.states, key=lambda state: state.judged)
+    new_judge.judge = True
+    db.session.add(new_judge)
     black_cards = filter(lambda card: not card.white, match.deck)
-    match.black_id = black_cards[random.randint(0, len(black_cards) - 1)]
+    match.black_id = black_cards[randint(0, len(black_cards) - 1)].id
     db.session.add(match)
     db.session.commit()
     return jsonify(status="success")
@@ -69,6 +78,9 @@ def begin_match(match_id):
     there are a valid number of players. Second,
     remove all pending players. Then,
     set the game's status to 'ONGOING'.
+
+    @todo:
+        - host can not be first judge (fix this glitch)
     """
 
     content = request.json
@@ -77,8 +89,7 @@ def begin_match(match_id):
     assert 3 <= len(match.states) <= 10
     match.pending = []
     match.status = "ONGOING"
-    match.judge = Player.query.get(
-        id=random.randint(0, len(Player.query.all) - 1))
+    match.judge = match.states[randint(0, match.max_players - 1)]
     db.session.add(match)
     db.session.commit()
     return new_round(match)
@@ -99,7 +110,7 @@ def make_move(match_id):
     assert content["player_id"] in [state.player_id for state in match.states]
     state = match.state.get(player_id=content["player_id"])
     assert not state.played_id
-    card = Card.query.get(id=content["card_id"])
+    card = Card.query.get(content["card_id"])
     assert card in state.hand
     state.played_id = card
     db.session.add(match)
@@ -125,6 +136,16 @@ def round_status(match_id):
                    **{state.player_id: None if not state.played_id else
                       Card.query.get(state.played_id).text
                       for state in match.states})
+
+
+@app.route("/matches/<int:match_id>/hand", methods=["POST"])
+def hand(match_id):
+    content = request.json
+    match = Match.query.get(match_id)
+    assert content["player_id"] in [state.player_id for state in match.states]
+    state = State.query.filter_by(player_id=content["player_id"],
+                                  match_id=match_id).first()
+    return jsonify(hand=[card.text for card in state.hand])
 
 
 @app.route("/matches/<int:match_id>/reveal", methods=["POST"])

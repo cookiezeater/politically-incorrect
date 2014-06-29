@@ -36,10 +36,6 @@ class Match(db.Model):
     # A match only has one winner, but a winner can have many won matches.
     winner_id = db.Column(db.Integer, db.ForeignKey("players.id"))
 
-    # Many-to-one:
-    # A match only has one judge, but a player can judge many matches.
-    judge_id = db.Column(db.Integer, db.ForeignKey("players.id"))
-
     # Many-to-many:
     # A match has many cards in a deck,
     # and cards can have many decks in many matches.
