@@ -3,8 +3,7 @@ from random import randint
 
 
 def new_round(match):
-    """
-    Prepares a new round.
+    """Prepares a new round.
 
     This function is called at the initial
     game start and at the start of a new round. First, if
@@ -49,8 +48,7 @@ def all_cards_down(match):
 
 @app.route("/matches/<int:match_id>/invite", methods=["POST"])
 def invite_player(match_id):
-    """
-    Sends an invite to a player for a match.
+    """Sends an invite to a player for a match.
 
     Checks that the inviter is the host (only the host can invite),
     that the host has not invited himself,
@@ -76,8 +74,7 @@ def invite_player(match_id):
 
 @app.route("/matches/<int:match_id>/accept", methods=["POST"])
 def accept_invite(match_id):
-    """
-    Accepts an invite to a match.
+    """Accepts an invite to a match.
 
     Assert that the acceptor is not
     the host of the match. Assert the match is not full.
@@ -104,8 +101,7 @@ def accept_invite(match_id):
 
 @app.route("/matches/<int:match_id>/begin", methods=["POST"])
 def begin_match(match_id):
-    """
-    Starts a new match.
+    """Starts a new match.
 
     First, assert that the initiater is the host and
     there are a valid number of players. Second,
@@ -130,8 +126,7 @@ def begin_match(match_id):
 
 @app.route("/matches/<int:match_id>/go", methods=["POST"])
 def make_move(match_id):
-    """
-    Makes a move in a certain match for a player.
+    """Makes a move in a certain match for a player.
 
     Assert that the match is ongoing and the player
     is not the judge. Assert the player is in the game.
@@ -161,8 +156,7 @@ def make_move(match_id):
 
 @app.route("/matches/<int:match_id>/round_status", methods=["POST"])
 def round_status(match_id):
-    """
-    Returns information about the current round.
+    """Returns information about the current round.
 
     First, assert that the player requesting information is part
     of the match. Then, get the round_winner if any. If the round
@@ -180,25 +174,23 @@ def round_status(match_id):
     try:
         round_winner = State.query.filter_by(match_id=match_id,
                                              round_winner=True) \
-            .first().player_id
+                                            .first().player_id
     except:
         round_winner = None
     return jsonify(status="success",
                    round_state="ongoing",
                    round_winner=round_winner,
                    **{str(state.player_id): None if not state.played_id else
-                      Card.query.get(state.played_id).text
+                                            Card.query.get(state.played_id).text
                       for state in match.states})
 
 
 @app.route("/matches/<int:match_id>/hand", methods=["POST"])
 def hand(match_id):
-    """
-    Returns the cards in a player's hand for a specific match.
+    """Returns the cards in a player's hand for a specific match.
 
     Assert that the player requesting information is in the match.
-    """
-    content = request.json
+    """content = request.json
     match = Match.query.get(match_id)
     assert content["player_id"] in [state.player_id for state in match.states]
     state = State.query.filter_by(player_id=content["player_id"],
@@ -208,8 +200,7 @@ def hand(match_id):
 
 @app.route("/matches/<int:match_id>/reveal", methods=["POST"])
 def reveal_cards(match_id):
-    """
-    Returns all the cards played for the round if the round has ended.
+    """Returns all the cards played for the round if the round has ended.
 
     Assert that everyone has played a card. Then, assert that the
     player requesting information is in the match. Finally, return
@@ -228,8 +219,7 @@ def reveal_cards(match_id):
 
 @app.route("/matches/<int:match_id>/choose", methods=["POST"])
 def choose_winner(match_id):
-    """
-    Chooses a winner for the round.
+    """Chooses a winner for the round.
 
     Assert that everyone has played a card. Then, check that
     the judge has not chosen himself to be the winner. Assert that
@@ -260,8 +250,7 @@ def choose_winner(match_id):
 
 @app.route("/matches/<int:match_id>/acknowledge", methods=["POST"])
 def acknowledge(match_id):
-    """
-    Acknowledges the end round state. Everyone must acknowledge
+    """Acknowledges the end round state. Everyone must acknowledge
     the end of the round for a new round to begin.
 
     Assert that all the cards have been placed and that a

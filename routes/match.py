@@ -14,7 +14,7 @@ def get_all_matches():
                         "winner": match.winner_id,
                         "judge": State.query.filter_by(match_id=match.id,
                                                        judge=True)
-                                 .first().player_id,
+                                                      .first().player_id,
                         "deck": [card.text for card in match.deck],
                         "black": Card.query.get(match.black_id).text}
                        for match in matches]})
