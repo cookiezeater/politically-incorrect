@@ -42,7 +42,6 @@ def new_round(match):
 
 def all_cards_down(match):
     """True if all states have played a card."""
-
     return all([states.played_id for states in match.states])
 
 
