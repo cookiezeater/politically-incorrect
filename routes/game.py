@@ -63,7 +63,7 @@ def invite_player(match_id):
     assert match.host_id == content["inviter_id"]
     assert content["inviter_id"] != content["invitee_id"]
     assert match.status == "PENDING"
-    assert content["invitee_id"] not in match.pending
+    assert content["invitee_id"] not in [player.id for player in match.pending]
     assert content["invitee_id"] not in [state.player_id
                                          for state in match.states]
     match.pending.append(Player.query.get_or_404(content["invitee_id"]))
