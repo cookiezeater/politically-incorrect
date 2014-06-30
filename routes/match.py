@@ -4,20 +4,23 @@ from routes.shared import *
 @app.route("/matches", methods=["GET"])
 def get_all_matches():
     matches = Match.query.all()
-    return jsonify(**{"matches":
-                      [{"id": match.id,
-                        "host": match.host_id,
-                        "max_players": match.max_players,
-                        "status": match.status,
-                        "states": [str(state) for state in match.states],
-                        "pending": [player.id for player in match.pending],
-                        "winner": match.winner_id,
-                        "judge": State.query.filter_by(match_id=match.id,
-                                                       judge=True)
-                                                      .first().player_id,
-                        "deck": [card.text for card in match.deck],
-                        "black": Card.query.get(match.black_id).text}
-                       for match in matches]})
+    matches_data = []
+    for match in matches:
+        match_data = {"id": match.id,
+                      "host": match.host_id,
+                      "max_players": match.max_players,
+                      "status": match.status,
+                      "states": [str(state) for state in match.states],
+                      "pending": [player.id for player in match.pending],
+                      "winner": match.winner_id,
+                      "deck": [card.text for card in match.deck],
+                      "black": None if not match.black_id
+                               else Card.query.get(match.black_id).text}
+        judge_query = State.query.filter_by(match_id=match.id, judge=True)
+        match_data["judge"] = None if not judge_query.first() \
+                              else judge_query.first().player_id
+        matches_data.append(match_data)
+    return jsonify(status="success", matches=matches_data)
 
 
 @app.route("/matches/<int:match_id>", methods=["GET"])
