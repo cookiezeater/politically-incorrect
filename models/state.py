@@ -47,6 +47,7 @@ class State(db.Model):
 
     def __str__(self):
         return "State: Player({}) in Match({}) \
-                with score({})".format(self.player_id,
-                                       self.match_id,
-                                       self.score)
+                with score({}) and card({})".format(self.player_id,
+                                                    self.match_id,
+                                                    self.score,
+                                                    self.played_id)
