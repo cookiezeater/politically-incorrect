@@ -190,7 +190,9 @@ def hand(match_id):
     """Returns the cards in a player's hand for a specific match.
 
     Assert that the player requesting information is in the match.
-    """content = request.json
+    """
+
+    content = request.json
     match = Match.query.get(match_id)
     assert content["player_id"] in [state.player_id for state in match.states]
     state = State.query.filter_by(player_id=content["player_id"],
