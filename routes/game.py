@@ -137,7 +137,7 @@ def make_move(match_id):
     content = request.json
     match = Match.query.get_or_404(match_id)
     assert match.status == "ONGOING"
-    judge = State.query.filter_by(match=match_id,
+    judge = State.query.filter_by(match_id=match_id,
                                   judge=True).first()
     assert content["player_id"] != judge.player_id
     assert content["player_id"] in [state.player_id for state in match.states]
@@ -153,7 +153,7 @@ def make_move(match_id):
     return jsonify(status="success")
 
 
-@app.route("/matches/<int:match_id>/round_status", methods=["POST"])
+@app.route("/matches/<int:match_id>/round", methods=["POST"])
 def round_status(match_id):
     """Returns information about the current round.
 
