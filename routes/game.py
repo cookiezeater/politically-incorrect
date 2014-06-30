@@ -2,13 +2,73 @@ from routes.shared import *
 from random import randint
 
 
+def new_round(match):
+    """
+    Prepares a new round.
+
+    This function is called at the initial
+    game start and at the start of a new round. First, if
+    there was a judge, increase his judged count. Next,
+    remove each state's played card (played_id), reset
+    viewed_round_end, remove all judges, and fill up each
+    state's hand. Then, choose a new judge by finding the
+    first state who has judged the least so far. Finally,
+    play a black card.
+    """
+
+    for state in match.states:
+        if state.judge:
+            old_judge = state
+            old_judge.judged += 1
+            db.session.add(old_judge)
+            break
+    white_cards = filter(lambda card: card.white, match.deck)
+    for state in match.states:
+        state.played_id = None
+        state.viewed_round_end = False
+        state.judge = False
+        state.round_winner = False
+        while len(state.hand) < 10:
+            state.hand.append(white_cards[randint(0, len(white_cards) - 1)])
+        db.session.add(state)
+    new_judge = min(match.states, key=lambda state: state.judged)
+    new_judge.judge = True
+    db.session.add(new_judge)
+    black_cards = filter(lambda card: not card.white, match.deck)
+    match.black_id = black_cards[randint(0, len(black_cards) - 1)].id
+    db.session.add(match)
+    db.session.commit()
+    return jsonify(status="success")
+
+
+def all_cards_down(match):
+    """True if all states have played a card."""
+
+    return all([states.played_id for states in match.states])
+
+
 @app.route("/matches/<int:match_id>/invite", methods=["POST"])
 def invite_player(match_id):
+    """
+    Sends an invite to a player for a match.
+
+    Checks that the inviter is the host (only the host can invite),
+    that the host has not invited himself,
+    that the game is in the PENDING state,
+    and that the invitee has not already been invited
+    and is not in the game already. If all assertions pass,
+    the invitee is added to the match's pending list.
+    """
+
     content = request.json
     match = Match.query.get_or_404(match_id)
-    assert match.host_id == content["inviter"]
-    assert content["invitee"] not in [state.player_id for state in match.states]
-    match.pending.append(Player.query.get_or_404(content["invitee"]))
+    assert match.host_id == content["inviter_id"]
+    assert content["inviter_id"] != content["invitee_id"]
+    assert match.status == "PENDING"
+    assert content["invitee_id"] not in match.pending
+    assert content["invitee_id"] not in [state.player_id
+                                         for state in match.states]
+    match.pending.append(Player.query.get_or_404(content["invitee_id"]))
     db.session.add(match)
     db.session.commit()
     return jsonify(status="success")
@@ -17,11 +77,13 @@ def invite_player(match_id):
 @app.route("/matches/<int:match_id>/accept", methods=["POST"])
 def accept_invite(match_id):
     """
-    First, assert that the acceptor is not
-    the host of the match and the match is not full.
-    Second, assert that the match is in the acceptor's
-    list of invites. Then, remove the match from the list.
-    Finally, create a state that links the match to
+    Accepts an invite to a match.
+
+    Assert that the acceptor is not
+    the host of the match. Assert the match is not full.
+    Assert that the match is in the acceptor's
+    list of invites. Then, remove the match from the acceptor's
+    list of invites. Finally, create a state that links the match to
     the accepting player.
     """
 
@@ -40,48 +102,18 @@ def accept_invite(match_id):
     return jsonify(status="success")
 
 
-def new_round(match):
-    for state in match.states:
-        if state.judge:
-            old_judge = state
-            old_judge.judged += 1
-            db.session.add(old_judge)
-            break
-    white_cards = filter(lambda card: card.white, match.deck)
-    for state in match.states:
-        state.played_id = None
-        state.viewed_round_end = False
-        state.judge = False
-        if state.round_winner:
-            state.score += 1
-        state.round_winner = False
-        while len(state.hand) < 10:
-            state.hand.append(white_cards[randint(0, len(white_cards) - 1)])
-        db.session.add(state)
-    new_judge = min(match.states, key=lambda state: state.judged)
-    new_judge.judge = True
-    db.session.add(new_judge)
-    black_cards = filter(lambda card: not card.white, match.deck)
-    match.black_id = black_cards[randint(0, len(black_cards) - 1)].id
-    db.session.add(match)
-    db.session.commit()
-    return jsonify(status="success")
-
-
-def round_ended(match):
-    return all([states.played_id for states in match.states])
-
-
 @app.route("/matches/<int:match_id>/begin", methods=["POST"])
 def begin_match(match_id):
     """
+    Starts a new match.
+
     First, assert that the initiater is the host and
     there are a valid number of players. Second,
     remove all pending players. Then,
-    set the game's status to 'ONGOING'.
+    set the game's status to 'ONGOING' and pick a random judge.
 
     @todo:
-        - host can not be first judge (fix this glitch)
+        - fix glitch: host can not be first judge
     """
 
     content = request.json
@@ -99,10 +131,13 @@ def begin_match(match_id):
 @app.route("/matches/<int:match_id>/go", methods=["POST"])
 def make_move(match_id):
     """
-    Assert that the match is ongoing and that the player
-    is in the game. Then, assert that the player has not already played
-    a card for this round and the card is in the player's hand.
-    Put down the card that the player has chosen.
+    Makes a move in a certain match for a player.
+
+    Assert that the match is ongoing and the player
+    is not the judge. Assert the player is in the game.
+    Then, assert that the player has not already played
+    a card for this round, and the card being played
+    is in the player's hand. Put down the card.
     """
 
     content = request.json
@@ -121,27 +156,33 @@ def make_move(match_id):
     db.session.add(match)
     db.session.add(state)
     db.session.commit()
-    if round_ended(match):
-        return jsonify(status="success")
-    else:
-        return jsonify(status="success")
+    return jsonify(status="success")
 
 
 @app.route("/matches/<int:match_id>/round_status", methods=["POST"])
 def round_status(match_id):
-    """Returns a list of who has played a card in the round."""
+    """
+    Returns information about the current round.
+
+    First, assert that the player requesting information is part
+    of the match. Then, get the round_winner if any. If the round
+    has ended and everyone has viewed the state of the ended round,
+    tell the view that the round is completely over. Otherwise,
+    return each player in the game and the card(s) he has played,
+    if any.
+    """
 
     content = request.json
     match = Match.query.get(match_id)
     assert content["player_id"] in [state.player_id for state in match.states]
+    if all([state.viewed_round_end for state in match.states]):
+        return jsonify(status="success", round_state="ended")
     try:
         round_winner = State.query.filter_by(match_id=match_id,
                                              round_winner=True) \
-                       .first().player_id
+            .first().player_id
     except:
         round_winner = None
-    if all([state.viewed_round_end for state in match.states]):
-        return jsonify(status="success", round_state="ended")
     return jsonify(status="success",
                    round_state="ongoing",
                    round_winner=round_winner,
@@ -152,6 +193,11 @@ def round_status(match_id):
 
 @app.route("/matches/<int:match_id>/hand", methods=["POST"])
 def hand(match_id):
+    """
+    Returns the cards in a player's hand for a specific match.
+
+    Assert that the player requesting information is in the match.
+    """
     content = request.json
     match = Match.query.get(match_id)
     assert content["player_id"] in [state.player_id for state in match.states]
@@ -162,33 +208,51 @@ def hand(match_id):
 
 @app.route("/matches/<int:match_id>/reveal", methods=["POST"])
 def reveal_cards(match_id):
-    """Return all the cards played for the round if the round has ended."""
+    """
+    Returns all the cards played for the round if the round has ended.
+
+    Assert that everyone has played a card. Then, assert that the
+    player requesting information is in the match. Finally, return
+    player_id: card(s) pairs.
+    """
 
     content = request.json
     match = Match.query.get_or_404(match_id)
+    assert all_cards_down(match)
     assert content["player_id"] in [state.player_id for state in match.states]
-    assert round_ended(match)
     return jsonify(status="success",
-                   cards=[Card.query.get(state.played_id).text
-                          for state in match.states])
+                   **{state.player_id:
+                      Card.query.get(state.played_id).text
+                      for state in match.states})
 
 
 @app.route("/matches/<int:match_id>/choose", methods=["POST"])
 def choose_winner(match_id):
-    """The judge chooses the winner."""
+    """
+    Chooses a winner for the round.
+
+    Assert that everyone has played a card. Then, check that
+    the judge has not chosen himself to be the winner. Assert that
+    the judge is indeed the actual judge of the match. Assert that
+    the winner is in the game. Finally, assert that nobody else
+    has already won the round. Set the winner's state's round_winner
+    to True and increment the winner's score.
+    """
 
     content = request.json
     match = Match.query.get_or_404(match_id)
-    assert round_ended(match)
+    assert all_cards_down(match)
     assert content["judge_id"] != content["winner_id"]
     assert content["judge_id"] == State.query.filter_by(
-                                        player_id=content["judge_id"],
-                                        match_id=match_id,
-                                        judge=True).first().player_id
+        player_id=content["judge_id"],
+        match_id=match_id,
+        judge=True).first().player_id
     assert content["winner_id"] in [state.player_id for state in match.states]
+    assert all([not state.round_winner for state in match.states])
     winner = State.query.filter_by(player_id=content["winner_id"],
                                    match_id=match_id).first()
     winner.round_winner = True
+    winner.score += 1
     db.session.add(winner)
     db.session.commit()
     return jsonify(status="success")
@@ -197,16 +261,28 @@ def choose_winner(match_id):
 @app.route("/matches/<int:match_id>/acknowledge", methods=["POST"])
 def acknowledge(match_id):
     """
-    At the end of the round, everyone must view the game before a
-    new round begins.
+    Acknowledges the end round state. Everyone must acknowledge
+    the end of the round for a new round to begin.
+
+    Assert that all the cards have been placed and that a
+    winner has been chosen. Assert that the player requesting
+    information is in the game. Mark the player as having
+    seen the end of the round by setting viewed_round_end to True.
+    Check if everyone has acknowledged the round end. If so,
+    a new round will begin.
     """
 
     content = request.json
     match = Match.query.get_or_404(match_id)
-    assert round_ended(match)
+    assert all_cards_down(match)
+    assert any([state.round_winner for state in match.states])
     assert content["player_id"] in [state.player_id for state in match.states]
-    player = Player.query.get(content["player_id"])
-    player.viewed_round_end = True
-    db.session.add(viewed_round_end)
+    state = State.query.filter_by(player_id=content["player_id"],
+                                  match_id=match_id)
+    state.viewed_round_end = True
+    db.session.add(state)
     db.session.commit()
-    return jsonify(status=True)
+    if all([state.viewed_round_end for state in match.states]):
+        return new_round(match)
+    else:
+        return jsonify(status="success")

@@ -46,4 +46,7 @@ class State(db.Model):
         self.played_id = None
 
     def __str__(self):
-        return "State for p{} in m{}".format(self.player_id, self.match_id)
+        return "State: Player({}) in Match({}) \
+                with score({})".format(self.player_id,
+                                       self.match_id,
+                                       self.score)
