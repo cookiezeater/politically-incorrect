@@ -32,9 +32,10 @@ def new_round(match):
         db.session.add(state)
     new_judge = min(match.states, key=lambda state: state.judged)
     new_judge.judge = True
-    db.session.add(new_judge)
     black_cards = filter(lambda card: not card.white, match.deck)
     match.black_id = black_cards[randint(0, len(black_cards) - 1)].id
+    new_judge.played_id = match.black_id
+    db.session.add(new_judge)
     db.session.add(match)
     db.session.commit()
     return jsonify(status="success")
@@ -256,9 +257,10 @@ def acknowledge(match_id):
 
     Assert that all the cards have been placed and that a
     winner has been chosen. Assert that the player requesting
-    information is in the game. Mark the player as having
-    seen the end of the round by setting viewed_round_end to True.
-    Check if everyone has acknowledged the round end. If so,
+    information is in the game. Assert that the player
+    has not already acknowledged the round end. Mark the player
+    as having seen the end of the round by setting viewed_round_end
+    to True. Check if everyone has acknowledged the round end. If so,
     a new round will begin.
     """
 
@@ -268,7 +270,8 @@ def acknowledge(match_id):
     assert any([state.round_winner for state in match.states])
     assert content["player_id"] in [state.player_id for state in match.states]
     state = State.query.filter_by(player_id=content["player_id"],
-                                  match_id=match_id)
+                                  match_id=match_id).first()
+    assert not state.viewed_round_end
     state.viewed_round_end = True
     db.session.add(state)
     db.session.commit()
