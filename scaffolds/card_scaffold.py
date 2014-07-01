@@ -9,8 +9,8 @@ if __name__ == "__main__":
                "Accept": "application/json"}
     location = "http://localhost:5000/cards"
 
-    with open("white.txt", "r") as white_cards, \
-         open("black.txt", "r") as black_cards:
+    with open("../cards/white.txt", "r") as white_cards, \
+         open("../cards/black.txt", "r") as black_cards:
         for card_text in white_cards:
             requests.post(location,
                           data=json.dumps({"text": card_text.strip(),
