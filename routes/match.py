@@ -9,7 +9,7 @@ def get_all_matches():
         match_data = {"id": match.id,
                       "host": match.host_id,
                       "max_players": match.max_players,
-                      "status": match.status,
+                      "match_status": match.status,
                       "states": [str(state) for state in match.states],
                       "pending": [player.id for player in match.pending],
                       "winner": match.winner_id,
@@ -23,12 +23,25 @@ def get_all_matches():
     return jsonify(status="success", matches=matches_data)
 
 
-@app.route("/matches/<int:match_id>", methods=["GET"])
+@app.route("/matches/<int:match_id>", methods=["POST"])
 def get_match(match_id):
+    content = request.json
     match = Match.query.get_or_404(match_id)
-    return jsonify(id=match.id,
-                   states=match.states,
-                   status=match.status)
+    assert content["player_id"] in [state.player_id for state in match.states]
+    match_data = {"id": match.id,
+                  "host": match.host_id,
+                  "max_players": match.max_players,
+                  "match_status": match.status,
+                  "states": [str(state) for state in match.states],
+                  "pending": [player.id for player in match.pending],
+                  "winner": match.winner_id,
+                  "deck": [card.text for card in match.deck],
+                  "black": None if not match.black_id
+                           else Card.query.get(match.black_id).text}
+    judge_query = State.query.filter_by(match_id=match.id, judge=True)
+    match_data["judge"] = None if not judge_query.first() \
+                          else judge_query.first().player_id
+    return jsonify(status="success", **match_data)
 
 
 @app.route("/matches", methods=["POST"])
