@@ -21,6 +21,7 @@ def new_round(match):
             old_judge.judged += 1
             db.session.add(old_judge)
             break
+    cards_to_remove = []
     white_cards = filter(lambda card: card.white, match.deck)
     for state in match.states:
         state.played_id = None
@@ -28,17 +29,23 @@ def new_round(match):
         state.judge = False
         state.round_winner = False
         while len(state.hand) < 10:
-            print hand
-            state.hand.append(white_cards[randint(0, len(white_cards) - 1)])
+            draw_card = white_cards[randint(0, len(white_cards) - 1)]
+            state.hand.append(draw_card)
+            cards_to_remove.append(draw_card)
+            white_cards.remove(draw_card)
         db.session.add(state)
     new_judge = min(match.states, key=lambda state: state.judged)
     new_judge.judge = True
     black_cards = filter(lambda card: not card.white, match.deck)
     match.black_id = black_cards[randint(0, len(black_cards) - 1)].id
     new_judge.played_id = match.black_id
+    cards_to_remove.append(Card.query.get(match.black_id))
+    for card in cards_to_remove:
+        match.deck.remove(card)
     db.session.add(new_judge)
     db.session.add(match)
     db.session.commit()
+    print [card.text for card in match.deck]
     return jsonify(status="success")
 
 
@@ -174,12 +181,17 @@ def round_status(match_id):
     try:
         round_winner = State.query.filter_by(match_id=match_id,
                                              round_winner=True) \
-            .first().player_id
+                                            .first().player_id
     except:
         round_winner = None
+    for state in match.states:
+        if state.judge:
+            judge_id = state.player_id
+            break
     return jsonify(status="success",
                    round_state="ongoing",
                    round_winner=round_winner,
+                   judge_id=judge_id,
                    **{str(state.player_id): None if not state.played_id else
                       Card.query.get(
                       state.played_id).text
@@ -198,7 +210,7 @@ def hand(match_id):
     assert content["player_id"] in [state.player_id for state in match.states]
     state = State.query.filter_by(player_id=content["player_id"],
                                   match_id=match_id).first()
-    return jsonify(hand=[card.text for card in state.hand])
+    return jsonify(hand={card.text: card.id for card in state.hand})
 
 
 @app.route("/matches/<int:match_id>/reveal", methods=["POST"])
@@ -215,7 +227,7 @@ def reveal_cards(match_id):
     assert all_cards_down(match)
     assert content["player_id"] in [state.player_id for state in match.states]
     return jsonify(status="success",
-                   **{state.player_id:
+                   **{str(state.player_id):
                       Card.query.get(state.played_id).text
                       for state in match.states})
 
