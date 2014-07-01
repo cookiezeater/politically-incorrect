@@ -192,44 +192,13 @@ def round_status(match_id):
                    round_state="ongoing",
                    round_winner=round_winner,
                    judge_id=judge_id,
-                   **{str(state.player_id): None if not state.played_id else
-                      Card.query.get(
-                      state.played_id).text
-                      for state in match.states})
-
-
-@app.route("/matches/<int:match_id>/hand", methods=["POST"])
-def hand(match_id):
-    """Returns the cards in a player's hand for a specific match.
-
-    Assert that the player requesting information is in the match.
-    """
-
-    content = request.json
-    match = Match.query.get(match_id)
-    assert content["player_id"] in [state.player_id for state in match.states]
-    state = State.query.filter_by(player_id=content["player_id"],
-                                  match_id=match_id).first()
-    return jsonify(hand={card.text: card.id for card in state.hand})
-
-
-@app.route("/matches/<int:match_id>/reveal", methods=["POST"])
-def reveal_cards(match_id):
-    """Returns all the cards played for the round if the round has ended.
-
-    Assert that everyone has played a card. Then, assert that the
-    player requesting information is in the match. Finally, return
-    player_id: card(s) pairs.
-    """
-
-    content = request.json
-    match = Match.query.get_or_404(match_id)
-    assert all_cards_down(match)
-    assert content["player_id"] in [state.player_id for state in match.states]
-    return jsonify(status="success",
-                   **{str(state.player_id):
-                      Card.query.get(state.played_id).text
-                      for state in match.states})
+                   played={str(state.player_id): None
+                                       if not state.played_id
+                                       else Card.query.get(state.played_id).text
+                           for state in match.states},
+                   hands={str(state.player_id): {str(card.id): card.text
+                                                 for card in state.hand}
+                          for state in match.states})
 
 
 @app.route("/matches/<int:match_id>/choose", methods=["POST"])
