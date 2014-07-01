@@ -28,6 +28,7 @@ def new_round(match):
         state.judge = False
         state.round_winner = False
         while len(state.hand) < 10:
+            print hand
             state.hand.append(white_cards[randint(0, len(white_cards) - 1)])
         db.session.add(state)
     new_judge = min(match.states, key=lambda state: state.judged)
@@ -108,8 +109,7 @@ def begin_match(match_id):
     remove all pending players. Then,
     set the game's status to 'ONGOING' and pick a random judge.
 
-    @todo:
-        - fix glitch: host can not be first judge
+    @todo: fix glitch where host cannot be first judge
     """
 
     content = request.json
@@ -174,14 +174,15 @@ def round_status(match_id):
     try:
         round_winner = State.query.filter_by(match_id=match_id,
                                              round_winner=True) \
-                                            .first().player_id
+            .first().player_id
     except:
         round_winner = None
     return jsonify(status="success",
                    round_state="ongoing",
                    round_winner=round_winner,
                    **{str(state.player_id): None if not state.played_id else
-                                            Card.query.get(state.played_id).text
+                      Card.query.get(
+                      state.played_id).text
                       for state in match.states})
 
 
@@ -235,16 +236,18 @@ def choose_winner(match_id):
     match = Match.query.get_or_404(match_id)
     assert all_cards_down(match)
     assert content["judge_id"] != content["winner_id"]
-    assert content["judge_id"] == State.query.filter_by(
-        player_id=content["judge_id"],
-        match_id=match_id,
-        judge=True).first().player_id
+    judge = State.query.filter_by(player_id=content["judge_id"],
+                                  match_id=match_id,
+                                  judge=True).first()
+    assert content["judge_id"] == judge.player_id
     assert content["winner_id"] in [state.player_id for state in match.states]
     assert all([not state.round_winner for state in match.states])
     winner = State.query.filter_by(player_id=content["winner_id"],
                                    match_id=match_id).first()
     winner.round_winner = True
     winner.score += 1
+    judge.viewed_round_end = True
+    db.session.add(judge)
     db.session.add(winner)
     db.session.commit()
     return jsonify(status="success")
