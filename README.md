@@ -30,29 +30,32 @@ We use [Postman](www.getpostman.com) for testing. A basic test suite is located 
 
 ## Directory Structure
 - /android/: contains Android app
-- /routes: controllers and routes
-- /models: contains ORM models
-- /app.py: run the server
+- /cards/: raw text file of cards for test purposes
 - /tests/: basic tests
+- /scaffolds/: db initialization scripts
+- /models/: contains ORM models
+- /routes/: controllers and routes
+- /app.py: runs the server
 
 ## Import Structure
 ![arch](./architecture.png)
 
 ## API Architecture
 #### Cards
-Cards do not require backrefs.
 
-|text|rank|meta|white
-|----|----|----|----
-|String|Integer|Object|Boolean
+|text  |white  |answers|rank   |meta
+|------|-------|-------|-------|------
+|String|Boolean|Integer|Integer|String
 
 #### Player
-- MTM: A player can be in many matches, and matches have many players.
-- MTM: A player has many friends. Any friend can have many friends.
+- hosting: one-to-many relationship with Match (backref: host)
+- wins: one-to-many relationship with Match (backref: winner)
+- friends: many-to-many relationship with Player
+- states: one-to-many relationship with State (backref: player)
 
-|username|password|email |first_name|last_name|matches|friends|wins   |losses |
-|--------|--------|------|----------|---------|-------|-------|-------|-------|
-|String  |Hash    |String|String    |String   |Match  |Player |Integer|Integer|
+|username|password|email |first_name|last_name|losses |hosting|wins |friends|states|
+|--------|--------|------|----------|---------|-------|-------|-----|-------|------|
+|String  |Hash    |String|String    |String   |Integer|Match  |Match|Player |State |
 
 #### Match
 - status: PENDING | ONGOING | ENDED
