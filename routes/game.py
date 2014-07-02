@@ -56,8 +56,6 @@ def new_round(match):
     # the new judge put it on the table. Add
     # the black card to the list of cards to be removed.
     black_cards = filter(lambda card: not card.white, match.deck)
-    ################# TESTING MULTIPLE ANSWERS
-    black_cards = filter(lambda card: card.answers > 1, black_cards)
     black_card = black_cards[randint(0, len(black_cards) - 1)]
     match.black_id = black_card.id
     new_judge.played.append(black_card)
