@@ -8,7 +8,7 @@ def new_round(match):
     This function is called at the initial
     game start and at the start of a new round. First, if
     there was a judge, increase his judged count. Next,
-    remove each state's played card (played_id), reset
+    remove each state's played card(s) (played), reset
     viewed_round_end, remove all judges, and fill up each
     state's hand. Then, choose a new judge by finding the
     first state who has judged the least so far. Finally,
@@ -27,11 +27,11 @@ def new_round(match):
     white_cards = filter(lambda card: card.white, match.deck)
 
     # Prepare each state for a new round by removing
-    # all cards from the table (played_id), resetting
+    # all cards from the table (played), resetting
     # acknowledgement of round end (viewed_round_end),
     # and removing all judges and round winners.
     for state in match.states:
-        state.played_id = None
+        state.played = []
         state.viewed_round_end = False
         state.judge = False
         state.round_winner = False
@@ -56,8 +56,11 @@ def new_round(match):
     # the new judge put it on the table. Add
     # the black card to the list of cards to be removed.
     black_cards = filter(lambda card: not card.white, match.deck)
-    match.black_id = black_cards[randint(0, len(black_cards) - 1)].id
-    new_judge.played_id = match.black_id
+    ################# TESTING MULTIPLE ANSWERS
+    black_cards = filter(lambda card: card.answers > 1, black_cards)
+    black_card = black_cards[randint(0, len(black_cards) - 1)]
+    match.black_id = black_card.id
+    new_judge.played.append(black_card)
     cards_to_remove.append(Card.query.get(match.black_id))
 
     # Remove all drawn cards from the deck.
@@ -87,7 +90,17 @@ def begin_match(match):
 
 def all_cards_down(match):
     """True if all states have played a card."""
-    return all([states.played_id for states in match.states])
+    return all([states.played for states in match.states])
+
+
+def any_cards_down(match):
+    """True if any cards have been played (including black)."""
+    return any([state.played for state in match.states])
+
+
+def all_viewed_round_end(match):
+    """True if everyone has viewed the round end."""
+    return all([state.viewed_round_end for state in match.states])
 
 
 @app.route("/matches/<int:match_id>/invite", methods=["POST"])
@@ -154,8 +167,9 @@ def make_move(match_id):
     Assert that the match is ongoing and the player
     is not the judge. Assert the player is in the game.
     Then, assert that the player has not already played
-    a card for this round, and the card being played
-    is in the player's hand. Put down the card.
+    a card/cards for this round, and the card(s) being played
+    is in the player's hand. Put down the cards and remove
+    them from the player's hand.
     """
 
     content = request.json
@@ -167,10 +181,13 @@ def make_move(match_id):
     assert content["player_id"] in [state.player_id for state in match.states]
     state = State.query.filter_by(player_id=content["player_id"],
                                   match_id=match_id).first()
-    assert not state.played_id
-    card = Card.query.get(content["card_id"])
-    assert card in state.hand
-    state.played_id = card.id
+    assert not state.played
+    assert len(set(content["cards"])) == judge.played[0].answers
+    for card_id in content["cards"]:
+        card = Card.query.get_or_404(card_id)
+        assert card in state.hand
+        state.played.append(card)
+        state.hand.remove(card)
     db.session.add(match)
     db.session.add(state)
     db.session.commit()
@@ -193,9 +210,9 @@ def round_status(match_id):
     assert content["player_id"] in [state.player_id for state in match.states]
 
     # Get round state
-    if all([state.viewed_round_end for state in match.states]):
+    if all_viewed_round_end(match):
         round_state = "ended"
-    elif any([state.played_id for state in match.states]):
+    elif any_cards_down(match):
         round_state = "ongoing"
     else:
         round_state = "pending"
@@ -214,27 +231,31 @@ def round_status(match_id):
             judge_id = state.player_id
             break
 
-    # Get all cards on the table as {player_id: {card_id: card_text}, ...}
-    played = {}
+    # Get all cards on the table as
+    # {player_id: [(card_id, card_text), ...], ...}
+    # and every player's hand as
+    # {player_id: {card_id: card_text, ...}, ...}.
+    # Cards played by the player (on the table) are
+    # stored as a list of dictionaries because
+    # order must be preserved.
+    # Some black cards expect ordered answers.
+    played, hands = {}, {}
     for state in match.states:
-        if state.played_id:
-            card = Card.query.get(state.played_id)
-            played[str(state.player_id)] = {str(card.id): card.text}
-        else:
-            played[str(state.player_id)] = None
-
-    # Get every player's hand as {player_id: {card_id: card_text, ...}, ...}
-    hands = {}
-    for state in match.states:
+        played[str(state.player_id)] = [{str(card.id): card.text}
+                                        for card in state.played]
         hands[str(state.player_id)] = {str(card.id): card.text
                                        for card in state.hand}
+
+    # Get the number of required white cards to be played per player
+    answers = Card.query.get(match.black_id).answers
 
     return jsonify(status="success",
                    round_state=round_state,
                    round_winner=round_winner,
                    judge_id=judge_id,
                    played=played,
-                   hands=hands)
+                   hands=hands,
+                   answers=answers)
 
 
 @app.route("/matches/<int:match_id>/choose", methods=["POST"])

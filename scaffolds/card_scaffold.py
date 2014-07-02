@@ -19,8 +19,7 @@ if __name__ == "__main__":
         for card_text in white_cards:
             requests.post(location,
                           data=json.dumps({"text": card_text.strip(),
-                                           "white": True,
-                                           "answers": 0}),
+                                           "white": True}),
                           headers=headers)
         for card_text in black_cards:
             answers = card_text.count("_")

@@ -13,7 +13,7 @@ def get_all_matches():
                       "states": [str(state) for state in match.states],
                       "pending": [player.id for player in match.pending],
                       "winner": match.winner_id,
-                      "deck": [card.text for card in match.deck],
+                      "deck_size": len(match.deck),
                       "black": None if not match.black_id
                                else Card.query.get(match.black_id).text}
         judge_query = State.query.filter_by(match_id=match.id, judge=True)
@@ -35,7 +35,7 @@ def get_match(match_id):
                   "states": [str(state) for state in match.states],
                   "pending": [player.id for player in match.pending],
                   "winner": match.winner_id,
-                  "deck": [card.text for card in match.deck],
+                  "deck_size": len(match.deck),
                   "black": None if not match.black_id
                            else Card.query.get(match.black_id).text}
     judge_query = State.query.filter_by(match_id=match.id, judge=True)

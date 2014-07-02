@@ -4,6 +4,10 @@ states_to_cards = db.Table("s2c", db.Model.metadata,
     db.Column("states_id", db.Integer, db.ForeignKey("states.id")),
     db.Column("cards_id", db.Integer, db.ForeignKey("cards.id")))
 
+states_to_played_cards = db.Table("s2pc", db.Model.metadata,
+    db.Column("states_id", db.Integer, db.ForeignKey("states.id")),
+    db.Column("played_cards_id", db.Integer, db.ForeignKey("cards.id")))
+
 
 class State(db.Model):
     __tablename__ = "states"
@@ -28,10 +32,10 @@ class State(db.Model):
     # and cards can belong to many hands in many states.
     hand = db.relationship("Card", secondary=states_to_cards)
 
-    # Many-to-one:
+    # Many-to-many:
     # A state has one played card,
     # but a card can have many states in which it is played.
-    played_id = db.Column(db.Integer, db.ForeignKey("cards.id"))
+    played = db.relationship("Card", secondary=states_to_played_cards)
 
     def __init__(self, player_id=None, match_id=None):
         self.player_id = player_id
@@ -43,11 +47,12 @@ class State(db.Model):
         self.round_winner = False
         self.viewed_round_end = False
         self.hand = []
-        self.played_id = None
+        self.played = []
 
     def __str__(self):
+        played = [str(card) for card in self.played]
         return "State: Player({}) in Match({}) \
-                with score({}) and card({})".format(self.player_id,
-                                                    self.match_id,
-                                                    self.score,
-                                                    self.played_id)
+                with score({}) and played({})".format(self.player_id,
+                                                      self.match_id,
+                                                      self.score,
+                                                      str(played))
