@@ -16,12 +16,9 @@ def new_round(match):
     """
 
     # Find the current judge and increment his judged count
-    for state in match.states:
-        if state.judge:
-            old_judge = state
-            old_judge.judged += 1
-            db.session.add(old_judge)
-            break
+    old_judge = State.query.filter_by(match_id=match_id, judge=True).first()
+    old_judge.judged += 1
+    db.session.add(old_judge)
 
     cards_to_remove = []
     white_cards = filter(lambda card: card.white, match.deck)
@@ -59,7 +56,7 @@ def new_round(match):
     black_card = black_cards[randint(0, len(black_cards) - 1)]
     match.black_id = black_card.id
     new_judge.played.append(black_card)
-    cards_to_remove.append(Card.query.get(match.black_id))
+    cards_to_remove.append(black_card)
 
     # Remove all drawn cards from the deck.
     for card in cards_to_remove:
