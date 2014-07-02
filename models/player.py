@@ -1,9 +1,5 @@
 from models.shared import *
 
-players_to_matches = db.Table("p2m", db.Model.metadata,
-    db.Column("players_id", db.Integer, db.ForeignKey("players.id")),
-    db.Column("matches_id", db.Integer, db.ForeignKey("matches.id")))
-
 players_to_players = db.Table("p2p", db.Model.metadata,
     db.Column("players_id", db.Integer, db.ForeignKey("players.id")),
     db.Column("players_id", db.Integer, db.ForeignKey("players.id")))
@@ -33,12 +29,6 @@ class Player(db.Model):
     # A player has many friends,
     # and any friend can have many friends
     friends = db.relationship("Player", secondary=players_to_players)
-
-    # Many-to-many:
-    # A player can be in many matches,
-    # and matches have many players
-    matches = db.relationship("Match", secondary=players_to_matches,
-                              backref="players")
 
     # One-to-many:
     # A player has many states, but a state can only have one player.
