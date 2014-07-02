@@ -34,7 +34,9 @@ class Player(db.Model):
 
     # One-to-many:
     # A player has many states, but a state can only have one player.
-    states = db.relationship("State", backref="player")
+    states = db.relationship("State",
+                             backref="player",
+                             foreign_keys="[State.player_id]")
 
     def __init__(self,
                  username="",
