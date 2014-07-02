@@ -16,6 +16,12 @@ Make the app executable. (less typing)
 Run the app:
 <pre><code>(venv) $ ./app.py</code></pre>
 
+Load cards:
+<pre><code>(venv) $ python scaffolds/card_scaffold.py</code></pre>
+
+To destroy the database:
+<pre><code>(venv) $ dropdb fah_dev</code></pre>
+
 ## Game Logic
 ![match_flow](./match_flow.png)
 
