@@ -208,10 +208,12 @@ def round_status(match_id):
     # Get round state
     if all_viewed_round_end(match):
         round_state = "ended"
+    elif all_cards_down(match):
+        round_state = "judging"
     elif any_cards_down(match):
         round_state = "ongoing"
     else:
-        round_state = "pending"
+        round_state = None
 
     # Get round winner, if he exists
     try:
