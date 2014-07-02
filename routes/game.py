@@ -49,6 +49,23 @@ def new_round(match):
     return jsonify(status="success")
 
 
+def begin_match(match):
+    """Starts a new match.
+
+    First, assert that the initiater is the host and
+    there are a valid number of players. Second,
+    remove all pending players. Then,
+    set the game's status to 'ONGOING' and pick a random judge.
+    """
+
+    match.pending = []
+    match.status = "ONGOING"
+    match.judge = match.states[randint(0, match.max_players - 1)]
+    db.session.add(match)
+    db.session.commit()
+    return new_round(match)
+
+
 def all_cards_down(match):
     """True if all states have played a card."""
     return all([states.played_id for states in match.states])
@@ -104,31 +121,10 @@ def accept_invite(match_id):
     match.states.append(state)
     db.session.add(match)
     db.session.commit()
-    return jsonify(status="success")
-
-
-@app.route("/matches/<int:match_id>/begin", methods=["POST"])
-def begin_match(match_id):
-    """Starts a new match.
-
-    First, assert that the initiater is the host and
-    there are a valid number of players. Second,
-    remove all pending players. Then,
-    set the game's status to 'ONGOING' and pick a random judge.
-
-    @todo: fix glitch where host cannot be first judge
-    """
-
-    content = request.json
-    match = Match.query.get_or_404(match_id)
-    assert match.host_id == content["player_id"]
-    assert 3 <= len(match.states) <= 10
-    match.pending = []
-    match.status = "ONGOING"
-    match.judge = match.states[randint(0, match.max_players - 1)]
-    db.session.add(match)
-    db.session.commit()
-    return new_round(match)
+    if len(match.states) == match.max_players:
+        return begin_match(match)
+    else:
+        return jsonify(status="success")
 
 
 @app.route("/matches/<int:match_id>/go", methods=["POST"])
@@ -166,39 +162,59 @@ def round_status(match_id):
     """Returns information about the current round.
 
     First, assert that the player requesting information is part
-    of the match. Then, get the round_winner if any. If the round
-    has ended and everyone has viewed the state of the ended round,
-    tell the view that the round is completely over. Otherwise,
-    return each player in the game and the card(s) he has played,
+    of the match. Then, get the round_winner if any. Determine
+    the state of the round, which is analogous to match states.
+    Return each player in the game and the card(s) he has played,
     if any.
     """
 
     content = request.json
     match = Match.query.get(match_id)
     assert content["player_id"] in [state.player_id for state in match.states]
+
+    # Get round state
     if all([state.viewed_round_end for state in match.states]):
-        return jsonify(status="success", round_state="ended")
+        round_state = "ended"
+    elif any([state.played_id for state in match.states]):
+        round_state = "ongoing"
+    else:
+        round_state = "pending"
+
+    # Get round winner, if he exists
     try:
         round_winner = State.query.filter_by(match_id=match_id,
                                              round_winner=True) \
                                             .first().player_id
     except:
         round_winner = None
+
+    # Get round judge
     for state in match.states:
         if state.judge:
             judge_id = state.player_id
             break
+
+    # Get all cards on the table as {player_id: {card_id: card_text}, ...}
+    played = {}
+    for state in match.states:
+        if state.played_id:
+            card = Card.query.get(state.played_id)
+            played[str(state.player_id)] = {str(card.id): card.text}
+        else:
+            played[str(state.player_id)] = None
+
+    # Get every player's hand as {player_id: {card_id: card_text, ...}, ...}
+    hands = {}
+    for state in match.states:
+        hands[str(state.player_id)] = {str(card.id): card.text
+                                       for card in state.hand}
+
     return jsonify(status="success",
-                   round_state="ongoing",
+                   round_state=round_state,
                    round_winner=round_winner,
                    judge_id=judge_id,
-                   played={str(state.player_id): None
-                                       if not state.played_id
-                                       else Card.query.get(state.played_id).text
-                           for state in match.states},
-                   hands={str(state.player_id): {str(card.id): card.text
-                                                 for card in state.hand}
-                          for state in match.states})
+                   played=played,
+                   hands=hands)
 
 
 @app.route("/matches/<int:match_id>/choose", methods=["POST"])
