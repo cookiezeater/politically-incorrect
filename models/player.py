@@ -13,7 +13,6 @@ class Player(db.Model):
     email = db.Column(db.String(120), unique=True)
     first_name = db.Column(db.String(50))
     last_name = db.Column(db.String(50))
-    losses = db.Column(db.Integer)
 
     # One-to-many:
     # A match only has one winner, but a winner can have many won matches.
@@ -49,11 +48,9 @@ class Player(db.Model):
         self.first_name = first_name
         self.last_name = last_name
 
-        self.losses = 0
         self.hosting = []
         self.wins = []
         self.friends = []
-        self.matches = []
         self.states = []
 
     def __str__(self):
