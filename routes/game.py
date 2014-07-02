@@ -15,52 +15,71 @@ def new_round(match):
     play a black card.
     """
 
+    # Find the current judge and increment his judged count
     for state in match.states:
         if state.judge:
             old_judge = state
             old_judge.judged += 1
             db.session.add(old_judge)
             break
+
     cards_to_remove = []
     white_cards = filter(lambda card: card.white, match.deck)
+
+    # Prepare each state for a new round by removing
+    # all cards from the table (played_id), resetting
+    # acknowledgement of round end (viewed_round_end),
+    # and removing all judges and round winners.
     for state in match.states:
         state.played_id = None
         state.viewed_round_end = False
         state.judge = False
         state.round_winner = False
+
+        # Fill the state's hand and remove each drawn card from
+        # the white_cards list to avoid duplicates. Add each
+        # drawn card to cards_to_remove, which will be a list
+        # of cards removed from the deck at the end of the function.
         while len(state.hand) < 10:
             draw_card = white_cards[randint(0, len(white_cards) - 1)]
             state.hand.append(draw_card)
             cards_to_remove.append(draw_card)
             white_cards.remove(draw_card)
         db.session.add(state)
+
+    # Select a new judge by finding the
+    # state which has the lowest judged count.
     new_judge = min(match.states, key=lambda state: state.judged)
     new_judge.judge = True
+
+    # Randomly select a black card and have
+    # the new judge put it on the table. Add
+    # the black card to the list of cards to be removed.
     black_cards = filter(lambda card: not card.white, match.deck)
     match.black_id = black_cards[randint(0, len(black_cards) - 1)].id
     new_judge.played_id = match.black_id
     cards_to_remove.append(Card.query.get(match.black_id))
+
+    # Remove all drawn cards from the deck.
     for card in cards_to_remove:
         match.deck.remove(card)
+
     db.session.add(new_judge)
     db.session.add(match)
     db.session.commit()
-    print [card.text for card in match.deck]
     return jsonify(status="success")
 
 
 def begin_match(match):
     """Starts a new match.
 
-    First, assert that the initiater is the host and
-    there are a valid number of players. Second,
-    remove all pending players. Then,
-    set the game's status to 'ONGOING' and pick a random judge.
+    Remove all pending players and
+    set the game's status to 'ONGOING'.
+    Begin a new round.
     """
 
     match.pending = []
     match.status = "ONGOING"
-    match.judge = match.states[randint(0, match.max_players - 1)]
     db.session.add(match)
     db.session.commit()
     return new_round(match)
@@ -117,8 +136,9 @@ def accept_invite(match_id):
     assert match in acceptor.invited
     acceptor.invited.remove(match)
     state = State(acceptor.id, match.id)
-    db.session.add(state)
     match.states.append(state)
+    db.session.add(acceptor)
+    db.session.add(state)
     db.session.add(match)
     db.session.commit()
     if len(match.states) == match.max_players:
