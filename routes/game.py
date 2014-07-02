@@ -197,10 +197,8 @@ def round_status(match_id):
     """Returns information about the current round.
 
     First, assert that the player requesting information is part
-    of the match. Then, get the round_winner if any. Determine
-    the state of the round, which is analogous to match states.
-    Return each player in the game and the card(s) he has played,
-    if any.
+    of the match. Then, grab round and match info as necessary
+    and return it.
     """
 
     content = request.json
@@ -247,13 +245,17 @@ def round_status(match_id):
     # Get the number of required white cards to be played per player
     answers = Card.query.get(match.black_id).answers
 
+    # Get each player's score
+    scores = {state.player_id: state.score for state in match.states}
+
     return jsonify(status="success",
                    round_state=round_state,
                    round_winner=round_winner,
                    judge_id=judge_id,
                    played=played,
                    hands=hands,
-                   answers=answers)
+                   answers=answers,
+                   scores=scores)
 
 
 @app.route("/matches/<int:match_id>/choose", methods=["POST"])
