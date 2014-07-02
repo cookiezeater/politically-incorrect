@@ -2,28 +2,29 @@ from models.shared import *
 
 
 class Card(db.Model):
-    """
-    Represents a player-made card. Scaffold should contain
-    default Cards Against Humanity cards for testing purposes.
-    """
-
-    __tablename__ = 'cards'
+    __tablename__ = "cards"
     id = db.Column(db.Integer, primary_key=True)
 
     text = db.Column(db.String(120), unique=True)
     white = db.Column(db.Boolean)
+    answers = db.Column(db.Integer)
     rank = db.Column(db.Integer)
     meta = db.Column(db.String(500))
 
     # One-to-many:
     # A match has one black card at any time,
     # but a black card can be in many matches.
-    matches = db.relationship('Match', backref='cards')
+    matches = db.relationship("Match", backref="cards")
 
-    def __init__(self, text=None, white=True, rank=0, meta="", matches=[]):
+    def __init__(self, text=None, white=True, answers=1,
+                 rank=0, meta="", matches=[]):
         self.text = text
         self.white = white
 
+        if self.white:
+            self.answers = 0
+        else:
+            self.answers = answers
         self.rank = rank
         self.meta = meta
         if matches is None:
@@ -32,5 +33,7 @@ class Card(db.Model):
             self.matches = matches
 
     def __str__(self):
-        return "{} Card: {}".format("White" if self.white else "Black",
-                                    self.text)
+        if self.white:
+            return "{}: {}".format("White", self.text)
+        else:
+            return "{}({}): {}".format("Black", self.answers, self.text)
