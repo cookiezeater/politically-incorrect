@@ -315,7 +315,7 @@ def acknowledge(match_id):
     state.viewed_round_end = True
     db.session.add(state)
     db.session.commit()
-    if all([state.viewed_round_end for state in match.states]):
+    if all_viewed_round_end(match):
         return new_round(match)
     else:
         return jsonify(status="success")
