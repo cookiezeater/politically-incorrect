@@ -26,16 +26,21 @@ class Player(db.Model):
                            backref="winner",
                            foreign_keys="[Match.winner_id]")
 
-    # Many-to-many:
-    # A player has many friends,
-    # and any friend can have many friends
-    friends = db.relationship("Player", secondary=players_to_players)
-
     # One-to-many:
     # A player has many states, but a state can only have one player.
     states = db.relationship("State",
                              backref="player",
                              foreign_keys="[State.player_id]")
+
+    # Many-to-many:
+    # A player has many friends,
+    # and any friend can have many friends
+    friends = db.relationship("Player", secondary=players_to_players)
+
+    # Many-to-many:
+    # A player has many friends,
+    # and any friend can have many friends
+    pending_friends = db.relationship("Player", secondary=players_to_players)
 
     def __init__(self,
                  username="",
@@ -50,8 +55,9 @@ class Player(db.Model):
 
         self.hosting = []
         self.wins = []
-        self.friends = []
         self.states = []
+        self.friends = []
+        self.pending_friends = []
 
     def __str__(self):
         return "Player {}: {}".format(self.username, self.email)
