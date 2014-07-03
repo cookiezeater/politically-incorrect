@@ -4,7 +4,6 @@ from models.state import State
 from models.match import Match
 from models.shared import app, db
 from flask import jsonify, request
-from sqlalchemy.exc import IntegrityError
 
 def catch_assertion_error(func):
     def wrapper(*args, **kwargs):

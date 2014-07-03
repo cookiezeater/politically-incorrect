@@ -1,4 +1,5 @@
 from routes.shared import *
+from sqlalchemy.exc import IntegrityError
 
 
 @app.route("/players", methods=["GET"])
@@ -56,7 +57,7 @@ def create_player():
     db.session.add(player)
     try:
         db.session.commit()
-    except IntegrityError as e:
+    except IntegrityError:
         return jsonify(status="failure", message="Username or email in-use.")
     return jsonify(status="success")
 
