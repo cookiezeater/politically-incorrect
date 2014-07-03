@@ -151,8 +151,7 @@ def accept_invite(match_id):
     db.session.commit()
     if len(match.states) == match.max_players:
         return begin_match(match)
-    else:
-        return jsonify(status="success")
+    return jsonify(status="success")
 
 
 @app.route("/matches/<int:match_id>/go", methods=["POST"])
@@ -190,7 +189,7 @@ def make_move(match_id):
 
 
 @app.route("/matches/<int:match_id>/round", methods=["POST"])
-def round_status(match_id):
+def round(match_id):
     """Returns information about the current round.
 
     First, assert that the player requesting information is part
@@ -204,13 +203,13 @@ def round_status(match_id):
 
     # Get round state
     if all_viewed_round_end(match):
-        round_state = "ended"
+        round_status = "ended"
     elif all_cards_down(match):
-        round_state = "judging"
+        round_status = "judging"
     elif any_cards_down(match):
-        round_state = "ongoing"
+        round_status = "ongoing"
     else:
-        round_state = None
+        round_status = None
 
     # Get round winner, if he exists
     try:
@@ -246,7 +245,7 @@ def round_status(match_id):
     scores = {state.player_id: state.score for state in match.states}
 
     return jsonify(status="success",
-                   round_state=round_state,
+                   round_status=round_status,
                    round_winner=round_winner,
                    judge_id=judge_id,
                    played=played,
@@ -256,7 +255,7 @@ def round_status(match_id):
 
 
 @app.route("/matches/<int:match_id>/choose", methods=["POST"])
-def choose_winner(match_id):
+def choose_round_winner(match_id):
     """Chooses a winner for the round.
 
     Assert that everyone has played a card. Then, check that
@@ -282,9 +281,17 @@ def choose_winner(match_id):
     winner.round_winner = True
     winner.score += 1
     judge.viewed_round_end = True
+    if winner.score == match.max_score:
+        match.winner_id = winner.id
+        match.status = "ENDED"
+        db.session.add(match)
     db.session.add(judge)
     db.session.add(winner)
     db.session.commit()
+    if match.status == "ENDED":
+        return jsonify(status="success",
+                       match_status="ENDED",
+                       winner=match.winner_id)
     return jsonify(status="success")
 
 
@@ -315,5 +322,4 @@ def acknowledge(match_id):
     db.session.commit()
     if all_viewed_round_end(match):
         return new_round(match)
-    else:
-        return jsonify(status="success")
+    return jsonify(status="success")
