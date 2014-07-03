@@ -173,11 +173,11 @@ def make_move(match_id):
     judge = State.query.filter_by(match_id=match_id,
                                   judge=True).first()
     assert content["player_id"] != judge.player_id
-    assert content["player_id"] in [state.player_id for state in match.states]
+    assert content["player_id"] in [state.player_id for state sin match.states]
     state = State.query.filter_by(player_id=content["player_id"],
                                   match_id=match_id).first()
     assert not state.played
-    assert len(set(content["cards"])) == judge.played[0].answers
+    assert len(content["cards"]) == judge.played[0].answers
     for card_id in content["cards"]:
         card = Card.query.get_or_404(card_id)
         assert card in state.hand
