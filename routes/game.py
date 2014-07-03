@@ -98,6 +98,7 @@ def all_viewed_round_end(match):
     return all([state.viewed_round_end for state in match.states])
 
 
+@catch_assertion_error
 @app.route("/matches/<int:match_id>/invite", methods=["POST"])
 def invite_player(match_id):
     """Sends an invite to a player for a match.
@@ -112,18 +113,22 @@ def invite_player(match_id):
 
     content = request.json
     match = Match.query.get_or_404(match_id)
-    assert match.host_id == content["inviter_id"]
-    assert content["inviter_id"] != content["invitee_id"]
-    assert match.status == "PENDING"
-    assert content["invitee_id"] not in [player.id for player in match.pending]
-    assert content["invitee_id"] not in [state.player_id
-                                         for state in match.states]
-    match.pending.append(Player.query.get_or_404(content["invitee_id"]))
+    inviter_id = content["inviter_id"]
+    invitee_id = content["invitee_id"]
+    assert match.host_id == inviter_id, "Only the host can invite!"
+    assert inviter_id != invitee_id, "You can't invite yourself!"
+    assert match.status == "PENDING", "The match has already started."
+    assert invitee_id not in [player.id for player in match.pending], \
+           "You already have an invite!"
+    assert invitee_id not in [state.player_id for state in match.states], \
+           "You're already in the match!"
+    match.pending.append(Player.query.get_or_404(invitee_id))
     db.session.add(match)
     db.session.commit()
     return jsonify(status="success")
 
 
+@catch_assertion_error
 @app.route("/matches/<int:match_id>/accept", methods=["POST"])
 def accept_invite(match_id):
     """Accepts an invite to a match.
@@ -138,10 +143,11 @@ def accept_invite(match_id):
 
     content = request.json
     match = Match.query.get_or_404(match_id)
-    assert match.host_id != content["acceptor_id"]
-    assert len(match.states) < match.max_players
-    acceptor = Player.query.get_or_404(content["acceptor_id"])
-    assert match in acceptor.invited
+    acceptor_id = content["acceptor_id"]
+    assert match.host_id != acceptor_id, "You're already in the match!"
+    assert len(match.states) < match.max_players, "The match is full."
+    acceptor = Player.query.get_or_404(acceptor_id)
+    assert match in acceptor.invited, "You haven't been invited to this match."
     acceptor.invited.remove(match)
     state = State(acceptor.id, match.id)
     match.states.append(state)
@@ -154,6 +160,7 @@ def accept_invite(match_id):
     return jsonify(status="success")
 
 
+@catch_assertion_error
 @app.route("/matches/<int:match_id>/go", methods=["POST"])
 def make_move(match_id):
     """Makes a move in a certain match for a player.
@@ -172,7 +179,7 @@ def make_move(match_id):
     judge = State.query.filter_by(match_id=match_id,
                                   judge=True).first()
     assert content["player_id"] != judge.player_id
-    assert content["player_id"] in [state.player_id for state sin match.states]
+    assert content["player_id"] in [state.player_id for state in match.states]
     state = State.query.filter_by(player_id=content["player_id"],
                                   match_id=match_id).first()
     assert not state.played
@@ -188,6 +195,7 @@ def make_move(match_id):
     return jsonify(status="success")
 
 
+@catch_assertion_error
 @app.route("/matches/<int:match_id>/round", methods=["POST"])
 def round(match_id):
     """Returns information about the current round.
@@ -254,6 +262,7 @@ def round(match_id):
                    scores=scores)
 
 
+@catch_assertion_error
 @app.route("/matches/<int:match_id>/choose", methods=["POST"])
 def choose_round_winner(match_id):
     """Chooses a winner for the round.
@@ -295,6 +304,7 @@ def choose_round_winner(match_id):
     return jsonify(status="success")
 
 
+@catch_assertion_error
 @app.route("/matches/<int:match_id>/acknowledge", methods=["POST"])
 def acknowledge(match_id):
     """Acknowledges the end round state. Everyone must acknowledge
@@ -311,12 +321,15 @@ def acknowledge(match_id):
 
     content = request.json
     match = Match.query.get_or_404(match_id)
-    assert all_cards_down(match)
-    assert any([state.round_winner for state in match.states])
-    assert content["player_id"] in [state.player_id for state in match.states]
+    assert all_cards_down(match), "Not all players have put down cards."
+    assert any([state.round_winner for state in match.states]), \
+           "A winner has not been chosen yet."
+    assert content["player_id"] in [state.player_id
+                                    for state in match.states], \
+           "You're not in this game!"
     state = State.query.filter_by(player_id=content["player_id"],
                                   match_id=match_id).first()
-    assert not state.viewed_round_end
+    assert not state.viewed_round_end, "The round is already over!"
     state.viewed_round_end = True
     db.session.add(state)
     db.session.commit()

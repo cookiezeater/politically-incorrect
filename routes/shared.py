@@ -5,3 +5,11 @@ from models.match import Match
 from models.shared import app, db
 from flask import jsonify, request
 from sqlalchemy.exc import IntegrityError
+
+def catch_assertion_error(func):
+    def wrapper(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except AssertionError as ass:
+                return jsonify(status="failure", message=ass)
+    return wrapper
