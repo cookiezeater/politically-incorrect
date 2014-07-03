@@ -1,8 +1,18 @@
 from models.shared import *
 
-players_to_players = db.Table("p2p", db.Model.metadata,
-    db.Column("players_id", db.Integer, db.ForeignKey("players.id")),
-    db.Column("players_id", db.Integer, db.ForeignKey("players.id")))
+
+class FriendshipManager(db.Model):
+    __tablename__ = "friendship_manager"
+    id = db.Column(db.Integer, primary_key=True)
+
+    requester = db.Column(db.Integer)
+    requestee = db.Column(db.Integer)
+    accepted = db.Column(db.Boolean, default=False)
+
+    def __init__(self, requester, requestee, accepted=False):
+        self.requester = requester
+        self.requestee = requestee
+        self.accepted = accepted
 
 
 class Player(db.Model):
@@ -32,22 +42,7 @@ class Player(db.Model):
                              backref="player",
                              foreign_keys="[State.player_id]")
 
-    # Many-to-many:
-    # A player has many friends,
-    # and any friend can have many friends
-    friends = db.relationship("Player", secondary=players_to_players)
-
-    # Many-to-many:
-    # A player has many friends,
-    # and any friend can have many friends
-    pending_friends = db.relationship("Player", secondary=players_to_players)
-
-    def __init__(self,
-                 username="",
-                 password="",
-                 email="",
-                 first_name="",
-                 last_name=""):
+    def __init__(self, username, password, email, first_name, last_name):
         self.username = username
         self.email = email
         self.first_name = first_name

@@ -59,3 +59,60 @@ def create_player():
     except IntegrityError as e:
         return jsonify(status="failure", message="Username or email in-use.")
     return jsonify(status="success")
+
+
+@app.route("/players/<int:player_id>/befriend", methods=["POST"])
+def send_friend_request(player_id):
+    content = request.json
+    requester_id = content["player_id"]
+    requestee_id = player_id
+    assert requestee_id != requester_id
+    assert FriendshipManager.query.filter_by(requester=requestee_id,
+                                             requestee=requester_id).first() \
+                                            is None
+    friendship = FriendshipManager(requester_id, requestee_id)
+    db.session.add(friendship)
+    db.session.commit()
+    return jsonify(status="success")
+
+
+@app.route("/players/<int:player_id>/accept", methods=["POST"])
+def accept_friend_request(player_id):
+    content = request.json
+    requester_id = player_id
+    requestee_id = content["player_id"]
+    friendship = FriendshipManager.query.filter_by(requester=requester_id,
+                                                   requestee=requestee_id,
+                                                   accepted=False).first()
+    friendship.accepted = True
+    db.session.add(friendship)
+    db.session.commit()
+    return jsonify(status="success")
+
+
+@app.route("/players/<int:player_id>/reject", methods=["POST"])
+def reject_friend_request(player_id):
+    content = request.json
+    requester = Player.query.get(player_id)
+    rejector = Player.query.get(content["player_id"])
+    friendship = FriendshipManager.query.filter_by(requester=requester_id,
+                                                   requstee=requestee_id,
+                                                   accepted=False).first()
+    db.session.remove(friendship)
+    db.session.commit()
+    return jsonify(status="success")
+
+@app.route("/players/<int:player_id>/friends", methods=["POST"])
+def get_friends(player_id):
+    # Eventually, request.json must contain some verification token
+    # and merge queries somehow
+    content = request.json
+    friendships = FriendshipManager.query.filter_by(requester=player_id,
+                                                    accepted=True)
+    friendships += FriendshipManager.query.filter_by(requestee=player_id,
+                                                     accepted=True)
+    friends = [friendship.requester for friendship in friendships
+               if friendship.requester != player_id]
+    friends += [friendship.requestee for friendship in friendships
+                if friendship.requestee != player_id]
+    return jsonify(status="success", friends=friends)
