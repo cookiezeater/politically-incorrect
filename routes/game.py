@@ -221,10 +221,8 @@ def round_status(match_id):
         round_winner = None
 
     # Get round judge
-    for state in match.states:
-        if state.judge:
-            judge_id = state.player_id
-            break
+    judge_id = State.query.filter_by(match_id=match_id,
+                                     judge=True).first().player_id
 
     # Get all cards on the table as
     # {player_id: [(card_id, card_text), ...], ...}
