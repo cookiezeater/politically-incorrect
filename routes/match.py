@@ -9,6 +9,7 @@ def get_all_matches():
         match_data = {"id": match.id,
                       "host": match.host_id,
                       "max_players": match.max_players,
+                      "max_score": match.max_score,
                       "match_status": match.status,
                       "states": [str(state) for state in match.states],
                       "pending": [player.id for player in match.pending],
@@ -31,6 +32,7 @@ def get_match(match_id):
     match_data = {"id": match.id,
                   "host": match.host_id,
                   "max_players": match.max_players,
+                  "max_score": match.max_score,
                   "match_status": match.status,
                   "states": [str(state) for state in match.states],
                   "pending": [player.id for player in match.pending],
@@ -49,7 +51,9 @@ def create_match():
     content = request.json
     player_id = content["player_id"]
     max_players = content["max_players"]
+    max_score = content["max_score"]
     assert 3 <= max_players <= 10
+    assert 5 <= max_score <= 20
     match = Match(player_id, max_players)
     state = State(player_id, match.id)
     db.session.add(state)
