@@ -20,6 +20,7 @@ class Player(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
     username = db.Column(db.String(50), unique=True)
+    password = db.Column(db.String(32))
     email = db.Column(db.String(120), unique=True)
     first_name = db.Column(db.String(50))
     last_name = db.Column(db.String(50))
@@ -44,6 +45,7 @@ class Player(db.Model):
 
     def __init__(self, username, password, email, first_name, last_name):
         self.username = username
+        self.password = password
         self.email = email
         self.first_name = first_name
         self.last_name = last_name

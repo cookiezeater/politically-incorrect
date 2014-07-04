@@ -12,7 +12,7 @@ if __name__ == "__main__":
                        "../cards/black.txt")
     headers = {"Content-type": "application/json",
                "Accept": "application/json"}
-    location = "http://localhost:5000/cards"
+    location = "http://damp-wildwood-9070.herokuapp.com/cards"
 
     with open(white_cards_file, "r") as white_cards, \
          open(black_cards_file, "r") as black_cards:
