@@ -59,7 +59,7 @@ def create_player():
         db.session.commit()
     except IntegrityError:
         return jsonify(status="failure", message="Username or email in-use.")
-    return jsonify(status="success")
+    return jsonify(status="success", player_id=player.id)
 
 
 @app.route("/players/<int:player_id>/befriend", methods=["POST"])
