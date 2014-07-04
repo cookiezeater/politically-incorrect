@@ -49,6 +49,7 @@ def delete_player(player_id):
 @app.route("/players", methods=["POST"])
 def create_player():
     content = request.json
+    print request.json
     player = Player(content["username"],
                     content["password"],
                     content["email"],
