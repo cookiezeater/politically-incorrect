@@ -2,6 +2,7 @@ package com.sacs.shao.friendsagainsthumanity;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
@@ -24,6 +25,7 @@ public class PlayerRegistration extends Activity {
     private static final String TAG = PlayerRegistration.class.getName();
     private Context context;
     private SharedPreferences preferences;
+    private Intent intent;
     private EditText usernameField;
     private EditText passwordField;
     private EditText emailField;
@@ -39,6 +41,11 @@ public class PlayerRegistration extends Activity {
 
         preferences = this.getSharedPreferences(
                 "com.sacs.shao.friendsagainsthumanity", Context.MODE_PRIVATE);
+
+        if (preferences.getInt("playerID", 0) != 0) {
+            intent = new Intent(this, MainGame.class);
+            startActivity(intent);
+        }
 
         usernameField = (EditText) findViewById(R.id.username);
         passwordField = (EditText) findViewById(R.id.password);
