@@ -9,13 +9,13 @@ def get_all_players():
     return jsonify(**players)
 
 
-@app.route("/players/<int:player_id>", methods=["GET"])
+@app.route("/players", methods=["POST"])
 def get_player(player_id):
-    player = Player.query.get_or_404(player_id)
-    return jsonify(username=player.username,
-                   email=player.email,
-                   first_name=player.first_name,
-                   last_name=player.last_name)
+    content = request.json
+    player = Player.query.filter_by(username=content["username"],
+                                    password=content["password"]) \
+                                   .first()
+    return jsonify(player_id=player.id)
 
 
 @app.route("/players/<int:player_id>", methods=["PUT"])
@@ -49,7 +49,6 @@ def delete_player(player_id):
 @app.route("/players", methods=["POST"])
 def create_player():
     content = request.json
-    print request.json
     player = Player(content["username"],
                     content["password"],
                     content["email"],
