@@ -23,7 +23,7 @@ To destroy the database:
 <pre><code>(venv) $ dropdb fah_dev</code></pre>
 
 ## Game Logic
-![match_flow](./match_flow.png)
+![match_flow](./concepts/match_flow.png)
 
 ## Testing
 We use [Postman](www.getpostman.com) for testing. A basic test suite is located in the tests directory.
@@ -38,7 +38,7 @@ We use [Postman](www.getpostman.com) for testing. A basic test suite is located 
 - /app.py: runs the server
 
 ## Import Structure
-![arch](./architecture.png)
+![arch](./concepts/architecture.png)
 
 ## API Architecture
 #### Cards
