@@ -9,8 +9,8 @@ def get_all_players():
     return jsonify(**players)
 
 
-@app.route("/players", methods=["POST"])
-def get_player(player_id):
+@app.route("/players/login", methods=["POST"])
+def get_player():
     content = request.json
     player = Player.query.filter_by(username=content["username"],
                                     password=content["password"]) \
