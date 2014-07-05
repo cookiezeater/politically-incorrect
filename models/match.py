@@ -15,6 +15,7 @@ class Match(db.Model):
     __tablename__ = "matches"
     id = db.Column(db.Integer, primary_key=True)
 
+    name = db.Column(db.String(80))
     status = db.Column(db.String(7))
     max_players = db.Column(db.Integer)
     max_score = db.Column(db.Integer)
@@ -50,7 +51,8 @@ class Match(db.Model):
     # but a black card can be in many matches.
     black_id = db.Column(db.Integer, db.ForeignKey("cards.id"))
 
-    def __init__(self, host_id, max_players, max_score):
+    def __init__(self, name, host_id, max_players, max_score):
+        self.name = name
         self.host_id = host_id
         self.max_players = max_players
         self.max_score = max_score
