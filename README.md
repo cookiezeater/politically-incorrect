@@ -29,7 +29,7 @@ To destroy the database:
 We use [Postman](www.getpostman.com) for testing. A basic test suite is located in the tests directory.
 
 ## Directory Structure
-- /android/: contains Android submodule
+- /friends-against-humanity-android/: contains the Android app submodule
 - /cards/: raw text file of cards for test purposes
 - /tests/: basic tests
 - /scaffolds/: db initialization scripts
