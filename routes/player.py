@@ -23,8 +23,8 @@ def get_player_info(player_id):
     content = request.json
     player = Player.query.get(player_id)
     assert player.password == content["password"]
-    wins = len(player.wins)
-    hosting = len(player.hosting)
+    wins = len(Match.query.filter_by(winner_id=player_id).all())
+    hosting = len(Match.query.filter_by(host_id=player_id).all())
     return jsonify(wins=wins, hosting=hosting)
 
 
