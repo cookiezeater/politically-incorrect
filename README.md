@@ -1,5 +1,5 @@
 # Friends Against Humanity
-A card game API
+A card game API. The android app is [here](https://github.com/25cf/friends-against-humanity-android).
 
 ## Development Setup
 Make a new virtual env. Then,
@@ -29,7 +29,6 @@ To destroy the database:
 We use [Postman](www.getpostman.com) for testing. A basic test suite is located in the tests directory.
 
 ## Directory Structure
-- /friends-against-humanity-android/: contains the Android app submodule
 - /cards/: raw text file of cards for test purposes
 - /tests/: basic tests
 - /scaffolds/: db initialization scripts
