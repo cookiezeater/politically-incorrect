@@ -10,12 +10,22 @@ def get_all_players():
 
 
 @app.route("/players/login", methods=["POST"])
-def get_player():
+def login_player():
     content = request.json
     player = Player.query.filter_by(username=content["username"],
                                     password=content["password"]) \
                                    .first()
     return jsonify(player_id=player.id)
+
+
+@app.route("/players/<int:player_id>", methods=["POST"])
+def get_player_info(player_id):
+    content = request.json
+    player = Player.query.get(player_id)
+    assert player.password == content["password"]
+    wins = len(player.wins)
+    hosting = len(player.hosting)
+    return jsonify(wins=wins, hosting=hosting)
 
 
 @app.route("/players/<int:player_id>", methods=["PUT"])
