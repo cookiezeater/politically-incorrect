@@ -57,7 +57,7 @@ def create_match():
     max_score = content["max_score"]
     assert 3 <= max_players <= 10
     assert 5 <= max_score <= 20
-    match = Match(name, player_id, max_players)
+    match = Match(name, player_id, max_players, max_score)
     state = State(player_id, match.id)
     db.session.add(state)
     match.states.append(state)
