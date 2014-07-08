@@ -118,9 +118,9 @@ def reject_friend_request(player_id):
 def get_friends(player_id):
     content = request.json
     friendships = FriendshipManager.query.filter_by(requester=player_id,
-                                                    accepted=True)
+                                                    accepted=True).all()
     friendships += FriendshipManager.query.filter_by(requestee=player_id,
-                                                     accepted=True)
+                                                     accepted=True).all()
     friends = [friendship.requester for friendship in friendships
                if friendship.requester != player_id]
     friends += [friendship.requestee for friendship in friendships
