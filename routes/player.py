@@ -116,7 +116,9 @@ def reject_friend_request(player_id):
 
 @app.route("/players/<int:player_id>/friends", methods=["POST"])
 def get_friends(player_id):
+    """This method is very expensive and bad."""
     content = request.json
+    assert request.json["password"] == Player.query.get(player_id).password
     friendships = FriendshipManager.query.filter_by(requester=player_id,
                                                     accepted=True).all()
     friendships += FriendshipManager.query.filter_by(requestee=player_id,
@@ -125,12 +127,72 @@ def get_friends(player_id):
                if friendship.requester != player_id]
     friends += [friendship.requestee for friendship in friendships
                 if friendship.requestee != player_id]
+    friends = [Player.query.get(player_id) for player_id in friends]
     return jsonify(status="success",
                    **{str(friend.id):
                       {"username": friend.username,
                        "first_name": friend.first_name,
                        "last_name": friend.last_name}
                       for friend in friends})
+
+
+@app.route("/players/<int:player_id>/friend_requests", methods=["POST"])
+def get_friend_requests(player_id):
+    """This method is very expensive and bad."""
+    content = request.json
+    assert request.json["password"] == Player.query.get(player_id).password
+    friendships = FriendshipManager.query.filter_by(requestee=player_id,
+                                                    accepted=False).all()
+    friend_requesters = [Player.query.get(player_id)
+                         for player_id in friendships]
+    return jsonify(status="success",
+                   **{str(requester.id):
+                      {"username": requester.username,
+                       "first_name": requester.first_name,
+                       "last_name": requester.last_name}
+                      for requester in friend_requesters})
+
+
+@app.route("/players/<int:player_id>/friend_requests", methods=["POST"])
+def get_friend_requests(player_id):
+    """
+    This method returns all players that have sent
+    player_id an invite. It is very expensive and bad.
+    """
+
+    content = request.json
+    assert request.json["password"] == Player.query.get(player_id).password
+    friendships = FriendshipManager.query.filter_by(requestee=player_id,
+                                                    accepted=False).all()
+    friend_requesters = [Player.query.get(player_id)
+                         for player_id in friendships]
+    return jsonify(status="success",
+                   **{str(requester.id):
+                      {"username": requester.username,
+                       "first_name": requester.first_name,
+                       "last_name": requester.last_name}
+                      for requester in friend_requesters})
+
+
+@app.route("/players/<int:player_id>/friend_requests", methods=["POST"])
+def get_pending_friends(player_id):
+    """
+    This method returns all players that player_id
+    has sent an invite to. It is very expensive and bad.
+    """
+
+    content = request.json
+    assert request.json["password"] == Player.query.get(player_id).password
+    friendships = FriendshipManager.query.filter_by(requestee=player_id,
+                                                    accepted=False).all()
+    friend_requestees = [Player.query.get(player_id)
+                         for player_id in friendships]
+    return jsonify(status="success",
+                   **{str(requestee.id):
+                      {"username": requestee.username,
+                       "first_name": requestee.first_name,
+                       "last_name": requestee.last_name}
+                      for requestee in friend_requestees})
 
 
 @app.route("/players/search/<string:query>", methods=["POST"])
