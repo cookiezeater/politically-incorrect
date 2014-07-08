@@ -113,10 +113,9 @@ def reject_friend_request(player_id):
     db.session.commit()
     return jsonify(status="success")
 
+
 @app.route("/players/<int:player_id>/friends", methods=["POST"])
 def get_friends(player_id):
-    # Eventually, request.json must contain some verification token
-    # and merge queries somehow
     content = request.json
     friendships = FriendshipManager.query.filter_by(requester=player_id,
                                                     accepted=True)
@@ -126,4 +125,30 @@ def get_friends(player_id):
                if friendship.requester != player_id]
     friends += [friendship.requestee for friendship in friendships
                 if friendship.requestee != player_id]
-    return jsonify(status="success", friends=friends)
+    return jsonify(status="success",
+                   **{str(friend.id):
+                      {"username": friend.username,
+                       "first_name": friend.first_name,
+                       "last_name": friend.last_name}
+                      for friend in friends})
+
+
+@app.route("/players/search/<string:query>", methods=["POST"])
+def search_players(query):
+    content = request.json
+    assert Player.query.get(content["player_id"]) is not None
+    players = Player.query.filter(
+                    Player.first_name.ilike("%{}%".format(query))).all()
+    players += Player.query.filter(
+                    Player.username.ilike("%{}%".format(query))).all()
+    players += Player.query.filter(
+                    Player.last_name.ilike("%{}%".format(query))).all()
+    players += Player.query.filter(
+                    Player.email.ilike("%{}%".format(query))).all()
+    players = set(players)
+    return jsonify(status="success",
+                   **{str(player.id):
+                      {"username": player.username,
+                       "first_name": player.first_name,
+                       "last_name": player.last_name}
+                      for player in players})
