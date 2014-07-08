@@ -84,6 +84,8 @@ def send_friend_request(player_id):
     assert FriendshipManager.query.filter_by(requester=requestee_id,
                                              requestee=requester_id).first() \
                                             is None
+    assert Player.query.get(requester_id) != None
+    assert Player.query.get(requestee_id) != None
     friendship = FriendshipManager(requester_id, requestee_id)
     db.session.add(friendship)
     db.session.commit()
