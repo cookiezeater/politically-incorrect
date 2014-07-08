@@ -174,7 +174,7 @@ def get_friend_requests(player_id):
                       for requester in friend_requesters})
 
 
-@app.route("/players/<int:player_id>/friend_requests", methods=["POST"])
+@app.route("/players/<int:player_id>/pending_friends", methods=["POST"])
 def get_pending_friends(player_id):
     """
     This method returns all players that player_id
