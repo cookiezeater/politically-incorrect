@@ -78,6 +78,9 @@ def send_friend_request(player_id):
     requester_id = content["player_id"]
     requestee_id = player_id
     assert requestee_id != requester_id
+    assert FriendshipManager.query.filter_by(requestee=requestee_id,
+                                             requester=requester_id).first() \
+                                            is None
     assert FriendshipManager.query.filter_by(requester=requestee_id,
                                              requestee=requester_id).first() \
                                             is None
