@@ -194,15 +194,18 @@ def get_pending_friends_route(player_id):
     return jsonify(status="success", **get_pending_friends(player_id))
 
 
-@app.route("/players/<int:player_id>/friends_list", methods=["POST"])
 def get_friends_list(player_id):
     """Returns sum of get_fruends, friend_requests, pending_friends."""
     content = request.json
     assert request.json["password"] == Player.query.get(player_id).password
-    return jsonify(status="success",
-                   pending_friends=get_pending_friends(player_id),
-                   friend_requests=get_friend_requests(player_id),
-                   friends=get_friends(player_id))
+    return {"pending_friends": get_pending_friends(player_id),
+            "friend_requests": get_friend_requests(player_id),
+            "friends": get_friends(player_id)}
+
+
+@app.route("/players/<int:player_id>/friends_list", methods=["POST"])
+def get_friends_list_route(player_id):
+    return jsonify(status="success", **get_friends_list(player_id))
 
 
 @app.route("/players/search/<string:query>", methods=["POST"])
