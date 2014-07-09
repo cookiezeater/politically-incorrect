@@ -206,7 +206,9 @@ def get_friends_list(player_id):
 @app.route("/players/search/<string:query>", methods=["POST"])
 def search_players(query):
     content = request.json
-    assert Player.query.get(content["player_id"]) is not None
+    player = Player.query.get(content["player_id"])
+    assert player is not None
+    assert content["password"] == player.password
     players = Player.query.filter(
                     Player.first_name.ilike("%{}%".format(query))).all()
     players += Player.query.filter(
@@ -215,7 +217,8 @@ def search_players(query):
                     Player.last_name.ilike("%{}%".format(query))).all()
     players += Player.query.filter(
                     Player.email.ilike("%{}%".format(query))).all()
-    players = set(players)
+    players = set([player for player in players
+                   if player.id not in get_friends(player_id)])
     return jsonify(status="success",
                    **{str(player.id):
                       {"username": player.username,
