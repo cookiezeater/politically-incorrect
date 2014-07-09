@@ -217,8 +217,8 @@ def search_players(query):
                     Player.last_name.ilike("%{}%".format(query))).all()
     players += Player.query.filter(
                     Player.email.ilike("%{}%".format(query))).all()
-    players = set([player for player in players
-                   if player.id not in get_friends(player_id)])
+    players = set([person for person in players
+                   if person.id not in get_friends(player.id)])
     return jsonify(status="success",
                    **{str(player.id):
                       {"username": player.username,
