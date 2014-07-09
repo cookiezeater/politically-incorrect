@@ -84,7 +84,9 @@ def send_friend_request(player_id):
     assert FriendshipManager.query.filter_by(requester=requestee_id,
                                              requestee=requester_id).first() \
                                             is None
-    assert Player.query.get(requester_id) is not None
+    player = Player.query.get(requester_id)
+    assert player is not None
+    assert player.password == content["password"]
     assert Player.query.get(requestee_id) is not None
     friendship = FriendshipManager(requester_id, requestee_id)
     db.session.add(friendship)
@@ -218,7 +220,7 @@ def search_players(query):
     players += Player.query.filter(
                     Player.email.ilike("%{}%".format(query))).all()
     players = set([person for person in players
-                   if str(person.id) not in get_friends(player.id)
+                   if str(person.id) not in get_friends_list(player.id)
                    and person.id != player.id])
     return jsonify(status="success",
                    **{str(player.id):
