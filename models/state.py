@@ -51,8 +51,8 @@ class State(db.Model):
 
     def __str__(self):
         played = [str(card) for card in self.played]
-        return "State: Player({}) in Match({}) \
-                with score({}) and played({})".format(self.player_id,
+        return "State: Player({}) in Match({}) " + \
+               "with score({}) and played({})".format(self.player_id,
                                                       self.match_id,
                                                       self.score,
                                                       str(played))
