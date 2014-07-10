@@ -52,13 +52,13 @@ def get_match(match_id):
 def create_match():
     content = request.json
     player_id = content["player_id"]
-    password = conteont["password"]
+    password = content["password"]
     name = content["name"]
     max_players = content["max_players"]
     max_score = content["max_score"]
     player = Player.query.get(player_id)
     assert player is not None
-    assert player.id == password
+    assert player.password == password
     assert 3 <= max_players <= 10
     assert 5 <= max_score <= 20
     match = Match(name, player_id, max_players, max_score)
