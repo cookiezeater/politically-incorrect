@@ -68,7 +68,7 @@ def create_match():
     match.deck = Card.query.all()  # temporary
     db.session.add(match)
     db.session.commit()
-    return jsonify(status="success")
+    return jsonify(status="success", match_id=match.id)
 
 
 @app.route("/matches/<int:match_id>", methods=["DELETE"])

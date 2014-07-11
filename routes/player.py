@@ -37,10 +37,12 @@ def get_player_info(player_id):
                    last_name=player.last_name,
                    username=player.username,
                    wins=wins,
-                   hosting={str(hosting.id): hosting.name
+                   hosting={str(match.id): match.name
                             for match in hosting},
                    matches={str(match.id): match.name
-                            for match in matches})
+                            for match in matches},
+                   match_invites={str(match.id): match.name
+                                  for match in player.invited})
 
 
 @app.route("/players/<int:player_id>", methods=["PUT"])
