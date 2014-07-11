@@ -24,8 +24,23 @@ def get_player_info(player_id):
     player = Player.query.get(player_id)
     assert player.password == content["password"]
     wins = len(Match.query.filter_by(winner_id=player_id).all())
-    hosting = len(Match.query.filter_by(host_id=player_id).all())
-    return jsonify(wins=wins, hosting=hosting)
+    hosting = Match.query.filter_by(host_id=player_id).all()
+
+    # There has got to be a better way to do all of this
+    states = State.query.filter_by(player_id=player_id).all()
+    matches = []
+    for state in states:
+        matches.append(Match.query.get(state.match_id))
+    matches = [match for match in matches if match not in hosting]
+
+    return jsonify(first_name=player.first_name,
+                   last_name=player.last_name,
+                   username=player.username,
+                   wins=wins,
+                   hosting={str(hosting.id): hosting.name
+                            for match in hosting},
+                   matches={str(match.id): match.name
+                            for match in matches})
 
 
 @app.route("/players/<int:player_id>", methods=["PUT"])
