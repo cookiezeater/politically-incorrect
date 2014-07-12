@@ -12,16 +12,28 @@ def get_all_matches():
                       "max_players": match.max_players,
                       "max_score": match.max_score,
                       "match_status": match.status,
-                      "states": [str(state) for state in match.states],
-                      "pending": [player.id for player in match.pending],
                       "winner": match.winner_id,
                       "deck_size": len(match.deck),
                       "black": None if not match.black_id
-                               else Card.query.get(match.black_id).text}
+                               else Card.query.get_or_404(match.black_id).text}
+
+        players = [Player.query.get_or_404(state.player_id) for state in match.states]
+        match_data["players"] = {player.id: (player.first_name,
+                                             player.last_name,
+                                             player.username)
+                                 for player in players}
+
+        match_data["pending"] = {player.id: (player.first_name,
+                                             player.last_name,
+                                             player.username)
+                                 for player in match.pending}
+
         judge_query = State.query.filter_by(match_id=match.id, judge=True)
         match_data["judge"] = None if not judge_query.first() \
                               else judge_query.first().player_id
+
         matches_data.append(match_data)
+
     return jsonify(status="success", matches=matches_data)
 
 
@@ -29,22 +41,34 @@ def get_all_matches():
 def get_match(match_id):
     content = request.json
     match = Match.query.get_or_404(match_id)
+    player = Player.query.get_or_404(content["player_id"])
+    assert player.password == content["password"]
     assert content["player_id"] in [state.player_id for state in match.states]
-    match_data = {"id": match.id,
-                  "name": match.name,
+    match_data = {"name": match.name,
                   "host": match.host_id,
                   "max_players": match.max_players,
                   "max_score": match.max_score,
                   "match_status": match.status,
-                  "states": [str(state) for state in match.states],
-                  "pending": [player.id for player in match.pending],
                   "winner": match.winner_id,
                   "deck_size": len(match.deck),
                   "black": None if not match.black_id
-                           else Card.query.get(match.black_id).text}
+                           else Card.query.get_or_404(match.black_id).text}
+
+    players = [Player.query.get_or_404(state.player_id) for state in match.states]
+    match_data["players"] = {player.id: (player.first_name,
+                                         player.last_name,
+                                         player.username)
+                             for player in players}
+
+    match_data["pending"] = {player.id: (player.first_name,
+                                         player.last_name,
+                                         player.username)
+                             for player in match.pending}
+
     judge_query = State.query.filter_by(match_id=match.id, judge=True)
     match_data["judge"] = None if not judge_query.first() \
                           else judge_query.first().player_id
+
     return jsonify(status="success", **match_data)
 
 
@@ -56,8 +80,7 @@ def create_match():
     name = content["name"]
     max_players = content["max_players"]
     max_score = content["max_score"]
-    player = Player.query.get(player_id)
-    assert player is not None
+    player = Player.query.get_or_404(player_id)
     assert player.password == password
     assert 3 <= max_players <= 10
     assert 5 <= max_score <= 20
@@ -73,7 +96,7 @@ def create_match():
 
 @app.route("/matches/<int:match_id>", methods=["DELETE"])
 def delete_match(match_id):
-    match = Match.query.get(match_id)
+    match = Match.query.get_or_404(match_id)
     db.session.delete(match)
     db.session.commit()
     return jsonify(status="success")

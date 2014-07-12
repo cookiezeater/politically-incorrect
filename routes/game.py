@@ -206,7 +206,7 @@ def round(match_id):
     """
 
     content = request.json
-    match = Match.query.get(match_id)
+    match = Match.query.get_or_404(match_id)
     assert content["player_id"] in [state.player_id for state in match.states]
 
     # Get round state
@@ -247,7 +247,7 @@ def round(match_id):
                                        for card in state.hand}
 
     # Get the number of required white cards to be played per player
-    answers = Card.query.get(match.black_id).answers
+    answers = Card.query.get_or_404(match.black_id).answers
 
     # Get each player's score
     scores = {state.player_id: state.score for state in match.states}

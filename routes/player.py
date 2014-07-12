@@ -21,7 +21,7 @@ def login_player():
 @app.route("/players/<int:player_id>", methods=["POST"])
 def get_player_info(player_id):
     content = request.json
-    player = Player.query.get(player_id)
+    player = Player.query.get_or_404(player_id)
     assert player.password == content["password"]
     wins = len(Match.query.filter_by(winner_id=player_id).all())
     hosting = Match.query.filter_by(host_id=player_id).all()
@@ -30,7 +30,7 @@ def get_player_info(player_id):
     states = State.query.filter_by(player_id=player_id).all()
     matches = []
     for state in states:
-        matches.append(Match.query.get(state.match_id))
+        matches.append(Match.query.get_or_404(state.match_id))
     matches = [match for match in matches if match not in hosting]
 
     return jsonify(first_name=player.first_name,
@@ -101,8 +101,7 @@ def send_friend_request(player_id):
     assert FriendshipManager.query.filter_by(requester=requestee_id,
                                              requestee=requester_id).first() \
                                             is None
-    player = Player.query.get(requester_id)
-    assert player is not None
+    player = Player.query.get_or_404(requester_id)
     assert player.password == content["password"]
     assert Player.query.get(requestee_id) is not None
     friendship = FriendshipManager(requester_id, requestee_id)
@@ -128,8 +127,8 @@ def accept_friend_request(player_id):
 @app.route("/players/<int:player_id>/reject", methods=["POST"])
 def reject_friend_request(player_id):
     content = request.json
-    requester = Player.query.get(player_id)
-    rejector = Player.query.get(content["player_id"])
+    requester = Player.query.get_or_404(player_id)
+    rejector = Player.query.get_or_404(content["player_id"])
     friendship = FriendshipManager.query.filter_by(requester=requester_id,
                                                    requstee=requestee_id,
                                                    accepted=False).first()
@@ -141,7 +140,7 @@ def reject_friend_request(player_id):
 def get_friends(player_id):
     """This method is very expensive and bad."""
     content = request.json
-    assert request.json["password"] == Player.query.get(player_id).password
+    assert request.json["password"] == Player.query.get_or_404(player_id).password
     friendships = FriendshipManager.query.filter_by(requester=player_id,
                                                     accepted=True).all()
     friendships += FriendshipManager.query.filter_by(requestee=player_id,
@@ -150,7 +149,7 @@ def get_friends(player_id):
                if friendship.requester != player_id]
     friends += [friendship.requestee for friendship in friendships
                 if friendship.requestee != player_id]
-    friends = [Player.query.get(player_id) for player_id in friends]
+    friends = [Player.query.get_or_404(player_id) for player_id in friends]
     return {str(friend.id):
             {"username": friend.username,
              "first_name": friend.first_name,
@@ -170,10 +169,10 @@ def get_friend_requests(player_id):
     """
 
     content = request.json
-    assert request.json["password"] == Player.query.get(player_id).password
+    assert request.json["password"] == Player.query.get_or_404(player_id).password
     friendships = FriendshipManager.query.filter_by(requestee=player_id,
                                                     accepted=False).all()
-    friend_requesters = [Player.query.get(friendship.requester)
+    friend_requesters = [Player.query.get_or_404(friendship.requester)
                          for friendship in friendships]
     return {str(requester.id):
             {"username": requester.username,
@@ -194,10 +193,10 @@ def get_pending_friends(player_id):
     """
 
     content = request.json
-    assert request.json["password"] == Player.query.get(player_id).password
+    assert request.json["password"] == Player.query.get_or_404(player_id).password
     friendships = FriendshipManager.query.filter_by(requester=player_id,
                                                     accepted=False).all()
-    friend_requestees = [Player.query.get(friendship.requestee)
+    friend_requestees = [Player.query.get_or_404(friendship.requestee)
                          for friendship in friendships]
     return {str(requestee.id):
             {"username": requestee.username,
@@ -214,7 +213,7 @@ def get_pending_friends_route(player_id):
 def get_friends_list(player_id):
     """Returns sum of get_fruends, friend_requests, pending_friends."""
     content = request.json
-    assert request.json["password"] == Player.query.get(player_id).password
+    assert request.json["password"] == Player.query.get_or_404(player_id).password
     return {"pending_friends": get_pending_friends(player_id),
             "friend_requests": get_friend_requests(player_id),
             "friends": get_friends(player_id)}
@@ -228,8 +227,7 @@ def get_friends_list_route(player_id):
 @app.route("/players/search/<string:query>", methods=["POST"])
 def search_players(query):
     content = request.json
-    player = Player.query.get(content["player_id"])
-    assert player is not None
+    player = Player.query.get_or_404(content["player_id"])
     assert content["password"] == player.password
     players = Player.query.filter(
                     Player.first_name.ilike("%{}%".format(query))).all()
