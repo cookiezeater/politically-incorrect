@@ -17,8 +17,11 @@ def login_player():
                                         password=content["password"]) \
                                        .first()
     except:
+        return abort(404)
 
     return jsonify(status="success",
+                   username=player.username,
+                   password=player.password,
                    player_id=player.id,
                    first_name=player.first_name,
                    last_name=player.last_name,
