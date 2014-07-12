@@ -17,15 +17,16 @@ def get_all_matches():
                       "black": None if not match.black_id
                                else Card.query.get_or_404(match.black_id).text}
 
-        players = [Player.query.get_or_404(state.player_id) for state in match.states]
-        match_data["players"] = {player.id: (player.first_name,
-                                             player.last_name,
-                                             player.username)
+        players = [Player.query.get_or_404(state.player_id)
+                   for state in match.states]
+        match_data["players"] = {player.id: {"first_name": player.first_name,
+                                             "last_name": player.last_name,
+                                             "username": player.username}
                                  for player in players}
 
-        match_data["pending"] = {player.id: (player.first_name,
-                                             player.last_name,
-                                             player.username)
+        match_data["pending"] = {player.id: {"first_name": player.first_name,
+                                         "last_name": player.last_name,
+                                         "username": player.username}
                                  for player in match.pending}
 
         judge_query = State.query.filter_by(match_id=match.id, judge=True)
@@ -54,15 +55,16 @@ def get_match(match_id):
                   "black": None if not match.black_id
                            else Card.query.get_or_404(match.black_id).text}
 
-    players = [Player.query.get_or_404(state.player_id) for state in match.states]
-    match_data["players"] = {player.id: (player.first_name,
-                                         player.last_name,
-                                         player.username)
+    players = [Player.query.get_or_404(state.player_id)
+               for state in match.states]
+    match_data["players"] = {player.id: {"first_name": player.first_name,
+                                         "last_name": player.last_name,
+                                         "username": player.username}
                              for player in players}
 
-    match_data["pending"] = {player.id: (player.first_name,
-                                         player.last_name,
-                                         player.username)
+    match_data["pending"] = {player.id: {"first_name": player.first_name,
+                                         "last_name": player.last_name,
+                                         "username": player.username}
                              for player in match.pending}
 
     judge_query = State.query.filter_by(match_id=match.id, judge=True)
