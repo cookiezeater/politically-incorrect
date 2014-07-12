@@ -6,16 +6,23 @@ from sqlalchemy.exc import IntegrityError
 def get_all_players():
     players = Player.query.all()
     players = {player.email: player.id for player in players}
-    return jsonify(**players)
+    return jsonify(status="success", **players)
 
 
 @app.route("/players/login", methods=["POST"])
 def login_player():
     content = request.json
-    player = Player.query.filter_by(username=content["username"],
-                                    password=content["password"]) \
-                                   .first()
-    return jsonify(player_id=player.id)
+    try:
+        player = Player.query.filter_by(username=content["username"],
+                                        password=content["password"]) \
+                                       .first()
+    except:
+
+    return jsonify(status="success",
+                   player_id=player.id,
+                   first_name=player.first_name,
+                   last_name=player.last_name,
+                   email=player.email)
 
 
 @app.route("/players/<int:player_id>", methods=["POST"])
@@ -33,7 +40,8 @@ def get_player_info(player_id):
         matches.append(Match.query.get_or_404(state.match_id))
     matches = [match for match in matches if match not in hosting]
 
-    return jsonify(first_name=player.first_name,
+    return jsonify(status="success",
+                   first_name=player.first_name,
                    last_name=player.last_name,
                    username=player.username,
                    wins=wins,
