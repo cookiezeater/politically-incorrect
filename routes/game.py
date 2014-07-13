@@ -116,7 +116,7 @@ def invite_player(match_id):
     inviter_id = content["inviter_id"]
     invitee_id = content["invitee_id"]
     inviter = Player.query.get_or_404(inviter_id)
-    assert invite.password = content["password"]
+    assert invite.password == content["password"]
     assert match.host_id == inviter_id, "Only the host can invite!"
     assert inviter_id != invitee_id, "You can't invite yourself!"
     assert match.status == "PENDING", "The match has already started."
