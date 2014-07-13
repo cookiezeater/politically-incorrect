@@ -43,8 +43,16 @@ def get_match(match_id):
     content = request.json
     match = Match.query.get_or_404(match_id)
     player = Player.query.get_or_404(content["player_id"])
+
     assert player.password == content["password"]
-    assert content["player_id"] in [state.player_id for state in match.states]
+
+    player_is_playing = content["player_id"] in [state.player_id
+                                                 for state in match.states]
+    player_is_invited = match.id in [m.id for m in player.invited]
+
+    assert player_is_playing or player_is_invited, \
+           "You're not allowed to view this match."
+
     match_data = {"name": match.name,
                   "host": match.host_id,
                   "max_players": match.max_players,
