@@ -116,7 +116,7 @@ def invite_player(match_id):
     inviter_id = content["inviter_id"]
     invitee_id = content["invitee_id"]
     inviter = Player.query.get_or_404(inviter_id)
-    assert invite.password == content["password"]
+    assert inviter.password == content["password"]
     assert match.host_id == inviter_id, "Only the host can invite!"
     assert inviter_id != invitee_id, "You can't invite yourself!"
     assert match.status == "PENDING", "The match has already started."
@@ -149,6 +149,7 @@ def accept_invite(match_id):
     assert match.host_id != acceptor_id, "You're already in the match!"
     assert len(match.states) < match.max_players, "The match is full."
     acceptor = Player.query.get_or_404(acceptor_id)
+    assert acceptor.password == content["password"], "Wrong password."
     assert match in acceptor.invited, "You haven't been invited to this match."
     acceptor.invited.remove(match)
     state = State(acceptor.id, match.id)
