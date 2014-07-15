@@ -151,7 +151,8 @@ def reject_friend_request(player_id):
 def get_friends(player_id):
     """This method is very expensive and bad."""
     content = request.json
-    assert request.json["password"] == Player.query.get_or_404(player_id).password
+    password = Player.query.get_or_404(player_id).password
+    assert request.json["password"] == password
     friendships = FriendshipManager.query.filter_by(requester=player_id,
                                                     accepted=True).all()
     friendships += FriendshipManager.query.filter_by(requestee=player_id,
@@ -180,7 +181,8 @@ def get_friend_requests(player_id):
     """
 
     content = request.json
-    assert request.json["password"] == Player.query.get_or_404(player_id).password
+    password = Player.query.get_or_404(player_id).password
+    assert request.json["password"] == password
     friendships = FriendshipManager.query.filter_by(requestee=player_id,
                                                     accepted=False).all()
     friend_requesters = [Player.query.get_or_404(friendship.requester)
@@ -204,7 +206,8 @@ def get_pending_friends(player_id):
     """
 
     content = request.json
-    assert request.json["password"] == Player.query.get_or_404(player_id).password
+    password = Player.query.get_or_404(player_id).password
+    assert request.json["password"] == password
     friendships = FriendshipManager.query.filter_by(requester=player_id,
                                                     accepted=False).all()
     friend_requestees = [Player.query.get_or_404(friendship.requestee)
@@ -224,7 +227,8 @@ def get_pending_friends_route(player_id):
 def get_friends_list(player_id):
     """Returns sum of get_fruends, friend_requests, pending_friends."""
     content = request.json
-    assert request.json["password"] == Player.query.get_or_404(player_id).password
+    password = Player.query.get_or_404(player_id).password
+    assert request.json["password"] == password
     return {"pending_friends": get_pending_friends(player_id),
             "friend_requests": get_friend_requests(player_id),
             "friends": get_friends(player_id)}
