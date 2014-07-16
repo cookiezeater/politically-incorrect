@@ -33,7 +33,7 @@ class State(db.Model):
     hand = db.relationship("Card", secondary=states_to_cards)
 
     # Many-to-many:
-    # A state has one played card,
+    # A state can have several played cards,
     # but a card can have many states in which it is played.
     played = db.relationship("Card", secondary=states_to_played_cards)
 
