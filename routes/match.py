@@ -69,6 +69,11 @@ def get_match(match_id):
                                          "last_name": player.last_name,
                                          "username": player.username}
                              for player in players}
+    for player in players:
+        player_state = State.query.filter_by(player_id=player.id,
+                                             match_id=match.id).first()
+        match_data["players"][player.id] = {card.id: card.text
+                                            for card in player_state.hand}
 
     match_data["pending"] = {player.id: {"first_name": player.first_name,
                                          "last_name": player.last_name,
