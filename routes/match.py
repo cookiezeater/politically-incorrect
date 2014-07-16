@@ -75,7 +75,7 @@ def get_match(match_id):
         match_data["players"][player.id]["played"] = \
                 {card.id: card.text for card in player_state.played}
         match_data["players"][player.id]["hand"] = \
-                {"X": len(player_state.hand) for i in range(1)}
+                {card.id: card.text for card in player_state.hand}
 
     match_data["pending"] = {player.id: {"first_name": player.first_name,
                                          "last_name": player.last_name,
