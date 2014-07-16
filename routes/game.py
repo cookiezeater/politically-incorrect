@@ -16,9 +16,15 @@ def new_round(match):
     """
 
     # Find the current judge and increment his judged count
-    old_judge = State.query.filter_by(match_id=match_id, judge=True).first()
-    old_judge.judged += 1
-    db.session.add(old_judge)
+    try:
+        old_judge = State.query.filter_by(match_id=match.id, judge=True).first()
+        old_judge.judged += 1
+        db.session.add(old_judge)
+    except AttributeError:
+        # This just means that we are starting a new round
+        # for the first time, so the query will return a
+        # NoneType.
+        pass
 
     cards_to_remove = []
     white_cards = filter(lambda card: card.white, match.deck)
@@ -48,6 +54,7 @@ def new_round(match):
     # state which has the lowest judged count.
     new_judge = min(match.states, key=lambda state: state.judged)
     new_judge.judge = True
+    db.session.add(new_judge)
 
     # Randomly select a black card and have
     # the new judge put it on the table. Add
@@ -62,7 +69,6 @@ def new_round(match):
     for card in cards_to_remove:
         match.deck.remove(card)
 
-    db.session.add(new_judge)
     db.session.add(match)
     db.session.commit()
     return jsonify(status="success")
