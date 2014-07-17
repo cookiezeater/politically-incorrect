@@ -241,7 +241,7 @@ def round(match_id):
                                      judge=True).first().player_id
 
     # Get all cards on the table as
-    # {player_id: [(card_id, card_text), ...], ...}
+    # {player_id: [{card_id: card_text}, ...], ...}
     # and every player's hand as
     # {player_id: {card_id: card_text, ...}, ...}.
     # Cards played by the player (on the table) are
