@@ -9,6 +9,6 @@ def catch_assertion_error(func):
     def wrapper(*args, **kwargs):
             try:
                 return func(*args, **kwargs)
-            except AssertionError as ass:
-                return jsonify(status="failure", message=ass)
+            except AssertionError as e:
+                return jsonify(status="fail", message=e)
     return wrapper
