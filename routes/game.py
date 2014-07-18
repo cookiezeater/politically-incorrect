@@ -277,6 +277,13 @@ def match_info(match_id):
         player["played_cards"] = played_cards
         json_serialized_players[index] = player
 
+    # Get pending players from match relationship
+    pending_players = [{"id": player.id,
+                        "first_name": player.first_name,
+                        "last_name": player.last_name,
+                        "username": player.username}
+                       for player in match.pending]
+
     # Get the black card
     black = Card.query.get_or_404(match.black_id)
     black_card = {"text": black.text, "answers": black.answers}
