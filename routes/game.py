@@ -288,6 +288,12 @@ def match_info(match_id):
     black = Card.query.get_or_404(match.black_id)
     black_card = {"text": black.text, "answers": black.answers}
 
+    # Get the requesting player's hand
+    player_state = next(state for state in states
+                        if state.player_id == player_id)
+    hand = [{"id": card.id, "text": card.text}
+            for card in player_state.hand]
+
     return jsonify(status="success",
                    data={"match_name": match.name,
                          "match_status": match.status,
