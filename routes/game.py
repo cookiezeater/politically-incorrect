@@ -285,8 +285,11 @@ def match_info(match_id):
                        for player in match.pending]
 
     # Get the black card
-    black = Card.query.get_or_404(match.black_id)
-    black_card = {"text": black.text, "answers": black.answers}
+    if match.black_id:
+        black = Card.query.get(match.black_id)
+        black_card = {"text": black.text, "answers": black.answers}
+    else:
+        black_card = None
 
     # Get the requesting player's hand
     player_state = next(state for state in states
