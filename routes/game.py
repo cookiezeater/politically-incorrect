@@ -313,7 +313,6 @@ def get_match_info(match_id):
             for card in player_state.hand]
 
     return jsonify(status="success",
-        serialized_
                    data={"match_name": match.name,
                          "match_status": match.status,
                          "round_status": round_status,
