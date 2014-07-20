@@ -210,7 +210,7 @@ def make_move(match_id):
 
 @catch_assertion_error
 @app.route("/matches/<int:match_id>", methods=["POST"])
-def match_info(match_id):
+def get_match_info(match_id):
     """Returns information about the match.
 
     First, assert that the player requesting
@@ -273,9 +273,8 @@ def match_info(match_id):
                                 "username": player.username}
                                for player in players]
     for index, player in enumerate(json_serialized_players):
-        player_id = player["id"]
         player_state = next(state for state in match.states
-                            if state.player_id == player_id)
+                            if state.player_id == player["id"])
         played_cards = [{"id": card.id, "text": card.text}
                         for card in player_state.played]
         player["played_cards"] = played_cards
