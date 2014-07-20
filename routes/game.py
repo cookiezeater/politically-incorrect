@@ -259,24 +259,36 @@ def get_match_info(match_id):
     except:
         judge_id = None
 
-    # Create the JSON representation of a player in a match:
-    # json_serialized_players = [{id: 1,
-    #                             first_name: joe,
-    #                             last_name: smith,
-    #                             played_cards: [{id: 2, text: "txt"},
-    #                                            ...]},
-    #                            ...]
+    # Create the representation of a player in a match
+    # as json: [{
+    #            id: player.id,
+    #            first_name: player.first_name,
+    #            last_name: player.last_name,
+    #            played_cards: [
+    #                           {id: card.id, text: card.text},
+    #                          ...]
+    #            },
+    #          ...]
     players = [Player.query.get_or_404(state.player_id) for state in states]
+    # Easy stuff first
     json_serialized_players = [{"id": player.id,
                                 "first_name": player.first_name,
                                 "last_name": player.last_name,
                                 "username": player.username}
                                for player in players]
+    # Add the player's played_cards from the player's match state
     for index, player in enumerate(json_serialized_players):
+        # Grab the match-state with the player's id
         player_state = next(state for state in match.states
                             if state.player_id == player["id"])
+        # Store the state's played cards as a list
         played_cards = [{"id": card.id, "text": card.text}
                         for card in player_state.played]
+        # For ease of access, store and return the requesting
+        # player's played cards in the response
+        if player_state.player_id == player_id:
+            player_played_cards = played_cards
+        # Insert it into the player's json object
         player["played_cards"] = played_cards
         json_serialized_players[index] = player
 
@@ -301,6 +313,7 @@ def get_match_info(match_id):
             for card in player_state.hand]
 
     return jsonify(status="success",
+        serialized_
                    data={"match_name": match.name,
                          "match_status": match.status,
                          "round_status": round_status,
@@ -312,7 +325,8 @@ def get_match_info(match_id):
                          "players": json_serialized_players,
                          "pending_players": pending_players,
                          "black_card": black_card,
-                         "hand": hand})
+                         "hand": hand,
+                         "played_cards": player_played_cards})
 
 
 @catch_assertion_error
