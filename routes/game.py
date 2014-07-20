@@ -185,11 +185,15 @@ def make_move(match_id):
     content = request.json
     match = Match.query.get_or_404(match_id)
     assert match.status == "ONGOING"
+    player_id = content["player_id"]
+    password = content["password"]
+    player = Player.query.get_or_404(player_id)
+    assert password == player.password
     judge = State.query.filter_by(match_id=match_id,
                                   judge=True).first()
-    assert content["player_id"] != judge.player_id
-    assert content["player_id"] in [state.player_id for state in match.states]
-    state = State.query.filter_by(player_id=content["player_id"],
+    assert player_id != judge.player_id
+    assert player_id in [state.player_id for state in match.states]
+    state = State.query.filter_by(player_id=player_id,
                                   match_id=match_id).first()
     assert not state.played
     assert len(content["cards"]) == judge.played[0].answers
