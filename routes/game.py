@@ -278,19 +278,18 @@ def get_match_info(match_id):
                                for player in players]
     # Add the player's played_cards from the player's match state
     for index, player in enumerate(json_serialized_players):
-        # Grab the match-state with the player's id
         player_state = next(state for state in match.states
                             if state.player_id == player["id"])
-        # Store the state's played cards as a list
         played_cards = [{"id": card.id, "text": card.text}
                         for card in player_state.played]
+        player["played_cards"] = played_cards
+        player["score"] = player_state.score
+        json_serialized_players[index] = player
+
         # For ease of access, store and return the requesting
         # player's played cards in the response
         if player_state.player_id == player_id:
             player_played_cards = played_cards
-        # Insert it into the player's json object
-        player["played_cards"] = played_cards
-        json_serialized_players[index] = player
 
     # Get pending players from match relationship
     pending_players = [{"id": player.id,
@@ -312,12 +311,20 @@ def get_match_info(match_id):
     hand = [{"id": card.id, "text": card.text}
             for card in player_state.hand]
 
+    # Get round winner
+    try:
+        round_winner_id = next(state.player_id for state in states
+                               if state.round_winner)
+    except StopIteration:
+        round_winner_id = None
+
     return jsonify(status="success",
                    data={"match_name": match.name,
                          "match_status": match.status,
                          "round_status": round_status,
                          "max_players": match.max_players,
                          "max_score": match.max_score,
+                         "round_winner_id": round_winner_id,
                          "winner_id": match.winner_id,
                          "host_id": match.host_id,
                          "judge_id": judge_id,
