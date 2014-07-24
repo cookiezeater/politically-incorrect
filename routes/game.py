@@ -26,6 +26,15 @@ def new_round(match):
         # NoneType.
         pass
 
+    # Clear the round winner
+    try:
+        round_winner = State.query.filter_by(match_id=match.id,
+                                             round_winner=True).first()
+        round_winner.round_winner = False
+        db.session.add(round_winner)
+    except:
+        pass
+
     cards_to_remove = []
     white_cards = filter(lambda card: card.white, match.deck)
 
@@ -396,12 +405,14 @@ def acknowledge(match_id):
 
     content = request.json
     match = Match.query.get_or_404(match_id)
-    assert all_cards_down(match), "Not all players have put down cards."
-    assert any([state.round_winner for state in match.states]), \
-           "A winner has not been chosen yet."
+    player = Player.query.get_or_404(content["player_id"])
+    assert content["password"] == player.password, "Invalid password."
     assert content["player_id"] in [state.player_id
                                     for state in match.states], \
            "You're not in this game!"
+    assert all_cards_down(match), "Not all players have put down cards."
+    assert any([state.round_winner for state in match.states]), \
+           "A winner has not been chosen yet."
     state = State.query.filter_by(player_id=content["player_id"],
                                   match_id=match_id).first()
     assert not state.viewed_round_end, "The round is already over!"
