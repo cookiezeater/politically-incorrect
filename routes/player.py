@@ -9,15 +9,11 @@ def get_all_players():
     return jsonify(status="success", **players)
 
 
+@jsonify_assertion_error
 @app.route("/players/login", methods=["POST"])
 def login_player():
     content = request.json
-    try:
-        player = Player.query.filter_by(username=content["username"],
-                                        password=content["password"]) \
-                                       .first()
-    except:
-        return abort(404)
+    player = get_player(content["username"], content["password"])
 
     return jsonify(status="success",
                    username=player.username,
@@ -31,8 +27,8 @@ def login_player():
 @app.route("/players/<int:player_id>", methods=["POST"])
 def get_player_info(player_id):
     content = request.json
-    player = Player.query.get_or_404(player_id)
-    assert player.password == content["password"]
+    player = get_player(content["player_id"], content["password"])
+
     wins = len(Match.query.filter_by(winner_id=player_id).all())
     hosting = Match.query.filter_by(host_id=player_id).all()
 
@@ -48,36 +44,17 @@ def get_player_info(player_id):
                    last_name=player.last_name,
                    username=player.username,
                    wins=wins,
-                   hosting={str(match.id): match.name
-                            for match in hosting},
-                   matches={str(match.id): match.name
-                            for match in matches},
-                   match_invites={str(match.id): match.name
-                                  for match in player.invited})
-
-
-@app.route("/players/<int:player_id>", methods=["PUT"])
-def update_player(player_id):
-    player = Player.query.get_or_404(player_id)
-    content = request.json
-    if "username" in content:
-        player.username = content[username]
-    if "password" in content:
-        player.password = content[password]
-    if "email" in content:
-        player.email = content[email]
-    if "first_name" in content:
-        player.first_name = content[first_name]
-    if "last_name" in content:
-        player.last_name = content[last_name]
-    db.session.add(player)
-    db.session.commit()
-    return jsonify(status="success")
+                   hosting=[{"id": match.id, "name": match.name}
+                            for match in hosting],
+                   matches=[{"id": match.id, "name": match.name}
+                            for match in matches],
+                   match_invites=[{"id": match.id, "name": match.name}
+                                  for match in player.invited])
 
 
 @app.route("/players/<int:player_id>", methods=["DELETE"])
 def delete_player(player_id):
-    """Deleting a player cascades to all of its relationships."""
+    """Debug purposes only."""
     player = Card.query.get_or_404(player_id)
     db.session.delete(player)
     db.session.commit()
@@ -96,26 +73,23 @@ def create_player():
     try:
         db.session.commit()
     except IntegrityError:
-        return jsonify(status="failure", message="Username or email in-use.")
+        return jsonify(status="failure", message="Username or email in use.")
     return jsonify(status="success", player_id=player.id)
 
 
 @app.route("/players/<int:player_id>/befriend", methods=["POST"])
 def send_friend_request(player_id):
     content = request.json
-    requester_id = content["player_id"]
-    requestee_id = player_id
-    assert requestee_id != requester_id
-    assert FriendshipManager.query.filter_by(requestee=requestee_id,
-                                             requester=requester_id).first() \
+    requester = get_player(content["player_id"], content["password"])
+    requestee = get_player(player_id)
+    assert requestee.id != requester.id
+    assert FriendshipManager.query.filter_by(requestee=requestee.id,
+                                             requester=requester.id).first() \
                                             is None
-    assert FriendshipManager.query.filter_by(requester=requestee_id,
-                                             requestee=requester_id).first() \
+    assert FriendshipManager.query.filter_by(requester=requestee.id,
+                                             requestee=requester.id).first() \
                                             is None
-    player = Player.query.get_or_404(requester_id)
-    assert player.password == content["password"]
-    assert Player.query.get(requestee_id) is not None
-    friendship = FriendshipManager(requester_id, requestee_id)
+    friendship = FriendshipManager(requester.id, requestee.id)
     db.session.add(friendship)
     db.session.commit()
     return jsonify(status="success")
@@ -124,10 +98,10 @@ def send_friend_request(player_id):
 @app.route("/players/<int:player_id>/accept", methods=["POST"])
 def accept_friend_request(player_id):
     content = request.json
-    requester_id = player_id
-    requestee_id = content["player_id"]
-    friendship = FriendshipManager.query.filter_by(requester=requester_id,
-                                                   requestee=requestee_id,
+    requester = get_player(player_id)
+    requestee = get_player(content["player_id"], content["password"])
+    friendship = FriendshipManager.query.filter_by(requester=requester.id,
+                                                   requestee=requestee.id,
                                                    accepted=False).first()
     friendship.accepted = True
     db.session.add(friendship)
@@ -138,10 +112,10 @@ def accept_friend_request(player_id):
 @app.route("/players/<int:player_id>/reject", methods=["POST"])
 def reject_friend_request(player_id):
     content = request.json
-    requester = Player.query.get_or_404(player_id)
-    rejector = Player.query.get_or_404(content["player_id"])
-    friendship = FriendshipManager.query.filter_by(requester=requester_id,
-                                                   requstee=requestee_id,
+    requester = get_player(player_id)
+    rejector = get_player(content["player_id"], content["password"])
+    friendship = FriendshipManager.query.filter_by(requester=requester.id,
+                                                   requstee=requestee.id,
                                                    accepted=False).first()
     db.session.remove(friendship)
     db.session.commit()
