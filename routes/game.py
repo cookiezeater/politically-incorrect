@@ -341,7 +341,7 @@ def get_match_info(match_id):
                    pending_players=pending_players,
                    black_card=black_card,
                    hand=hand,
-                   played_cards=player_played_cards})
+                   played_cards=player_played_cards)
 
 
 @catch_assertion_error
