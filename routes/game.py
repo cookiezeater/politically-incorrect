@@ -7,7 +7,8 @@ def new_round(match):
 
     This function is called at the initial
     game start and at the start of a new round. First, if
-    there was a judge, increase his judged count. Next,
+    there was a judge, increase his judged count.
+    Then, reset the previous round winner. Next,
     remove each state's played card(s) (played), reset
     viewed_round_end, remove all judges, and fill up each
     state's hand. Then, choose a new judge by finding the
@@ -17,10 +18,10 @@ def new_round(match):
 
     # Find the current judge and increment his judged count
     try:
-        old_judge = State.query.filter_by(match_id=match.id, judge=True).first()
-        old_judge.judged += 1
-        db.session.add(old_judge)
-    except AttributeError:
+        old_judge_state = get_judge_state(match.id)
+        old_judge_state.judged += 1
+        db.session.add(old_judge_state)
+    except:
         # This just means that we are starting a new round
         # for the first time, so the query will return a
         # NoneType.
@@ -28,10 +29,9 @@ def new_round(match):
 
     # Clear the round winner
     try:
-        round_winner = State.query.filter_by(match_id=match.id,
-                                             round_winner=True).first()
-        round_winner.round_winner = False
-        db.session.add(round_winner)
+        round_winner_state = get_round_winner_state(match.id)
+        round_winner_state.round_winner = False
+        db.session.add(round_winner_state)
     except:
         pass
 
@@ -113,7 +113,7 @@ def all_viewed_round_end(match):
     return all([state.viewed_round_end for state in match.states])
 
 
-@catch_assertion_error
+@jsonify_assertion_error
 @app.route("/matches/<int:match_id>/invite", methods=["POST"])
 def invite_player(match_id):
     """Sends an invite to a player for a match.
@@ -127,25 +127,25 @@ def invite_player(match_id):
     """
 
     content = request.json
+    invitee = get_player(content["invitee_id"])
+    inviter = get_player(content["inviter_id"], content["password"])
     match = Match.query.get_or_404(match_id)
-    inviter_id = content["inviter_id"]
-    invitee_id = content["invitee_id"]
-    inviter = Player.query.get_or_404(inviter_id)
-    assert inviter.password == content["password"]
-    assert match.host_id == inviter_id, "Only the host can invite!"
-    assert inviter_id != invitee_id, "You can't invite yourself!"
+
+    assert match.host_id == inviter.id, "Only the host can invite players!"
+    assert inviter_id != invitee.id, "You can't invite yourself!"
     assert match.status == "PENDING", "The match has already started."
-    assert invitee_id not in [player.id for player in match.pending], \
+    assert invitee.id not in [player.id for player in match.pending], \
            "You already have an invite!"
-    assert invitee_id not in [state.player_id for state in match.states], \
+    assert invitee.id not in [state.player_id for state in match.states], \
            "You're already in the match!"
-    match.pending.append(Player.query.get_or_404(invitee_id))
+
+    match.pending.append(invitee)
     db.session.add(match)
     db.session.commit()
     return jsonify(status="success")
 
 
-@catch_assertion_error
+@jsonify_assertion_error
 @app.route("/matches/<int:match_id>/accept", methods=["POST"])
 def accept_invite(match_id):
     """Accepts an invite to a match.
@@ -159,26 +159,29 @@ def accept_invite(match_id):
     """
 
     content = request.json
+    acceptor = get_player(content["acceptor_id"], content["password"])
     match = Match.query.get_or_404(match_id)
-    acceptor_id = content["acceptor_id"]
-    assert match.host_id != acceptor_id, "You're already in the match!"
-    assert len(match.states) < match.max_players, "The match is full."
-    acceptor = Player.query.get_or_404(acceptor_id)
-    assert acceptor.password == content["password"], "Wrong password."
+
+    assert match.host_id != acceptor.id, "You're already in the match!"
     assert match in acceptor.invited, "You haven't been invited to this match."
+    assert len(match.states) < match.max_players, "The match is full."
+
     acceptor.invited.remove(match)
+
     state = State(acceptor.id, match.id)
     match.states.append(state)
+
     db.session.add(acceptor)
     db.session.add(state)
     db.session.add(match)
     db.session.commit()
+
     if len(match.states) == match.max_players:
         return begin_match(match)
     return jsonify(status="success")
 
 
-@catch_assertion_error
+@jsonify_assertion_error
 @app.route("/matches/<int:match_id>/go", methods=["POST"])
 def make_move(match_id):
     """Makes a move in a certain match for a player.
@@ -192,32 +195,35 @@ def make_move(match_id):
     """
 
     content = request.json
+    player = get_player(content["player_id"], content["password"])
     match = Match.query.get_or_404(match_id)
-    assert match.status == "ONGOING"
-    player_id = content["player_id"]
-    password = content["password"]
-    player = Player.query.get_or_404(player_id)
-    assert password == player.password
-    judge = State.query.filter_by(match_id=match_id,
-                                  judge=True).first()
-    assert player_id != judge.player_id
-    assert player_id in [state.player_id for state in match.states]
-    state = State.query.filter_by(player_id=player_id,
-                                  match_id=match_id).first()
-    assert not state.played
-    assert len(content["cards"]) == judge.played[0].answers
+    assert match.status == "ONGOING", "The match isn't in progress."
+
+    judge_state = get_judge_state(match.id)
+    assert player.id != judge_state.player_id, \
+           "You can't play a card because you're the judge this round."
+
+    state = get_state(player.id, match.id)
+    assert not state.played, \
+           "You've already played your card(s) for this round."
+
+    answers = judge_state.played[0].answers
+    assert len(content["cards"]) == answers, \
+           "You need to play {} cards this round.".format(answers)
+
     for card_id in content["cards"]:
         card = Card.query.get_or_404(card_id)
         assert card in state.hand
         state.played.append(card)
         state.hand.remove(card)
+
     db.session.add(match)
     db.session.add(state)
     db.session.commit()
     return jsonify(status="success")
 
 
-@catch_assertion_error
+@jsonify_assertion_error
 @app.route("/matches/<int:match_id>", methods=["POST"])
 def get_match_info(match_id):
     """Returns information about the match.
@@ -229,19 +235,9 @@ def get_match_info(match_id):
     """
 
     content = request.json
-    player_id = content["player_id"]
-    password = content["password"]
+    player = get_player(content["player_id"], content["password"])
     match = Match.query.get_or_404(match_id)
-    states = [state for state in match.states]
-
-    # The player must be in the match
-    # in order to get information about it.
-    assert player_id in [state.player_id for state in states], \
-           "You're not playing in this match."
-
-    # Verify the player.
-    assert password == Player.query.get_or_404(player_id).password, \
-           "Invalid password."
+    state = get_state(player.id, match.id)
 
     # Get round status
     if all_viewed_round_end(match):
@@ -253,18 +249,15 @@ def get_match_info(match_id):
     else:
         round_status = None
 
-    # Get round winner, if one exists
+    # Get round winner
     try:
-        round_winner = State.query.filter_by(match_id=match_id,
-                                             round_winner=True) \
-                                            .first().player_id
+        round_winner_id = get_round_winner_state(match.id).player_id
     except:
-        round_winner = None
+        round_winner_id = None
 
     # Get round judge
     try:
-        judge_id = State.query.filter_by(match_id=match_id,
-                                         judge=True).first().player_id
+        judge_id = get_judge_state(match.id).player_id
     except:
         judge_id = None
 
@@ -273,31 +266,33 @@ def get_match_info(match_id):
     #            id: player.id,
     #            first_name: player.first_name,
     #            last_name: player.last_name,
+    #            score: player_state.score,
     #            played_cards: [
     #                           {id: card.id, text: card.text},
     #                          ...]
     #            },
     #          ...]
-    players = [Player.query.get_or_404(state.player_id) for state in states]
+    players = [Player.query.get_or_404(state.player_id)
+               for state in match.states]
     # Easy stuff first
-    json_serialized_players = [{"id": player.id,
-                                "first_name": player.first_name,
-                                "last_name": player.last_name,
-                                "username": player.username}
-                               for player in players]
+    json_players = [{"id": player.id,
+                     "first_name": player.first_name,
+                     "last_name": player.last_name,
+                     "username": player.username}
+                    for player in players]
     # Add the player's played_cards from the player's match state
-    for index, player in enumerate(json_serialized_players):
+    for index, json_player in enumerate(json_players):
         player_state = next(state for state in match.states
-                            if state.player_id == player["id"])
+                            if state.player_id == json_player["id"])
         played_cards = [{"id": card.id, "text": card.text}
                         for card in player_state.played]
-        player["played_cards"] = played_cards
-        player["score"] = player_state.score
-        json_serialized_players[index] = player
+        json_player["played_cards"] = played_cards
+        json_player["score"] = player_state.score
+        json_players[index] = json_player
 
         # For ease of access, store and return the requesting
         # player's played cards in the response
-        if player_state.player_id == player_id:
+        if player_state.player_id == player.id:
             player_played_cards = played_cards
 
     # Get pending players from match relationship
@@ -315,17 +310,10 @@ def get_match_info(match_id):
         black_card = None
 
     # Get the requesting player's hand
-    player_state = next(state for state in states
-                        if state.player_id == player_id)
+    player_state = next(state for state in match.states
+                        if state.player_id == player.id)
     hand = [{"id": card.id, "text": card.text}
             for card in player_state.hand]
-
-    # Get round winner
-    try:
-        round_winner_id = next(state.player_id for state in states
-                               if state.round_winner)
-    except StopIteration:
-        round_winner_id = None
 
     return jsonify(status="success",
                    match_name=match.name,
@@ -337,14 +325,14 @@ def get_match_info(match_id):
                    winner_id=match.winner_id,
                    host_id=match.host_id,
                    judge_id=judge_id,
-                   players=json_serialized_players,
+                   players=json_players,
                    pending_players=pending_players,
                    black_card=black_card,
                    hand=hand,
                    played_cards=player_played_cards)
 
 
-@catch_assertion_error
+@jsonify_assertion_error
 @app.route("/matches/<int:match_id>/choose", methods=["POST"])
 def choose_round_winner(match_id):
     """Chooses a winner for the round.
@@ -357,30 +345,31 @@ def choose_round_winner(match_id):
     to True and increment the winner's score.
     """
 
-    content = request.json
-    match = Match.query.get_or_404(match_id)
     assert all_cards_down(match)
-    assert content["judge_id"] != content["winner_id"]
-    judge = State.query.filter_by(player_id=content["judge_id"],
-                                  match_id=match_id,
-                                  judge=True).first()
-    assert content["judge_id"] == judge.player_id
-    assert content["password"] == Player.query.get_or_404(judge.player_id) \
-                                  .password
-    assert content["winner_id"] in [state.player_id for state in match.states]
+
+    content = request.json
+    judge = get_player(content["judge_id"], content["password"])
+    match = Match.query.get_or_404(match_id)
+
+    assert judge.id != content["winner_id"]
     assert all([not state.round_winner for state in match.states])
-    winner = State.query.filter_by(player_id=content["winner_id"],
-                                   match_id=match_id).first()
-    winner.round_winner = True
-    winner.score += 1
-    judge.viewed_round_end = True
-    if winner.score == match.max_score:
-        match.winner_id = winner.id
+
+    winner_state = get_state(content["winner_id"], match.id)
+    winner_state.round_winner = True
+    winner_state.score += 1
+
+    judge_state = get_judge_state(match.id)
+    judge_state.viewed_round_end = True
+
+    if winner_state.score == match.max_score:
+        match.winner_id = winner_state.id
         match.status = "ENDED"
         db.session.add(match)
-    db.session.add(judge)
+
+    db.session.add(judge_state)
     db.session.add(winner)
     db.session.commit()
+
     if match.status == "ENDED":
         return jsonify(status="success",
                        match_status="ENDED",
@@ -388,7 +377,7 @@ def choose_round_winner(match_id):
     return jsonify(status="success")
 
 
-@catch_assertion_error
+@jsonify_assertion_error
 @app.route("/matches/<int:match_id>/acknowledge", methods=["POST"])
 def acknowledge(match_id):
     """Acknowledges the end round state. Everyone must acknowledge
@@ -404,21 +393,21 @@ def acknowledge(match_id):
     """
 
     content = request.json
+    player = get_player(content["player_id"], content["password"])
     match = Match.query.get_or_404(match_id)
-    player = Player.query.get_or_404(content["player_id"])
-    assert content["password"] == player.password, "Invalid password."
-    assert content["player_id"] in [state.player_id
-                                    for state in match.states], \
+
+    assert player.id in [state.player_id for state in match.states], \
            "You're not in this game!"
     assert all_cards_down(match), "Not all players have put down cards."
     assert any([state.round_winner for state in match.states]), \
            "A winner has not been chosen yet."
-    state = State.query.filter_by(player_id=content["player_id"],
-                                  match_id=match_id).first()
-    assert not state.viewed_round_end, "The round is already over!"
+
+    state = get_state(player.id, match.id)
     state.viewed_round_end = True
+
     db.session.add(state)
     db.session.commit()
+
     if all_viewed_round_end(match):
         return new_round(match)
     return jsonify(status="success")
