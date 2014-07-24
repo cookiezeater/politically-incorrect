@@ -349,6 +349,8 @@ def choose_round_winner(match_id):
                                   match_id=match_id,
                                   judge=True).first()
     assert content["judge_id"] == judge.player_id
+    assert content["password"] == Player.query.get_or_404(judge.player_id) \
+                                  .password
     assert content["winner_id"] in [state.player_id for state in match.states]
     assert all([not state.round_winner for state in match.states])
     winner = State.query.filter_by(player_id=content["winner_id"],
