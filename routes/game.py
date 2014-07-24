@@ -328,20 +328,20 @@ def get_match_info(match_id):
         round_winner_id = None
 
     return jsonify(status="success",
-                   data={"match_name": match.name,
-                         "match_status": match.status,
-                         "round_status": round_status,
-                         "max_players": match.max_players,
-                         "max_score": match.max_score,
-                         "round_winner_id": round_winner_id,
-                         "winner_id": match.winner_id,
-                         "host_id": match.host_id,
-                         "judge_id": judge_id,
-                         "players": json_serialized_players,
-                         "pending_players": pending_players,
-                         "black_card": black_card,
-                         "hand": hand,
-                         "played_cards": player_played_cards})
+                   match_name=match.name,
+                   match_status=match.status,
+                   round_status=round_status,
+                   max_players=match.max_players,
+                   max_score=match.max_score,
+                   round_winner_id=round_winner_id,
+                   winner_id=match.winner_id,
+                   host_id=match.host_id,
+                   judge_id=judge_id,
+                   players=json_serialized_players,
+                   pending_players=pending_players,
+                   black_card=black_card,
+                   hand=hand,
+                   played_cards=player_played_cards})
 
 
 @catch_assertion_error
