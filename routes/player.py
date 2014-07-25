@@ -48,8 +48,8 @@ def get_player_info(player_id):
                             for match in matches],
                    hosting=[{"id": match.id, "name": match.name}
                             for match in hosting],
-                   match_invites=[{"id": match.id, "name": match.name}
-                                  for match in player.invited])
+                   invites=[{"id": match.id, "name": match.name}
+                            for match in player.invited])
 
 
 @app.route("/players/<int:player_id>", methods=["DELETE"])
