@@ -347,7 +347,7 @@ def choose_round_winner(match_id):
 
 
     content = request.json
-    judge = get_player(content["judge_id"], content["password"])
+    judge = get_player(content["player_id"], content["password"])
     match = Match.query.get_or_404(match_id)
 
     assert all_cards_down(match)
