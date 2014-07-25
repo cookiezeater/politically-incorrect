@@ -30,6 +30,10 @@ def get_state(player_id, match_id):
         assert False, "Invalid player or match."
 
 
+def get_match(match_id):
+    match = Match.query.get_or_404(match_id)
+    return match
+
 def get_judge_state(match_id):
     judge_state = State.query.filter_by(match_id=match_id, judge=True)
     try:

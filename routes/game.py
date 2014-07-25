@@ -114,6 +114,115 @@ def all_viewed_round_end(match):
 
 
 @jsonify_assertion_error
+@app.route("/matches/<int:match_id>", methods=["POST"])
+def get_match_info(match_id):
+    """Returns information about the match.
+
+    First, assert that the player requesting
+    information is part of the match and verify
+    the player. Then, grab round and match
+    info as necessary and return it.
+    """
+
+    content = request.json
+    player = get_player(content["player_id"], content["password"])
+    match = Match.query.get_or_404(match_id)
+    state = get_state(player.id, match.id)
+
+    # Get round status
+    if all_viewed_round_end(match):
+        round_status = "ended"
+    elif all_cards_down(match):
+        round_status = "judging"
+    elif any_cards_down(match):
+        round_status = "ongoing"
+    else:
+        round_status = None
+
+    # Get round winner
+    try:
+        round_winner_id = get_round_winner_state(match.id).player_id
+    except:
+        round_winner_id = None
+
+    # Get round judge
+    try:
+        judge_id = get_judge_state(match.id).player_id
+    except:
+        judge_id = None
+
+    # Create the representation of a player in a match
+    # as json: [{
+    #            id: player.id,
+    #            first_name: player.first_name,
+    #            last_name: player.last_name,
+    #            score: player_state.score,
+    #            played_cards: [
+    #                           {id: card.id, text: card.text},
+    #                          ...]
+    #            },
+    #          ...]
+    players = [Player.query.get_or_404(state.player_id)
+               for state in match.states]
+    # Easy stuff first
+    json_players = [{"id": _player.id,
+                     "first_name": _player.first_name,
+                     "last_name": _player.last_name,
+                     "username": _player.username}
+                    for _player in players]
+    # Add the player's played_cards from the player's match state
+    for index, _player in enumerate(json_players):
+        player_state = next(state for state in match.states
+                            if state.player_id == _player["id"])
+        played_cards = [{"id": card.id, "text": card.text}
+                        for card in player_state.played]
+        _player["played_cards"] = played_cards
+        _player["score"] = player_state.score
+        json_players[index] = _player
+
+        # For ease of access, store and return the requesting
+        # player's played cards in the response
+        if player_state.player_id == player.id:
+            player_played_cards = played_cards
+
+    # Get pending players from match relationship
+    pending_players = [{"id": _player.id,
+                        "first_name": _player.first_name,
+                        "last_name": _player.last_name,
+                        "username": _player.username}
+                       for _player in match.pending]
+
+    # Get the black card
+    if match.black_id:
+        black = Card.query.get(match.black_id)
+        black_card = {"text": black.text, "answers": black.answers}
+    else:
+        black_card = None
+
+    # Get the requesting player's hand
+    player_state = next(state for state in match.states
+                        if state.player_id == player.id)
+    hand = [{"id": card.id, "text": card.text}
+            for card in player_state.hand]
+
+    return jsonify(status="success",
+                   match_name=match.name,
+                   match_status=match.status,
+                   round_status=round_status,
+                   max_players=match.max_players,
+                   max_score=match.max_score,
+                   round_winner_id=round_winner_id,
+                   winner_id=match.winner_id,
+                   host_id=match.host_id,
+                   judge_id=judge_id,
+                   players=json_players,
+                   pending_players=pending_players,
+                   black_card=black_card,
+                   hand=hand,
+                   played_cards=player_played_cards)
+
+
+@jsonify_assertion_error
 @app.route("/matches/<int:match_id>/invite", methods=["POST"])
 def invite_player(match_id):
     """Sends an invite to a player for a match.
@@ -132,7 +241,7 @@ def invite_player(match_id):
     match = Match.query.get_or_404(match_id)
 
     assert match.host_id == inviter.id, "Only the host can invite players!"
-    assert inviter_id != invitee.id, "You can't invite yourself!"
+    assert inviter.id != invitee.id, "You can't invite yourself!"
     assert match.status == "PENDING", "The match has already started."
     assert invitee.id not in [player.id for player in match.pending], \
            "You already have an invite!"
@@ -159,19 +268,19 @@ def accept_invite(match_id):
     """
 
     content = request.json
-    acceptor = get_player(content["acceptor_id"], content["password"])
+    player = get_player(content["player_id"], content["password"])
     match = Match.query.get_or_404(match_id)
 
-    assert match.host_id != acceptor.id, "You're already in the match!"
-    assert match in acceptor.invited, "You haven't been invited to this match."
+    assert match.host_id != player.id, "You're already in the match!"
+    assert match in player.invited, "You haven't been invited to this match."
     assert len(match.states) < match.max_players, "The match is full."
 
-    acceptor.invited.remove(match)
+    player.invited.remove(match)
 
-    state = State(acceptor.id, match.id)
+    state = State(player.id, match.id)
     match.states.append(state)
 
-    db.session.add(acceptor)
+    db.session.add(player)
     db.session.add(state)
     db.session.add(match)
     db.session.commit()
@@ -224,115 +333,6 @@ def make_move(match_id):
 
 
 @jsonify_assertion_error
-@app.route("/matches/<int:match_id>", methods=["POST"])
-def get_match_info(match_id):
-    """Returns information about the match.
-
-    First, assert that the player requesting
-    information is part of the match and verify
-    the player. Then, grab round and match
-    info as necessary and return it.
-    """
-
-    content = request.json
-    player = get_player(content["player_id"], content["password"])
-    match = Match.query.get_or_404(match_id)
-    state = get_state(player.id, match.id)
-
-    # Get round status
-    if all_viewed_round_end(match):
-        round_status = "ended"
-    elif all_cards_down(match):
-        round_status = "judging"
-    elif any_cards_down(match):
-        round_status = "ongoing"
-    else:
-        round_status = None
-
-    # Get round winner
-    try:
-        round_winner_id = get_round_winner_state(match.id).player_id
-    except:
-        round_winner_id = None
-
-    # Get round judge
-    try:
-        judge_id = get_judge_state(match.id).player_id
-    except:
-        judge_id = None
-
-    # Create the representation of a player in a match
-    # as json: [{
-    #            id: player.id,
-    #            first_name: player.first_name,
-    #            last_name: player.last_name,
-    #            score: player_state.score,
-    #            played_cards: [
-    #                           {id: card.id, text: card.text},
-    #                          ...]
-    #            },
-    #          ...]
-    players = [Player.query.get_or_404(state.player_id)
-               for state in match.states]
-    # Easy stuff first
-    json_players = [{"id": player.id,
-                     "first_name": player.first_name,
-                     "last_name": player.last_name,
-                     "username": player.username}
-                    for player in players]
-    # Add the player's played_cards from the player's match state
-    for index, json_player in enumerate(json_players):
-        player_state = next(state for state in match.states
-                            if state.player_id == json_player["id"])
-        played_cards = [{"id": card.id, "text": card.text}
-                        for card in player_state.played]
-        json_player["played_cards"] = played_cards
-        json_player["score"] = player_state.score
-        json_players[index] = json_player
-
-        # For ease of access, store and return the requesting
-        # player's played cards in the response
-        if player_state.player_id == player.id:
-            player_played_cards = played_cards
-
-    # Get pending players from match relationship
-    pending_players = [{"id": player.id,
-                        "first_name": player.first_name,
-                        "last_name": player.last_name,
-                        "username": player.username}
-                       for player in match.pending]
-
-    # Get the black card
-    if match.black_id:
-        black = Card.query.get(match.black_id)
-        black_card = {"text": black.text, "answers": black.answers}
-    else:
-        black_card = None
-
-    # Get the requesting player's hand
-    player_state = next(state for state in match.states
-                        if state.player_id == player.id)
-    hand = [{"id": card.id, "text": card.text}
-            for card in player_state.hand]
-
-    return jsonify(status="success",
-                   match_name=match.name,
-                   match_status=match.status,
-                   round_status=round_status,
-                   max_players=match.max_players,
-                   max_score=match.max_score,
-                   round_winner_id=round_winner_id,
-                   winner_id=match.winner_id,
-                   host_id=match.host_id,
-                   judge_id=judge_id,
-                   players=json_players,
-                   pending_players=pending_players,
-                   black_card=black_card,
-                   hand=hand,
-                   played_cards=player_played_cards)
-
-
-@jsonify_assertion_error
 @app.route("/matches/<int:match_id>/choose", methods=["POST"])
 def choose_round_winner(match_id):
     """Chooses a winner for the round.
@@ -345,12 +345,12 @@ def choose_round_winner(match_id):
     to True and increment the winner's score.
     """
 
-    assert all_cards_down(match)
 
     content = request.json
     judge = get_player(content["judge_id"], content["password"])
     match = Match.query.get_or_404(match_id)
 
+    assert all_cards_down(match)
     assert judge.id != content["winner_id"]
     assert all([not state.round_winner for state in match.states])
 
@@ -367,7 +367,7 @@ def choose_round_winner(match_id):
         db.session.add(match)
 
     db.session.add(judge_state)
-    db.session.add(winner)
+    db.session.add(winner_state)
     db.session.commit()
 
     if match.status == "ENDED":
