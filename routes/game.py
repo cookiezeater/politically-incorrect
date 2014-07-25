@@ -212,7 +212,7 @@ def get_match_info(match_id):
                    max_players=match.max_players,
                    max_score=match.max_score,
                    round_winner_id=round_winner_id,
-                   winner_id=match.winner_id,
+                   match_winner_id=match.winner_id,
                    host_id=match.host_id,
                    judge_id=judge_id,
                    players=json_players,
