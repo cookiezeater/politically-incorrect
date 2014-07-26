@@ -40,9 +40,10 @@ def get_player_info(player_id):
     matches = [match for match in matches if match not in hosting]
 
     return jsonify(status="success",
+                   username=player.username,
+                   email=player.email,
                    first_name=player.first_name,
                    last_name=player.last_name,
-                   username=player.username,
                    wins=wins,
                    matches=[{"id": match.id, "name": match.name}
                             for match in matches],
