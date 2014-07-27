@@ -45,9 +45,13 @@ def get_player_info(player_id):
                    first_name=player.first_name,
                    last_name=player.last_name,
                    wins=wins,
-                   matches=[{"id": match.id, "name": match.name}
+                   matches=[{"id": match.id,
+                             "name": match.name,
+                             "status": match.status}
                             for match in matches],
-                   hosting=[{"id": match.id, "name": match.name}
+                   hosting=[{"id": match.id,
+                             "name": match.name,
+                             "status": match.status}
                             for match in hosting],
                    invites=[{"id": match.id, "name": match.name}
                             for match in player.invited])
