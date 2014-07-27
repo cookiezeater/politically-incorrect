@@ -225,15 +225,22 @@ def search_players(query):
                     Player.last_name.ilike("%{}%".format(query))).all()
     players += Player.query.filter(
                     Player.email.ilike("%{}%".format(query))).all()
+
+    players = [{"id": person.id,
+                "username": person.username,
+                "first_name": person.first_name,
+                "last_name": person.last_name}
+               for person in players]
+    # Prune duplicates
+    players = [dict(person) for person in
+                            set([tuple(person.items()) for person in players])]
+
     friends_list = get_friends_list(player.id)
-    players = set([person for person in players
-                   if str(person.id) not in friends_list["pending_friends"]
-                   and str(person.id) not in friends_list["friend_requests"]
-                   and str(person.id) not in friends_list["friends"]
-                   and person.id != player.id])
+    friends_list_flattened = [person for player_list in friends_list
+                                     for person in player_list]
+
+    players = [person for person in players
+                      if person not in friends_list_flattened and
+                      person["id"] != player.id]
     return jsonify(status="success",
-                   players=[{"id": player.id,
-                             "username": player.username,
-                             "first_name": player.first_name,
-                             "last_name": player.last_name}
-                            for player in players])
+                   players=players)
