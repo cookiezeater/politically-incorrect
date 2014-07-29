@@ -13,7 +13,11 @@ def get_all_players():
 @app.route("/players/login", methods=["POST"])
 def login_player():
     content = request.json
-    player = get_player(content["username"], content["password"])
+    try:
+        player = Player.query.filter_by(username=content["username"],
+                                        password=content["password"]).first()
+    except:
+        return jsonify(status="failure", message="Invalid username or password")
     return jsonify(status="success",
                    username=player.username,
                    password=player.password,
