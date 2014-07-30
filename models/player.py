@@ -25,6 +25,11 @@ class FriendshipManager(db.Model):
 
 
 class Player(db.Model):
+    created_on = db.Column(db.DateTime, default=db.func.now())
+    updated_on = db.Column(db.DateTime,
+                           default=db.func.now(),
+                           onupdate=db.func.now())
+
     __tablename__ = "players"
     id = db.Column(db.Integer, primary_key=True)
 
