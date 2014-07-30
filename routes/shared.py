@@ -25,12 +25,15 @@ def jsonify_assertion_error(func):
             try:
                 return func(*args, **kwargs)
             except AssertionError as error:
-                return jsonify(status="fail", message=error)
+                return jsonify(status="failure", message=error)
     return wrapper
 
 
-def get_player(player_id, password=None):
-    player = Player.query.get_or_404(player_id)
+def get_player(username, password=None):
+    try:
+        player = Player.query.filter_by(username=username).first()
+    except:
+        return False, "Invalid username."
     if password:
         assert password == player.password, "Invalid password."
     return player
