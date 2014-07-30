@@ -10,23 +10,15 @@ def get_all_players():
 
 
 @jsonify_assertion_error
-@app.route("/players/login", methods=["POST"])
+@app.route("/players/login", methods=["GET"])
+@auth.login_required
 def login_player():
-    content = request.json
-    try:
-        player = Player.query.filter_by(username=content["username"],
-                                        password=content["password"]).first()
-    except:
-        return jsonify(status="failure",
-                       message="Invalid username or password.")
-
     return jsonify(status="success",
-                   username=player.username,
-                   password=player.password,
-                   player_id=player.id,
-                   first_name=player.first_name,
-                   last_name=player.last_name,
-                   email=player.email)
+                   token=g.player.generate_auth_token(),
+                   username=g.player.username,
+                   first_name=g.player.first_name,
+                   last_name=g.player.last_name,
+                   email=g.player.email)
 
 
 @app.route("/players/<int:player_id>", methods=["POST"])

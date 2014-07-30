@@ -38,20 +38,18 @@ def get_all_matches():
     return jsonify(status="success", matches=matches_data)
 
 
+@jsonify_assertion_error
 @app.route("/matches", methods=["POST"])
+@auth.login_required
 def create_match():
     content = request.json
-    player_id = content["player_id"]
-    password = content["password"]
     name = content["name"]
     max_players = content["max_players"]
     max_score = content["max_score"]
-    player = Player.query.get_or_404(player_id)
-    assert player.password == password
     assert 3 <= max_players <= 10
     assert 5 <= max_score <= 20
-    match = Match(name, player_id, max_players, max_score)
-    state = State(player_id, match.id)
+    match = Match(name, g.player.id, max_players, max_score)
+    state = State(g.player.id, match.id)
     db.session.add(state)
     match.states.append(state)
     match.deck = Card.query.all()  # temporary

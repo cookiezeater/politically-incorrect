@@ -39,6 +39,7 @@ We use [Postman](www.getpostman.com) for testing. A basic test suite is located 
 ## Import Structure
 ![arch](./concepts/architecture.png)
 
+## Needs to be updated:
 ## API Architecture
 #### Cards
 

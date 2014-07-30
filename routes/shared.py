@@ -3,7 +3,21 @@ from models.player import FriendshipManager, Player
 from models.state import State
 from models.match import Match
 from models.shared import app, db
-from flask import jsonify, request
+from flask.ext.httpauth import HTTPBasicAuth
+from flask import jsonify, request, g
+
+auth = HTTPBasicAuth()
+
+
+@auth.verify_password
+def verify_password(username_or_token, password):
+    player = Player.verify_auth_token(username_or_token)
+    if not player:
+        player = Player.query.filter_by(username=username_or_token).first()
+        if not player or not player.verify_password(password):
+            return False
+    g.player = player
+    return True
 
 
 def jsonify_assertion_error(func):
