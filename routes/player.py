@@ -68,7 +68,7 @@ def get_all_players():
                 "last_name": player.last_name,
                 "email": player.email}
                for player in players]
-    return jsonify(status="success", **players)
+    return jsonify(status="success", players=players)
 
 
 @jsonify_assertion_error
