@@ -2,6 +2,65 @@ from routes.shared import *
 from sqlalchemy.exc import IntegrityError
 
 
+def get_friends():
+    """This method is very expensive and bad."""
+    friendships = FriendshipManager.query.filter_by(requester=g.player.id,
+                                                    accepted=True).all()
+    friendships += FriendshipManager.query.filter_by(requestee=g.player.id,
+                                                     accepted=True).all()
+    friends = [friendship.requester for friendship in friendships
+               if friendship.requester != g.player.id]
+    friends += [friendship.requestee for friendship in friendships
+                if friendship.requestee != g.player.id]
+    friends = [Player.query.get_or_404(player_id) for player_id in friends]
+    return [{"id": friend.id,
+             "username": friend.username,
+             "first_name": friend.first_name,
+             "last_name": friend.last_name}
+            for friend in friends]
+
+
+def get_friend_requests():
+    """
+    This method returns all players that have sent
+    player_id an invite. It is very expensive and bad.
+    """
+
+    friendships = FriendshipManager.query.filter_by(requestee=g.player.id,
+                                                    accepted=False).all()
+    friend_requesters = [Player.query.get_or_404(friendship.requester)
+                         for friendship in friendships]
+    return [{"id": requester.id,
+             "username": requester.username,
+             "first_name": requester.first_name,
+             "last_name": requester.last_name}
+            for requester in friend_requesters]
+
+
+def get_pending_friends():
+    """
+    This method returns all players that player_id
+    has sent an invite to. It is very expensive and bad.
+    """
+
+    friendships = FriendshipManager.query.filter_by(requester=g.player.id,
+                                                    accepted=False).all()
+    friend_requestees = [Player.query.get_or_404(friendship.requestee)
+                         for friendship in friendships]
+    return [{"id": requestee.id,
+             "username": requestee.username,
+             "first_name": requestee.first_name,
+             "last_name": requestee.last_name}
+            for requestee in friend_requestees]
+
+
+def get_friends_list(player_id):
+    """Returns sum of get_friends, friend_requests, pending_friends."""
+    return {"pending_friends": get_pending_friends(),
+            "friend_requests": get_friend_requests(),
+            "friends": get_friends()}
+
+
 @jsonify_assertion_error
 @app.route("/players", methods=["GET"])
 @auth.login_required
@@ -135,46 +194,11 @@ def reject_friend_request():
     return jsonify(status="success")
 
 
-def get_friends():
-    """This method is very expensive and bad."""
-    friendships = FriendshipManager.query.filter_by(requester=g.player.id,
-                                                    accepted=True).all()
-    friendships += FriendshipManager.query.filter_by(requestee=g.player.id,
-                                                     accepted=True).all()
-    friends = [friendship.requester for friendship in friendships
-               if friendship.requester != g.player.id]
-    friends += [friendship.requestee for friendship in friendships
-                if friendship.requestee != g.player.id]
-    friends = [Player.query.get_or_404(player_id) for player_id in friends]
-    return [{"id": friend.id,
-             "username": friend.username,
-             "first_name": friend.first_name,
-             "last_name": friend.last_name}
-            for friend in friends]
-
-
 @jsonify_assertion_error
 @app.route("/players/friends", methods=["GET"])
 @auth.login_required
 def get_friends_route():
     return jsonify(status="success", friends=get_friends())
-
-
-def get_friend_requests():
-    """
-    This method returns all players that have sent
-    player_id an invite. It is very expensive and bad.
-    """
-
-    friendships = FriendshipManager.query.filter_by(requestee=g.player.id,
-                                                    accepted=False).all()
-    friend_requesters = [Player.query.get_or_404(friendship.requester)
-                         for friendship in friendships]
-    return [{"id": requester.id,
-             "username": requester.username,
-             "first_name": requester.first_name,
-             "last_name": requester.last_name}
-            for requester in friend_requesters]
 
 
 @jsonify_assertion_error
@@ -185,36 +209,12 @@ def get_friend_requests_route():
                    friend_requests=get_friend_requests())
 
 
-def get_pending_friends():
-    """
-    This method returns all players that player_id
-    has sent an invite to. It is very expensive and bad.
-    """
-
-    friendships = FriendshipManager.query.filter_by(requester=g.player.id,
-                                                    accepted=False).all()
-    friend_requestees = [Player.query.get_or_404(friendship.requestee)
-                         for friendship in friendships]
-    return [{"id": requestee.id,
-             "username": requestee.username,
-             "first_name": requestee.first_name,
-             "last_name": requestee.last_name}
-            for requestee in friend_requestees]
-
-
 @jsonify_assertion_error
 @app.route("/players/pending_friends", methods=["GET"])
 @auth.login_required
 def get_pending_friends_route():
     return jsonify(status="success",
                    pending_friends=get_pending_friends())
-
-
-def get_friends_list(player_id):
-    """Returns sum of get_friends, friend_requests, pending_friends."""
-    return {"pending_friends": get_pending_friends(),
-            "friend_requests": get_friend_requests(),
-            "friends": get_friends()}
 
 
 @jsonify_assertion_error
@@ -246,13 +246,13 @@ def search_players():
                for player in players]
 
     # Prune duplicates
-    players = [dict(person) for person in
-                            set([tuple(person.items()) for person in players])]
+    players = [dict(player) for player in
+                            set([tuple(player.items()) for player in players])]
     friends_list = get_friends_list(g.player.id)
-    friends_list_flattened = [person for player_list in friends_list
-                                     for person in friends_list[player_list]]
-    players = [person for person in players
-                      if person not in friends_list_flattened and
-                      person["id"] != g.player.id]
+    friends_list_flattened = [player for player_list in friends_list
+                                     for player in friends_list[player_list]]
+    players = [player for player in players
+                      if player not in friends_list_flattened and
+                      player["id"] != g.player.id]
     return jsonify(status="success",
                    players=players)
