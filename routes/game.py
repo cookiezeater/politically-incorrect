@@ -271,7 +271,7 @@ def invite_player(match_id):
     the invitee is added to the match's pending list.
     """
 
-    invitee = get_player(content["invitee_username"])
+    invitee = get_player(content["username"])
     match = Match.query.get_or_404(match_id)
 
     assert g.player.id == match.host_id, "Only the host can invite players!"
@@ -388,11 +388,11 @@ def choose_round_winner(match_id):
 
     assert judge_state.player_id == g.player.id, \
            "You're not the judge this round."
-    assert g.player.id != content["winner_username"]
+    assert g.player.id != content["username"]
     assert all_cards_down(match)
     assert all([not state.round_winner for state in match.states])
 
-    winner_state = get_state(content["winner_username"], match.id)
+    winner_state = get_state(content["username"], match.id)
     winner_state.round_winner = True
     winner_state.score += 1
 
