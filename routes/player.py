@@ -21,16 +21,15 @@ def login_player():
                    email=g.player.email)
 
 
-@app.route("/players/<int:player_id>", methods=["POST"])
-def get_player_info(player_id):
-    content = request.json
-    player = get_player(player_id, content["password"])
-
-    wins = len(Match.query.filter_by(winner_id=player_id).all())
-    hosting = Match.query.filter_by(host_id=player_id).all()
+@jsonify_assertion_error
+@app.route("/players", methods=["GET"])
+@auth.login_required
+def get_player_info():
+    wins = len(Match.query.filter_by(winner_id=g.player.id).all())
+    hosting = Match.query.filter_by(host_id=g.player.id).all()
 
     # There has got to be a better way to do all of this
-    states = State.query.filter_by(player_id=player_id).all()
+    states = State.query.filter_by(player_id=g.player.id).all()
     matches = []
     for state in states:
         match = get_match(state.match_id)
@@ -38,10 +37,10 @@ def get_player_info(player_id):
     matches = [match for match in matches if match not in hosting]
 
     return jsonify(status="success",
-                   username=player.username,
-                   email=player.email,
-                   first_name=player.first_name,
-                   last_name=player.last_name,
+                   username=g.player.username,
+                   email=g.player.email,
+                   first_name=g.player.first_name,
+                   last_name=g.player.last_name,
                    wins=wins,
                    matches=[{"id": match.id,
                              "name": match.name,
@@ -52,18 +51,20 @@ def get_player_info(player_id):
                              "status": match.status}
                             for match in hosting],
                    invites=[{"id": match.id, "name": match.name}
-                            for match in player.invited])
+                            for match in g.player.invited])
 
 
+@jsonify_assertion_error
 @app.route("/players/<int:player_id>", methods=["DELETE"])
+@login_required
 def delete_player(player_id):
     """Debug purposes only."""
-    player = Card.query.get_or_404(player_id)
-    db.session.delete(player)
+    db.session.delete(g.player)
     db.session.commit()
     return jsonify(status="success")
 
 
+@jsonify_assertion_error
 @app.route("/players", methods=["POST"])
 def create_player():
     content = request.json
@@ -80,19 +81,20 @@ def create_player():
     return jsonify(status="success", player_id=player.id)
 
 
+@jsonify_assertion_error
 @app.route("/players/<int:player_id>/befriend", methods=["POST"])
+@login_required
 def send_friend_request(player_id):
     content = request.json
-    requester = get_player(content["player_id"], content["password"])
     requestee = get_player(player_id)
-    assert requestee.id != requester.id
+    assert requestee.id != g.player.id
     assert FriendshipManager.query.filter_by(requestee=requestee.id,
-                                             requester=requester.id).first() \
+                                             requester=g.player.id).first() \
                                             is None
     assert FriendshipManager.query.filter_by(requester=requestee.id,
-                                             requestee=requester.id).first() \
+                                             requestee=g.player.id).first() \
                                             is None
-    friendship = FriendshipManager(requester.id, requestee.id)
+    friendship = FriendshipManager(g.player.id, requestee.id)
     db.session.add(friendship)
     db.session.commit()
     return jsonify(status="success")
