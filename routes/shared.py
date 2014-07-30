@@ -10,11 +10,11 @@ auth = HTTPBasicAuth()
 
 
 @auth.verify_password
-def verify_password(username_or_token, password):
-    player = Player.verify_auth_token(username_or_token)
+def verify_password(username, password_or_token):
+    player = Player.verify_auth_token(password_or_token)
     if not player:
-        player = Player.query.filter_by(username=username_or_token).first()
-        if not player or not player.verify_password(password):
+        player = Player.query.filter_by(username=username).first()
+        if not player or not player.verify_password(password_or_token):
             return False
     g.player = player
     return True
