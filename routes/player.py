@@ -88,7 +88,7 @@ def login_player():
 
 
 @jsonify_assertion_error
-@app.route("/players", methods=["GET"])
+@app.route("/player", methods=["GET"])
 @auth.login_required
 def get_player_info():
     wins = len(Match.query.filter_by(winner_id=g.player.id).all())
