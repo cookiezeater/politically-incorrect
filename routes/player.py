@@ -13,8 +13,7 @@ def get_friends():
     friends += [friendship.requestee for friendship in friendships
                 if friendship.requestee != g.player.id]
     friends = [Player.query.get_or_404(player_id) for player_id in friends]
-    return [{"id": friend.id,
-             "username": friend.username,
+    return [{"username": friend.username,
              "first_name": friend.first_name,
              "last_name": friend.last_name}
             for friend in friends]
@@ -30,8 +29,7 @@ def get_friend_requests():
                                                     accepted=False).all()
     friend_requesters = [Player.query.get_or_404(friendship.requester)
                          for friendship in friendships]
-    return [{"id": requester.id,
-             "username": requester.username,
+    return [{"username": requester.username,
              "first_name": requester.first_name,
              "last_name": requester.last_name}
             for requester in friend_requesters]
@@ -47,8 +45,7 @@ def get_pending_friends():
                                                     accepted=False).all()
     friend_requestees = [Player.query.get_or_404(friendship.requestee)
                          for friendship in friendships]
-    return [{"id": requestee.id,
-             "username": requestee.username,
+    return [{"username": requestee.username,
              "first_name": requestee.first_name,
              "last_name": requestee.last_name}
             for requestee in friend_requestees]
@@ -66,8 +63,7 @@ def get_friends_list(player_id):
 @auth.login_required
 def get_all_players():
     players = Player.query.all()
-    players = [{"id": player.id,
-                "username": player.username,
+    players = [{"username": player.username,
                 "first_name": player.first_name,
                 "last_name": player.last_name,
                 "email": player.email}
@@ -80,11 +76,11 @@ def get_all_players():
 @auth.login_required
 def login_player():
     return jsonify(status="success",
-                   token=g.player.generate_auth_token(),
                    username=g.player.username,
+                   email=g.player.email,
+                   token=g.player.generate_auth_token(),
                    first_name=g.player.first_name,
-                   last_name=g.player.last_name,
-                   email=g.player.email)
+                   last_name=g.player.last_name)
 
 
 @jsonify_assertion_error
