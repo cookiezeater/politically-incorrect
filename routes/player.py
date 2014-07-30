@@ -2,10 +2,17 @@ from routes.shared import *
 from sqlalchemy.exc import IntegrityError
 
 
+@jsonify_assertion_error
 @app.route("/players", methods=["GET"])
+@auth.login_required
 def get_all_players():
     players = Player.query.all()
-    players = {player.email: player.id for player in players}
+    players = [{"id": player.id,
+                "username": player.username,
+                "first_name": player.first_name,
+                "last_name": player.last_name,
+                "email": player.email}
+               for player in players]
     return jsonify(status="success", **players)
 
 
@@ -35,7 +42,6 @@ def get_player_info():
         match = get_match(state.match_id)
         matches.append(match)
     matches = [match for match in matches if match not in hosting]
-
     return jsonify(status="success",
                    username=g.player.username,
                    email=g.player.email,
@@ -56,7 +62,7 @@ def get_player_info():
 
 @jsonify_assertion_error
 @app.route("/players/<int:player_id>", methods=["DELETE"])
-@login_required
+@auth.login_required
 def delete_player(player_id):
     """Debug purposes only."""
     db.session.delete(g.player)
@@ -78,15 +84,15 @@ def create_player():
         db.session.commit()
     except IntegrityError:
         return jsonify(status="failure", message="Username or email in use.")
-    return jsonify(status="success", player_id=player.id)
+    return jsonify(status="success", token=player.generate_auth_token())
 
 
 @jsonify_assertion_error
-@app.route("/players/<int:player_id>/befriend", methods=["POST"])
-@login_required
-def send_friend_request(player_id):
+@app.route("/players/befriend", methods=["POST"])
+@auth.login_required
+def send_friend_request():
     content = request.json
-    requestee = get_player(player_id)
+    requestee = get_player(content["username"])
     assert requestee.id != g.player.id
     assert FriendshipManager.query.filter_by(requestee=requestee.id,
                                              requester=g.player.id).first() \
@@ -100,13 +106,14 @@ def send_friend_request(player_id):
     return jsonify(status="success")
 
 
-@app.route("/players/<int:player_id>/accept", methods=["POST"])
-def accept_friend_request(player_id):
+@jsonify_assertion_error
+@app.route("/players/accept", methods=["POST"])
+@auth.login_required
+def accept_friend_request():
     content = request.json
-    requester = get_player(player_id)
-    requestee = get_player(content["player_id"], content["password"])
+    requester = get_player(content["username"])
     friendship = FriendshipManager.query.filter_by(requester=requester.id,
-                                                   requestee=requestee.id,
+                                                   requestee=g.player.id,
                                                    accepted=False).first()
     friendship.accepted = True
     db.session.add(friendship)
@@ -114,32 +121,30 @@ def accept_friend_request(player_id):
     return jsonify(status="success")
 
 
-@app.route("/players/<int:player_id>/reject", methods=["POST"])
-def reject_friend_request(player_id):
+@jsonify_assertion_error
+@app.route("/players/reject", methods=["POST"])
+@auth.login_required
+def reject_friend_request():
     content = request.json
-    requester = get_player(player_id)
-    rejector = get_player(content["player_id"], content["password"])
+    requester = get_player(content["username"])
     friendship = FriendshipManager.query.filter_by(requester=requester.id,
-                                                   requstee=requestee.id,
+                                                   requstee=g.player.id,
                                                    accepted=False).first()
     db.session.remove(friendship)
     db.session.commit()
     return jsonify(status="success")
 
 
-def get_friends(player_id):
+def get_friends():
     """This method is very expensive and bad."""
-    content = request.json
-    password = Player.query.get_or_404(player_id).password
-    assert request.json["password"] == password
-    friendships = FriendshipManager.query.filter_by(requester=player_id,
+    friendships = FriendshipManager.query.filter_by(requester=g.player.id,
                                                     accepted=True).all()
-    friendships += FriendshipManager.query.filter_by(requestee=player_id,
+    friendships += FriendshipManager.query.filter_by(requestee=g.player.id,
                                                      accepted=True).all()
     friends = [friendship.requester for friendship in friendships
-               if friendship.requester != player_id]
+               if friendship.requester != g.player.id]
     friends += [friendship.requestee for friendship in friendships
-                if friendship.requestee != player_id]
+                if friendship.requestee != g.player.id]
     friends = [Player.query.get_or_404(player_id) for player_id in friends]
     return [{"id": friend.id,
              "username": friend.username,
@@ -148,20 +153,20 @@ def get_friends(player_id):
             for friend in friends]
 
 
-@app.route("/players/<int:player_id>/friends", methods=["POST"])
-def get_friends_route(player_id):
-    return jsonify(status="success", friends=get_friends(player_id))
+@jsonify_assertion_error
+@app.route("/players/friends", methods=["GET"])
+@auth.login_required
+def get_friends_route():
+    return jsonify(status="success", friends=get_friends())
 
 
-def get_friend_requests(player_id):
+def get_friend_requests():
     """
     This method returns all players that have sent
     player_id an invite. It is very expensive and bad.
     """
 
-    content = request.json
-    player = get_player(player_id, content["password"])
-    friendships = FriendshipManager.query.filter_by(requestee=player.id,
+    friendships = FriendshipManager.query.filter_by(requestee=g.player.id,
                                                     accepted=False).all()
     friend_requesters = [Player.query.get_or_404(friendship.requester)
                          for friendship in friendships]
@@ -172,21 +177,21 @@ def get_friend_requests(player_id):
             for requester in friend_requesters]
 
 
-@app.route("/players/<int:player_id>/friend_requests", methods=["POST"])
-def get_friend_requests_route(player_id):
+@jsonify_assertion_error
+@app.route("/players/friend_requests", methods=["GET"])
+@auth.login_required
+def get_friend_requests_route():
     return jsonify(status="success",
-                   friend_requests=get_friend_requests(player_id))
+                   friend_requests=get_friend_requests())
 
 
-def get_pending_friends(player_id):
+def get_pending_friends():
     """
     This method returns all players that player_id
     has sent an invite to. It is very expensive and bad.
     """
 
-    content = request.json
-    player = get_player(player_id, content["password"])
-    friendships = FriendshipManager.query.filter_by(requester=player.id,
+    friendships = FriendshipManager.query.filter_by(requester=g.player.id,
                                                     accepted=False).all()
     friend_requestees = [Player.query.get_or_404(friendship.requestee)
                          for friendship in friendships]
@@ -197,30 +202,32 @@ def get_pending_friends(player_id):
             for requestee in friend_requestees]
 
 
-@app.route("/players/<int:player_id>/pending_friends", methods=["POST"])
+@jsonify_assertion_error
+@app.route("/players/pending_friends", methods=["GET"])
+@auth.login_required
 def get_pending_friends_route(player_id):
     return jsonify(status="success",
-                   pending_friends=get_pending_friends(player_id))
+                   pending_friends=get_pending_friends())
 
 
 def get_friends_list(player_id):
     """Returns sum of get_fruends, friend_requests, pending_friends."""
-    content = request.json
-    player = get_player(player_id, content["password"])
-    return {"pending_friends": get_pending_friends(player.id),
-            "friend_requests": get_friend_requests(player.id),
-            "friends": get_friends(player.id)}
+    return {"pending_friends": get_pending_friends(),
+            "friend_requests": get_friend_requests(),
+            "friends": get_friends()}
 
 
-@app.route("/players/<int:player_id>/friends_list", methods=["POST"])
+@jsonify_assertion_error
+@app.route("/players/<int:player_id>/friends_list", methods=["GET"])
+@auth.login_required
 def get_friends_list_route(player_id):
-    return jsonify(status="success", **get_friends_list(player_id))
+    return jsonify(status="success", **get_friends_list())
 
 
-@app.route("/players/search/<string:query>", methods=["POST"])
+@jsonify_assertion_error
+@app.route("/players/search", methods=["POST"])
+@auth.login_required
 def search_players(query):
-    content = request.json
-    player = get_player(content["player_id"])
     players = Player.query.filter(
                     Player.first_name.ilike("%{}%".format(query))).all()
     players += Player.query.filter(
@@ -230,19 +237,19 @@ def search_players(query):
     players += Player.query.filter(
                     Player.email.ilike("%{}%".format(query))).all()
 
-    players = [{"id": person.id,
-                "username": person.username,
-                "first_name": person.first_name,
-                "last_name": person.last_name}
-               for person in players]
+    players = [{"id": player.id,
+                "username": player.username,
+                "first_name": player.first_name,
+                "last_name": player.last_name}
+               for player in players]
     # Prune duplicates
     players = [dict(person) for person in
                             set([tuple(person.items()) for person in players])]
-    friends_list = get_friends_list(player.id)
+    friends_list = get_friends_list(g.player.id)
     friends_list_flattened = [person for player_list in friends_list
                                      for person in friends_list[player_list]]
     players = [person for person in players
                       if person not in friends_list_flattened and
-                      person["id"] != player.id]
+                      person["id"] != g.player.id]
     return jsonify(status="success",
                    players=players)
