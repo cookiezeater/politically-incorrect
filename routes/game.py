@@ -239,17 +239,18 @@ def all_viewed_round_end(match):
 
 
 @jsonify_assertion_error
-@app.route("/matches/<int:match_id>", methods=["POST"])
+@app.route("/matches/<int:match_id>", methods=["GET"])
+@auth.login_required
 def get_match_info_route(match_id):
     content = request.json
-    player = get_player(content["player_id"], content["password"])
     match = Match.query.get_or_404(match_id)
-    state = get_state(player.id, match.id)
-    return jsonify(status="success", **get_match_info(match, player, state))
+    state = get_state(g.player.id, match.id)
+    return jsonify(status="success", **get_match_info(match, g.player, state))
 
 
 @jsonify_assertion_error
 @app.route("/matches/<int:match_id>/invite", methods=["POST"])
+@auth.login_required
 def invite_player(match_id):
     """Sends an invite to a player for a match.
 
@@ -261,13 +262,11 @@ def invite_player(match_id):
     the invitee is added to the match's pending list.
     """
 
-    content = request.json
-    invitee = get_player(content["invitee_id"])
-    inviter = get_player(content["inviter_id"], content["password"])
+    invitee = get_player(content["invitee_username"])
     match = Match.query.get_or_404(match_id)
 
-    assert match.host_id == inviter.id, "Only the host can invite players!"
-    assert inviter.id != invitee.id, "You can't invite yourself!"
+    assert g.player.id == match.host_id, "Only the host can invite players!"
+    assert g.player.id != invitee.id, "You can't invite yourself!"
     assert match.status == "PENDING", "The match has already started."
     assert invitee.id not in [player.id for player in match.pending], \
            "You already have an invite!"
@@ -282,6 +281,7 @@ def invite_player(match_id):
 
 @jsonify_assertion_error
 @app.route("/matches/<int:match_id>/accept", methods=["POST"])
+@auth.login_required
 def accept_invite(match_id):
     """Accepts an invite to a match.
 
@@ -294,19 +294,18 @@ def accept_invite(match_id):
     """
 
     content = request.json
-    player = get_player(content["player_id"], content["password"])
     match = Match.query.get_or_404(match_id)
 
-    assert match.host_id != player.id, "You're already in the match!"
-    assert match in player.invited, "You haven't been invited to this match."
+    assert match.host_id != g.player.id, "You're already in the match!"
+    assert match in g.player.invited, "You haven't been invited to this match."
     assert len(match.states) < match.max_players, "The match is full."
 
-    player.invited.remove(match)
+    g.player.invited.remove(match)
 
-    state = State(player.id, match.id)
+    state = State(g.player.id, match.id)
     match.states.append(state)
 
-    db.session.add(player)
+    db.session.add(g.player)
     db.session.add(state)
     db.session.add(match)
     db.session.commit()
@@ -318,6 +317,7 @@ def accept_invite(match_id):
 
 @jsonify_assertion_error
 @app.route("/matches/<int:match_id>/go", methods=["POST"])
+@auth.login_required
 def make_move(match_id):
     """Makes a move in a certain match for a player.
 
@@ -330,15 +330,14 @@ def make_move(match_id):
     """
 
     content = request.json
-    player = get_player(content["player_id"], content["password"])
     match = Match.query.get_or_404(match_id)
     assert match.status == "ONGOING", "The match isn't in progress."
 
     judge_state = get_judge_state(match.id)
-    assert player.id != judge_state.player_id, \
+    assert g.player.id != judge_state.player_id, \
            "You can't play a card because you're the judge this round."
 
-    state = get_state(player.id, match.id)
+    state = get_state(g.player.id, match.id)
     assert not state.played, \
            "You've already played your card(s) for this round."
 
@@ -360,6 +359,7 @@ def make_move(match_id):
 
 @jsonify_assertion_error
 @app.route("/matches/<int:match_id>/choose", methods=["POST"])
+@auth.login_required
 def choose_round_winner(match_id):
     """Chooses a winner for the round.
 
@@ -371,21 +371,21 @@ def choose_round_winner(match_id):
     to True and increment the winner's score.
     """
 
-
     content = request.json
-    judge = get_player(content["player_id"], content["password"])
     match = Match.query.get_or_404(match_id)
-
-    assert all_cards_down(match)
-    assert judge.id != content["winner_id"]
-    assert all([not state.round_winner for state in match.states])
-
-    winner_state = get_state(content["winner_id"], match.id)
-    winner_state.round_winner = True
-    winner_state.score += 1
 
     judge_state = get_judge_state(match.id)
     judge_state.viewed_round_end = True
+
+    assert judge_state.player_id == g.player.id, \
+           "You're not the judge this round."
+    assert g.player.id != content["winner_username"]
+    assert all_cards_down(match)
+    assert all([not state.round_winner for state in match.states])
+
+    winner_state = get_state(content["winner_username"], match.id)
+    winner_state.round_winner = True
+    winner_state.score += 1
 
     if winner_state.score == match.max_score:
         match.winner_id = winner_state.id
@@ -405,6 +405,7 @@ def choose_round_winner(match_id):
 
 @jsonify_assertion_error
 @app.route("/matches/<int:match_id>/acknowledge", methods=["POST"])
+@auth.login_required
 def acknowledge(match_id):
     """Acknowledges the end round state. Everyone must acknowledge
     the end of the round for a new round to begin.
@@ -419,16 +420,15 @@ def acknowledge(match_id):
     """
 
     content = request.json
-    player = get_player(content["player_id"], content["password"])
     match = Match.query.get_or_404(match_id)
 
-    assert player.id in [state.player_id for state in match.states], \
+    assert g.player.id in [state.player_id for state in match.states], \
            "You're not in this game!"
     assert all_cards_down(match), "Not all players have put down cards."
     assert any([state.round_winner for state in match.states]), \
            "A winner has not been chosen yet."
 
-    state = get_state(player.id, match.id)
+    state = get_state(g.player.id, match.id)
     state.viewed_round_end = True
 
     db.session.add(state)
