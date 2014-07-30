@@ -61,9 +61,9 @@ def get_player_info():
 
 
 @jsonify_assertion_error
-@app.route("/players/<int:player_id>", methods=["DELETE"])
+@app.route("/players", methods=["DELETE"])
 @auth.login_required
-def delete_player(player_id):
+def delete_player():
     """Debug purposes only."""
     db.session.delete(g.player)
     db.session.commit()
@@ -205,29 +205,31 @@ def get_pending_friends():
 @jsonify_assertion_error
 @app.route("/players/pending_friends", methods=["GET"])
 @auth.login_required
-def get_pending_friends_route(player_id):
+def get_pending_friends_route():
     return jsonify(status="success",
                    pending_friends=get_pending_friends())
 
 
 def get_friends_list(player_id):
-    """Returns sum of get_fruends, friend_requests, pending_friends."""
+    """Returns sum of get_friends, friend_requests, pending_friends."""
     return {"pending_friends": get_pending_friends(),
             "friend_requests": get_friend_requests(),
             "friends": get_friends()}
 
 
 @jsonify_assertion_error
-@app.route("/players/<int:player_id>/friends_list", methods=["GET"])
+@app.route("/players/friends_list", methods=["GET"])
 @auth.login_required
-def get_friends_list_route(player_id):
+def get_friends_list_route():
     return jsonify(status="success", **get_friends_list())
 
 
 @jsonify_assertion_error
 @app.route("/players/search", methods=["POST"])
 @auth.login_required
-def search_players(query):
+def search_players():
+    content = request.json
+    query = content["query"]
     players = Player.query.filter(
                     Player.first_name.ilike("%{}%".format(query))).all()
     players += Player.query.filter(
@@ -242,6 +244,7 @@ def search_players(query):
                 "first_name": player.first_name,
                 "last_name": player.last_name}
                for player in players]
+
     # Prune duplicates
     players = [dict(person) for person in
                             set([tuple(person.items()) for person in players])]
