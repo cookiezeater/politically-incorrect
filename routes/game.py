@@ -29,8 +29,7 @@ def get_match_info(match, player=None, state=None):
     players, player_played_cards = get_players_as_json(match, player)
 
     # Get pending players from match relationship
-    pending_players = [{"id": _.id,
-                        "first_name": _.first_name,
+    pending_players = [{"first_name": _.first_name,
                         "last_name": _.last_name,
                         "username": _.username}
                        for _ in match.pending]
@@ -198,11 +197,10 @@ def get_players_as_json(match, player=None):
     players = [Player.query.get_or_404(state.player_id)
                for state in match.states]
     # Easy stuff first
-    players = [{"id": _.id,
-                 "first_name": _.first_name,
-                 "last_name": _.last_name,
-                 "username": _.username}
-                for _ in players]
+    players = [{"first_name": _.first_name,
+                "last_name": _.last_name,
+                "username": _.username}
+               for _ in players]
     # Add the player's played_cards from the player's match state
     for index, _ in enumerate(players):
         player_state = next(state for state in match.states
