@@ -239,6 +239,15 @@ def all_viewed_round_end(match):
 
 
 @jsonify_assertion_error
+@app.route("/matches", methods=["GET"])
+@auth.login_required
+def get_all_matches():
+    matches = Match.query.all()
+    return jsonify(status="success",
+                   matches=[get_match_info(match) for match in matches])
+
+
+@jsonify_assertion_error
 @app.route("/matches/<int:match_id>", methods=["GET"])
 @auth.login_required
 def get_match_info_route(match_id):
