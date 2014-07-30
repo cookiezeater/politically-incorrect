@@ -10,6 +10,11 @@ matches_to_cards = db.Table("m2c", db.Model.metadata,
 
 
 class Match(db.Model):
+    created_on = db.Column(db.DateTime, default=db.func.now())
+    updated_on = db.Column(db.DateTime,
+                           default=db.func.now(),
+                           onupdate=db.func.now())
+
     STATUSES = "PENDING", "ONGOING", "ENDED"
 
     __tablename__ = "matches"

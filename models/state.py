@@ -10,6 +10,11 @@ states_to_played_cards = db.Table("s2pc", db.Model.metadata,
 
 
 class State(db.Model):
+    created_on = db.Column(db.DateTime, default=db.func.now())
+    updated_on = db.Column(db.DateTime,
+                           default=db.func.now(),
+                           onupdate=db.func.now())
+
     __tablename__ = "states"
     id = db.Column(db.Integer, primary_key=True)
 
