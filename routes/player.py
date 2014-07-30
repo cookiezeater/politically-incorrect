@@ -17,7 +17,9 @@ def login_player():
         player = Player.query.filter_by(username=content["username"],
                                         password=content["password"]).first()
     except:
-        return jsonify(status="failure", message="Invalid username or password")
+        return jsonify(status="failure",
+                       message="Invalid username or password.")
+
     return jsonify(status="success",
                    username=player.username,
                    password=player.password,

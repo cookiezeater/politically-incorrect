@@ -51,6 +51,10 @@ class Match(db.Model):
     # but a black card can be in many matches.
     black_id = db.Column(db.Integer, db.ForeignKey("cards.id"))
 
+    # Pickle
+    # I'm getting lazy
+    previous_round = db.Column(db.PickleType)
+
     def __init__(self, name, host_id, max_players, max_score):
         self.name = name
         self.host_id = host_id

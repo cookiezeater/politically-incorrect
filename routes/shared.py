@@ -34,12 +34,13 @@ def get_match(match_id):
     match = Match.query.get_or_404(match_id)
     return match
 
+
 def get_judge_state(match_id):
     judge_state = State.query.filter_by(match_id=match_id, judge=True)
     try:
         return judge_state.first()
     except:
-        assert False, "Match or judge doesn't exist."
+        return None
 
 
 def get_round_winner_state(match_id):
@@ -48,4 +49,4 @@ def get_round_winner_state(match_id):
     try:
         return round_winner_state.first()
     except:
-        assert False, "Round winner has not been chosen yet."
+        return None
