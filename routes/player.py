@@ -244,11 +244,9 @@ def search_players(query):
     # Prune duplicates
     players = [dict(person) for person in
                             set([tuple(person.items()) for person in players])]
-    print players
     friends_list = get_friends_list(player.id)
     friends_list_flattened = [person for player_list in friends_list
                                      for person in friends_list[player_list]]
-    print friends_list_flattened
     players = [person for person in players
                       if person not in friends_list_flattened and
                       person["id"] != player.id]
