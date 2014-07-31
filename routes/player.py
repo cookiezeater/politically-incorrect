@@ -130,8 +130,8 @@ def delete_player():
 def create_player():
     content = request.json
     player = Player(content["username"],
-                    content["password"],
                     content["email"],
+                    content["password"],
                     content["first_name"],
                     content["last_name"])
     db.session.add(player)
@@ -139,7 +139,12 @@ def create_player():
         db.session.commit()
     except IntegrityError:
         return jsonify(status="failure", message="Username or email in use.")
-    return jsonify(status="success", token=player.generate_auth_token())
+    return jsonify(status="success",
+                   username=player.username,
+                   email=player.email,
+                   token=player.generate_auth_token(),
+                   first_name=player.first_name,
+                   last_name=player.last_name)
 
 
 @jsonify_assertion_error
