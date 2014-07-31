@@ -302,7 +302,7 @@ def invite_player(match_id):
 
 
 @jsonify_assertion_error
-@app.route("/matches/<int:match_id>/accept", methods=["POST"])
+@app.route("/matches/<int:match_id>/accept", methods=["GET"])
 @auth.login_required
 def accept_invite(match_id):
     """Accepts an invite to a match.
@@ -315,7 +315,6 @@ def accept_invite(match_id):
     the accepting player.
     """
 
-    content = request.json
     match = Match.query.get_or_404(match_id)
 
     assert match.host_id != g.player.id, "You're already in the match!"
