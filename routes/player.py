@@ -51,7 +51,7 @@ def get_pending_friends():
             for requestee in friend_requestees]
 
 
-def get_friends_list(player_id):
+def get_friends_list():
     """Returns sum of get_friends, friend_requests, pending_friends."""
     return {"pending_friends": get_pending_friends(),
             "friend_requests": get_friend_requests(),
