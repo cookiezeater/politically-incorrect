@@ -12,7 +12,9 @@ auth = HTTPBasicAuth()
 @auth.verify_password
 def verify_password(username, password_or_token):
     player = Player.verify_auth_token(password_or_token)
-    if not player:
+    if player:
+        assert player.username == username, "Invalid username."
+    else:
         player = Player.query.filter_by(username=username).first()
         if not player or not player.verify_password(password_or_token):
             return False
@@ -30,10 +32,9 @@ def jsonify_assertion_error(func):
 
 
 def get_player(username, password=None):
-    try:
-        player = Player.query.filter_by(username=username).first()
-    except:
-        return False, "Invalid username."
+    player = Player.query.filter_by(username=username).first()
+    if not player:
+        assert False, "Invalid username."
     if password:
         assert password == player.password, "Invalid password."
     return player
