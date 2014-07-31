@@ -197,19 +197,19 @@ def get_players_as_json(match, player=None):
     players = [Player.query.get_or_404(state.player_id)
                for state in match.states]
     # Easy stuff first
-    players = [{"first_name": _.first_name,
-                "last_name": _.last_name,
-                "username": _.username}
-               for _ in players]
+    json_players = [{"first_name": _.first_name,
+                     "last_name": _.last_name,
+                     "username": _.username}
+                    for _ in players]
     # Add the player's played_cards from the player's match state
-    for index, _ in enumerate(players):
+    for index, _ in enumerate(json_players):
         player_state = next(state for state in match.states
-                            if state.player_id == _["id"])
+                            if state.player_id == players[index].id)
         played_cards = [{"id": card.id, "text": card.text}
                         for card in player_state.played]
         _["played_cards"] = played_cards
         _["score"] = player_state.score
-        players[index] = _
+        json_players[index] = _
 
         # For ease of access, store and return the requesting
         # player's played cards in the response
@@ -218,7 +218,7 @@ def get_players_as_json(match, player=None):
         else:
             player_played_cards = None
 
-    return players, player_played_cards
+    return json_players, player_played_cards
 
 
 def all_cards_down(match):
