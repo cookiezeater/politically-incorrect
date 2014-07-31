@@ -57,10 +57,10 @@ class Player(db.Model):
                              backref="player",
                              foreign_keys="[State.player_id]")
 
-    def __init__(self, username, password, email, first_name, last_name):
+    def __init__(self, username, email, password, first_name, last_name):
         self.username = username
-        self.password = self.hash_password(password)
         self.email = email
+        self.password = self.hash_password(password)
         self.first_name = first_name
         self.last_name = last_name
 
