@@ -235,8 +235,7 @@ def search_players():
     players += Player.query.filter(
                     Player.email.ilike("%{}%".format(query))).all()
 
-    players = [{"id": player.id,
-                "username": player.username,
+    players = [{"username": player.username,
                 "first_name": player.first_name,
                 "last_name": player.last_name}
                for player in players]
@@ -247,8 +246,9 @@ def search_players():
     friends_list = get_friends_list()
     friends_list_flattened = [player for player_list in friends_list
                                      for player in friends_list[player_list]]
+    print friends_list_flattened
     players = [player for player in players
                       if player not in friends_list_flattened and
-                      player["id"] != g.player.id]
+                      player["username"] != g.player.username]
     return jsonify(status="success",
                    players=players)
