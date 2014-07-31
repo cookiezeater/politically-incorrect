@@ -18,7 +18,7 @@ def create_match():
     match.deck = Card.query.all()  # temporary
     db.session.add(match)
     db.session.commit()
-    return jsonify(status="success", match_id=match.id)
+    return jsonify(status="success", id=match.id)
 
 
 @jsonify_assertion_error
