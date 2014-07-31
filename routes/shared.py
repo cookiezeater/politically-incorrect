@@ -16,7 +16,11 @@ def verify_password(username, password_or_token):
         assert player.username == username, "Invalid username."
     else:
         player = Player.query.filter_by(username=username).first()
-        if not player or not player.verify_password(password_or_token):
+        if not player:
+            return False
+        if player.verify_password(password_or_token):
+            pass
+        else:
             return False
     g.player = player
     return True
