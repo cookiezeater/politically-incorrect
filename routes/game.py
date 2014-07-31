@@ -7,17 +7,31 @@ def get_match_info(match, player=None, state=None):
 
     round_status = get_round_status(match)
 
-    # Get round winner id, if any
+    # Get round winner username, if any
     try:
         round_winner_id = get_round_winner_state(match.id).player_id
+        round_winner = Player.query.get(round_winner_id).username
     except AttributeError:
-        round_winner_id = None
+        round_winner = None
 
-    # Get judge id, if any
+    # Get match winner username
+    try:
+        match_winner = Player.query.get(match.winner_id).username
+    except:
+        match_winner = None
+
+    # Get host username
+    try:
+        host = Player.query.get(match.host_id).username
+    except:
+        host = None
+
+    # Get judge username, if any
     try:
         judge_id = get_judge_state(match.id).player_id
+        judge = Player.query.get(judge_id).username
     except AttributeError:
-        judge_id = None
+        judge = None
 
     # Get the black card
     if match.black_id:
@@ -45,10 +59,10 @@ def get_match_info(match, player=None, state=None):
             "round_status": round_status,
             "max_players": match.max_players,
             "max_score": match.max_score,
-            "round_winner_id": round_winner_id,
-            "match_winner_id": match.winner_id,
-            "host_id": match.host_id,
-            "judge_id": judge_id,
+            "round_winner": round_winner,
+            "match_winner": match_winner,
+            "host": host,
+            "judge": judge,
             "black_card": black_card,
             "players": players,
             "pending_players": pending_players,
