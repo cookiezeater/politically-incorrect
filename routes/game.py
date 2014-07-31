@@ -283,6 +283,7 @@ def invite_player(match_id):
     the invitee is added to the match's pending list.
     """
 
+    content = request.json
     invitee = get_player(content["username"])
     match = Match.query.get_or_404(match_id)
 
