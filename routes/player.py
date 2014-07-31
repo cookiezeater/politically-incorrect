@@ -244,7 +244,7 @@ def search_players():
     # Prune duplicates
     players = [dict(player) for player in
                             set([tuple(player.items()) for player in players])]
-    friends_list = get_friends_list(g.player.id)
+    friends_list = get_friends_list()
     friends_list_flattened = [player for player_list in friends_list
                                      for player in friends_list[player_list]]
     players = [player for player in players
