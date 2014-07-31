@@ -44,7 +44,11 @@ def get_player(username, password=None):
     return player
 
 
-def get_state(player_id, match_id):
+def get_state(username_or_id, match_id):
+    if type(username_or_id) is unicode:
+        player_id = Player.query.filter_by(username=username_or_id).first().id
+    elif type(username_or_id) is int:
+        player_id = username_or_id
     state = State.query.filter_by(player_id=player_id, match_id=match_id)
     try:
         return state.first()
