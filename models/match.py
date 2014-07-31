@@ -74,4 +74,4 @@ class Match(db.Model):
         self.black_id = None
 
     def __str__(self):
-        raise NotImplementedError
+        return "Match {}".format(self.id)
