@@ -208,6 +208,7 @@ def get_players_as_json(match, player=None):
       },
     ...]
     """
+    player_played_cards = []
     players = [Player.query.get_or_404(state.player_id)
                for state in match.states]
     # Easy stuff first
@@ -229,8 +230,6 @@ def get_players_as_json(match, player=None):
         # player's played cards in the response
         if player and player_state.player_id == player.id:
             player_played_cards = played_cards
-        else:
-            player_played_cards = []
 
     return json_players, player_played_cards
 
