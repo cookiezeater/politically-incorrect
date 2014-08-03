@@ -421,8 +421,12 @@ def choose_round_winner(match_id):
                        match_status="ENDED",
                        winner=Player.query.get(match.winner_id).username)
 
+    if "ignore_ack" not in content:
+        return jsonify(status="success")
+
     if content["ignore_ack"]:
         return new_round(match)
+
     return jsonify(status="success")
 
 
