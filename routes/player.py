@@ -131,7 +131,7 @@ def create_player():
                             response["given_name"],
                             response["family_name"])
             auth_token = player.generate_auth_token()
-            player.password = auth_token
+            player.password = player.hash_password(auth_token)
             db.session.add(player)
             try:
                 db.session.commit()

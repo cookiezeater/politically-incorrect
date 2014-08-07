@@ -94,6 +94,7 @@ class Player(db.Model):
         except BadSignature:
             # Invalid token
             return None
+        if data["id"] is None:
+            return None
         player = Player.query.get(data["id"])
         return player
-
