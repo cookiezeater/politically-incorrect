@@ -1,3 +1,4 @@
+from functools import wraps
 from models.card import Card
 from models.player import FriendshipManager, Player
 from models.state import State
@@ -27,11 +28,12 @@ def verify_password(username, password_or_token):
 
 
 def jsonify_assertion_error(func):
+    @wraps(func)
     def wrapper(*args, **kwargs):
-            try:
-                return func(*args, **kwargs)
-            except AssertionError as error:
-                return jsonify(status="failure", message=error)
+        try:
+            return func(*args, **kwargs)
+        except AssertionError as error:
+            return jsonify(status="failure", message=error.message)
     return wrapper
 
 

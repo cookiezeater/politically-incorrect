@@ -1,8 +1,8 @@
 from routes.shared import *
 
 
-@jsonify_assertion_error
 @app.route("/matches", methods=["POST"])
+@jsonify_assertion_error
 @auth.login_required
 def create_match():
     content = request.json
@@ -21,8 +21,8 @@ def create_match():
     return jsonify(status="success", id=match.id)
 
 
-@jsonify_assertion_error
 @app.route("/matches/<int:match_id>", methods=["DELETE"])
+@jsonify_assertion_error
 @auth.login_required
 def delete_match(match_id):
     match = Match.query.get_or_404(match_id)

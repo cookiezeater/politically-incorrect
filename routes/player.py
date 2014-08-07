@@ -1,5 +1,8 @@
+import requests
 from routes.shared import *
 from sqlalchemy.exc import IntegrityError
+
+GOOGLE_URL = "https://www.googleapis.com/oauth2/v1/userinfo?access_token={}"
 
 
 def get_friends():
@@ -58,21 +61,8 @@ def get_friends_list():
             "friends": get_friends()}
 
 
-@jsonify_assertion_error
-@app.route("/players", methods=["GET"])
-@auth.login_required
-def get_all_players():
-    players = Player.query.all()
-    players = [{"username": player.username,
-                "first_name": player.first_name,
-                "last_name": player.last_name,
-                "email": player.email}
-               for player in players]
-    return jsonify(status="success", players=players)
-
-
-@jsonify_assertion_error
 @app.route("/players/login", methods=["GET"])
+@jsonify_assertion_error
 @auth.login_required
 def login_player():
     return jsonify(status="success",
@@ -83,8 +73,8 @@ def login_player():
                    last_name=g.player.last_name)
 
 
+@app.route("/players", methods=["GET"])
 @jsonify_assertion_error
-@app.route("/player", methods=["GET"])
 @auth.login_required
 def get_player_info():
     wins = len(Match.query.filter_by(winner_id=g.player.id).all())
@@ -115,8 +105,8 @@ def get_player_info():
                             for match in g.player.invited])
 
 
-@jsonify_assertion_error
 @app.route("/players", methods=["DELETE"])
+@jsonify_assertion_error
 @auth.login_required
 def delete_player():
     """Debug purposes only."""
@@ -125,30 +115,58 @@ def delete_player():
     return jsonify(status="success")
 
 
-@jsonify_assertion_error
 @app.route("/players", methods=["POST"])
+@jsonify_assertion_error
 def create_player():
     content = request.json
-    player = Player(content["username"],
-                    content["email"],
-                    content["password"],
-                    content["first_name"],
-                    content["last_name"])
-    db.session.add(player)
-    try:
-        db.session.commit()
-    except IntegrityError:
-        return jsonify(status="failure", message="Username or email in use.")
-    return jsonify(status="success",
-                   username=player.username,
-                   email=player.email,
-                   token=player.generate_auth_token(),
-                   first_name=player.first_name,
-                   last_name=player.last_name)
+    if "social_auth_type" in content:
+        social_auth_type = content["social_auth_type"]
+        if social_auth_type == "google":
+            token = content["token"]
+            response = requests.get(GOOGLE_URL.format(token)).json()
+            assert "error" not in response, "Invalid Google account."
+            player = Player(content["email"],
+                            content["email"],
+                            "password",
+                            response["given_name"],
+                            response["family_name"])
+            auth_token = player.generate_auth_token()
+            player.password = auth_token
+            db.session.add(player)
+            try:
+                db.session.commit()
+            except IntegrityError:
+                return jsonify(status="failure",
+                               message="Username or email in use.")
+            return jsonify(status="success",
+                           username=player.username,
+                           email=player.email,
+                           token=auth_token,
+                           first_name=player.first_name,
+                           last_name=player.last_name)
+        return jsonify(status="failure")
+
+    else:
+        player = Player(content["username"],
+                        content["email"],
+                        content["password"],
+                        content["first_name"],
+                        content["last_name"])
+        db.session.add(player)
+        try:
+            db.session.commit()
+        except IntegrityError:
+            return jsonify(status="failure", message="Username or email in use.")
+        return jsonify(status="success",
+                       username=player.username,
+                       email=player.email,
+                       token=player.generate_auth_token(),
+                       first_name=player.first_name,
+                       last_name=player.last_name)
 
 
-@jsonify_assertion_error
 @app.route("/players/befriend", methods=["POST"])
+@jsonify_assertion_error
 @auth.login_required
 def send_friend_request():
     content = request.json
@@ -166,8 +184,8 @@ def send_friend_request():
     return jsonify(status="success")
 
 
-@jsonify_assertion_error
 @app.route("/players/accept", methods=["POST"])
+@jsonify_assertion_error
 @auth.login_required
 def accept_friend_request():
     content = request.json
@@ -181,8 +199,8 @@ def accept_friend_request():
     return jsonify(status="success")
 
 
-@jsonify_assertion_error
 @app.route("/players/reject", methods=["POST"])
+@jsonify_assertion_error
 @auth.login_required
 def reject_friend_request():
     content = request.json
@@ -195,38 +213,38 @@ def reject_friend_request():
     return jsonify(status="success")
 
 
-@jsonify_assertion_error
 @app.route("/players/friends", methods=["GET"])
+@jsonify_assertion_error
 @auth.login_required
 def get_friends_route():
     return jsonify(status="success", friends=get_friends())
 
 
-@jsonify_assertion_error
 @app.route("/players/friend_requests", methods=["GET"])
+@jsonify_assertion_error
 @auth.login_required
 def get_friend_requests_route():
     return jsonify(status="success",
                    friend_requests=get_friend_requests())
 
 
-@jsonify_assertion_error
 @app.route("/players/pending_friends", methods=["GET"])
+@jsonify_assertion_error
 @auth.login_required
 def get_pending_friends_route():
     return jsonify(status="success",
                    pending_friends=get_pending_friends())
 
 
-@jsonify_assertion_error
 @app.route("/players/friends_list", methods=["GET"])
+@jsonify_assertion_error
 @auth.login_required
 def get_friends_list_route():
     return jsonify(status="success", **get_friends_list())
 
 
-@jsonify_assertion_error
 @app.route("/players/search", methods=["POST"])
+@jsonify_assertion_error
 @auth.login_required
 def search_players():
     content = request.json

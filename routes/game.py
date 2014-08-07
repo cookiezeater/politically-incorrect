@@ -249,8 +249,8 @@ def all_viewed_round_end(match):
     return all([state.viewed_round_end for state in match.states])
 
 
-@jsonify_assertion_error
 @app.route("/matches", methods=["GET"])
+@jsonify_assertion_error
 @auth.login_required
 def get_all_matches():
     matches = Match.query.all()
@@ -258,8 +258,8 @@ def get_all_matches():
                    matches=[get_match_info(match) for match in matches])
 
 
-@jsonify_assertion_error
 @app.route("/matches/<int:match_id>", methods=["GET"])
+@jsonify_assertion_error
 @auth.login_required
 def get_match_info_route(match_id):
     content = request.json
@@ -268,8 +268,8 @@ def get_match_info_route(match_id):
     return jsonify(status="success", **get_match_info(match, g.player, state))
 
 
-@jsonify_assertion_error
 @app.route("/matches/<int:match_id>/invite", methods=["POST"])
+@jsonify_assertion_error
 @auth.login_required
 def invite_player(match_id):
     """Sends an invite to a player for a match.
@@ -300,8 +300,8 @@ def invite_player(match_id):
     return jsonify(status="success")
 
 
-@jsonify_assertion_error
 @app.route("/matches/<int:match_id>/accept", methods=["GET"])
+@jsonify_assertion_error
 @auth.login_required
 def accept_invite(match_id):
     """Accepts an invite to a match.
@@ -335,8 +335,8 @@ def accept_invite(match_id):
     return jsonify(status="success")
 
 
-@jsonify_assertion_error
 @app.route("/matches/<int:match_id>/go", methods=["POST"])
+@jsonify_assertion_error
 @auth.login_required
 def make_move(match_id):
     """Makes a move in a certain match for a player.
@@ -377,8 +377,8 @@ def make_move(match_id):
     return jsonify(status="success")
 
 
-@jsonify_assertion_error
 @app.route("/matches/<int:match_id>/choose", methods=["POST"])
+@jsonify_assertion_error
 @auth.login_required
 def choose_round_winner(match_id):
     """Chooses a winner for the round.
@@ -430,8 +430,8 @@ def choose_round_winner(match_id):
     return jsonify(status="success")
 
 
-@jsonify_assertion_error
 @app.route("/matches/<int:match_id>/acknowledge", methods=["POST"])
+@jsonify_assertion_error
 @auth.login_required
 def acknowledge(match_id):
     """Acknowledges the end round state. Everyone must acknowledge
