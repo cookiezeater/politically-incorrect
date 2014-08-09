@@ -135,32 +135,30 @@ def delete_player():
 @jsonify_assertion_error
 def create_player():
     content = request.json
-    if "player_type" in content:
-        player_type = content["player_type"]
-        if player_type == "google":
-            token = content["token"]
-            response = requests.get(GOOGLE_URL.format(token)).json()
-            assert "error" not in response, "Invalid Google account."
-            player = Player("google",
-                            content["email"],
-                            content["email"],
-                            None,
-                            response["given_name"],
-                            response["family_name"])
-            auth_token = player.generate_auth_token()
-            db.session.add(player)
-            try:
-                db.session.commit()
-            except IntegrityError:
-                return jsonify(status="failure",
-                               message="Username or email in use.")
-            return jsonify(status="success",
-                           username=player.username,
-                           email=player.email,
-                           token=auth_token,
-                           first_name=player.first_name,
-                           last_name=player.last_name)
-        return jsonify(status="failure")
+    assert "player_type" in content, "Invalid request."
+    player_type = content["player_type"]
+    if player_type == "google":
+        token = content["token"]
+        response = requests.get(GOOGLE_URL.format(token)).json()
+        assert "error" not in response, "Invalid Google account."
+        player = Player("google",
+                        content["email"],
+                        content["email"],
+                        None,
+                        response["given_name"],
+                        response["family_name"])
+        db.session.add(player)
+        try:
+            db.session.commit()
+        except IntegrityError:
+            return jsonify(status="failure",
+                           message="Username or email in use.")
+        return jsonify(status="success",
+                       username=player.username,
+                       email=player.email,
+                       token=player.generate_auth_token(),
+                       first_name=player.first_name,
+                       last_name=player.last_name)
 
     elif player_type == "default":
         player = Player("default",
@@ -286,7 +284,7 @@ def search_players():
     friends_list = get_friends_list()
     friends_list_flattened = [player for player_list in friends_list
                                      for player in friends_list[player_list]]
-    print friends_list_flattened
+
     players = [player for player in players
                       if player not in friends_list_flattened and
                       player["username"] != g.player.username]

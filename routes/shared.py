@@ -6,14 +6,12 @@ from models.match import Match
 from models.shared import app, db
 from flask.ext.httpauth import HTTPBasicAuth
 from flask import jsonify, request, g
-from itsdangerous import SignatureExpired, BadSignature
-from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 
 auth = HTTPBasicAuth()
 
 
 @auth.verify_password
-def verify_password(username, token):
+def verify_token(username, token):
     player = Player.verify_auth_token(token)
     if player:
         assert player.username == username, "Invalid username."
