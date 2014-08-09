@@ -131,6 +131,18 @@ def delete_player():
     return jsonify(status="success")
 
 
+@app.route("/players", methods=["PUT"])
+@jsonify_assertion_error
+@auth.login_required
+def update_player():
+    content = request.json
+    username = content["username"]
+    g.player.username = username
+    db.session.add(g.player)
+    db.session.commit()
+    return jsonify(status="success")
+
+
 @app.route("/players", methods=["POST"])
 @jsonify_assertion_error
 def create_player():
