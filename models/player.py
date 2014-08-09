@@ -1,8 +1,6 @@
 import sys
 from models.shared import *
 from passlib.apps import custom_app_context
-from itsdangerous import SignatureExpired, BadSignature
-from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 
 
 class FriendshipManager(db.Model):
@@ -33,11 +31,12 @@ class Player(db.Model):
     __tablename__ = "players"
     id = db.Column(db.Integer, primary_key=True)
 
-    username = db.Column(db.String(50), unique=True)
-    password = db.Column(db.String(256))
-    email = db.Column(db.String(120), unique=True)
-    first_name = db.Column(db.String(50))
-    last_name = db.Column(db.String(50))
+    player_type = db.Column(db.String(32))
+    username = db.Column(db.String(32), unique=True)
+    password = db.Column(db.String(256), default=None)
+    email = db.Column(db.String(128), unique=True)
+    first_name = db.Column(db.String(32))
+    last_name = db.Column(db.String(32))
 
     # One-to-many:
     # A match only has one winner, but a winner can have many won matches.
@@ -57,10 +56,20 @@ class Player(db.Model):
                              backref="player",
                              foreign_keys="[State.player_id]")
 
-    def __init__(self, username, email, password, first_name, last_name):
+    def __init__(self,
+                 player_type,
+                 username,
+                 email,
+                 password,
+                 first_name,
+                 last_name):
+        self.player_type = player_type
         self.username = username
         self.email = email
-        self.password = self.hash_password(password)
+        if password is None:
+            self.password = None
+        else:
+            self.password = self.hash_password(password)
         self.first_name = first_name
         self.last_name = last_name
 

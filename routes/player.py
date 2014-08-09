@@ -63,14 +63,30 @@ def get_friends_list():
 
 @app.route("/players/login", methods=["GET"])
 @jsonify_assertion_error
-@auth.login_required
 def login_player():
+    username = request.authorization.username
+    password = request.authorization.password
+
+    player = Player.query.filter_by(username=username).first()
+
+    if player.player_type == "default":
+        if player.verify_password(password):
+            pass
+    elif player.player_type == "google":
+        # The password must be a token generated via the Android
+        # Google Plus API
+        player_google_info = requests.get(GOOGLE_URL.format(token)).json()
+        assert player_google_info["Given Name"] == player.first_name, \
+               "Invalid credentials."
+        assert player_google_info["Family Name"] == player.last_name, \
+               "Invalid credentials."
+
     return jsonify(status="success",
-                   username=g.player.username,
-                   email=g.player.email,
-                   token=g.player.generate_auth_token(),
-                   first_name=g.player.first_name,
-                   last_name=g.player.last_name)
+                   username=player.username,
+                   email=player.email,
+                   token=player.generate_auth_token(),
+                   first_name=player.first_name,
+                   last_name=player.last_name)
 
 
 @app.route("/players", methods=["GET"])
@@ -125,13 +141,13 @@ def create_player():
             token = content["token"]
             response = requests.get(GOOGLE_URL.format(token)).json()
             assert "error" not in response, "Invalid Google account."
-            player = Player(content["email"],
+            player = Player("google",
                             content["email"],
-                            "password",
+                            content["email"],
+                            None,
                             response["given_name"],
                             response["family_name"])
             auth_token = player.generate_auth_token()
-            player.password = player.hash_password(auth_token)
             db.session.add(player)
             try:
                 db.session.commit()
@@ -147,7 +163,8 @@ def create_player():
         return jsonify(status="failure")
 
     else:
-        player = Player(content["username"],
+        player = Player("default",
+                        content["username"],
                         content["email"],
                         content["password"],
                         content["first_name"],
