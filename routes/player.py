@@ -135,9 +135,9 @@ def delete_player():
 @jsonify_assertion_error
 def create_player():
     content = request.json
-    if "social_auth_type" in content:
-        social_auth_type = content["social_auth_type"]
-        if social_auth_type == "google":
+    if "player_type" in content:
+        player_type = content["player_type"]
+        if player_type == "google":
             token = content["token"]
             response = requests.get(GOOGLE_URL.format(token)).json()
             assert "error" not in response, "Invalid Google account."
@@ -162,7 +162,7 @@ def create_player():
                            last_name=player.last_name)
         return jsonify(status="failure")
 
-    else:
+    elif player_type == "default":
         player = Player("default",
                         content["username"],
                         content["email"],
