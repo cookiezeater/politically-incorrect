@@ -70,7 +70,7 @@ def login_player():
     player = Player.query.filter_by(username=username).first()
 
     if player is None:
-        player = Player.query.filter_by(email=username)
+        player = Player.query.filter_by(email=username).first()
 
     if player.player_type == "default":
         if player.verify_password(password):
@@ -78,10 +78,10 @@ def login_player():
     elif player.player_type == "google":
         # The password must be a token generated via the Android
         # Google Plus API
-        player_google_info = requests.get(GOOGLE_URL.format(token)).json()
-        assert player_google_info["Given Name"] == player.first_name, \
+        player_google_info = requests.get(GOOGLE_URL.format(password)).json()
+        assert player_google_info["given_name"] == player.first_name, \
                "Invalid credentials."
-        assert player_google_info["Family Name"] == player.last_name, \
+        assert player_google_info["family_name"] == player.last_name, \
                "Invalid credentials."
 
     return jsonify(status="success",
