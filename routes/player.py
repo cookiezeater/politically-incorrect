@@ -69,6 +69,9 @@ def login_player():
 
     player = Player.query.filter_by(username=username).first()
 
+    if player is None:
+        player = Player.query.filter_by(email=username)
+
     if player.player_type == "default":
         if player.verify_password(password):
             pass
