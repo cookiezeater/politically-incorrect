@@ -138,11 +138,13 @@ def new_round(match):
         # the white_cards list to avoid duplicates. Add each
         # drawn card to cards_to_remove, which will be a list
         # of cards removed from the deck at the end of the function.
-        while len(state.hand) < 10:
+        hand = state.hand if state.hand else []
+        while len(hand) < 10:
             draw_card = white_cards[randint(0, len(white_cards) - 1)]
-            state.hand.append(draw_card)
+            hand.append(draw_card)
             cards_to_remove.append(draw_card)
             white_cards.remove(draw_card)
+        state.hand = hand
         db.session.add(state)
 
     # Select a new judge by finding the
@@ -157,7 +159,7 @@ def new_round(match):
     black_cards = filter(lambda card: not card.white, match.deck)
     black_card = black_cards[randint(0, len(black_cards) - 1)]
     match.black_id = black_card.id
-    new_judge.played.append(black_card)
+    new_judge.played = [black_card]
     cards_to_remove.append(black_card)
 
     # Remove all drawn cards from the deck.
@@ -365,11 +367,13 @@ def make_move(match_id):
     assert len(content["cards"]) == answers, \
            "You need to play {} cards this round.".format(answers)
 
+    played = []
     for card_id in content["cards"]:
         card = Card.query.get_or_404(card_id)
         assert card in state.hand
-        state.played.append(card)
+        played.append(card)
         state.hand.remove(card)
+    state.played = played
 
     db.session.add(match)
     db.session.add(state)

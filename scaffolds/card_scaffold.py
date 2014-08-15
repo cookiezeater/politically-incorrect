@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """Initiates database with some cards."""
 import os
+import sys
 import json
 import requests
 
@@ -13,7 +14,11 @@ if __name__ == "__main__":
                        "../cards/black.txt")
     headers = {"Content-type": "application/json",
                "Accept": "application/json"}
-    location = "http://stormy-forest-6794.herokuapp.com/cards"
+    
+    if len(sys.argv) < 2:
+        location = "http://stormy-forest-6794.herokuapp.com/cards"
+    else:
+        location = sys.argv[1]
 
     with open(white_cards_file, "r") as white_cards, \
          open(black_cards_file, "r") as black_cards:
