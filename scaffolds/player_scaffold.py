@@ -24,10 +24,10 @@ players = [
         "player_type": "default"
     },
     {
-        "username"   : "kim ",
-        "email"      : "kim @nation.nk",
-        "password"   : "pas s",
-        "first_name" : "Kim ",
+        "username"   : "kim",
+        "email"      : "kim@nation.nk",
+        "password"   : "pass",
+        "first_name" : "Kim",
         "last_name"  : "Jong Un",
         "player_type": "default"
     },
@@ -57,8 +57,12 @@ players = [
     }
 ]
 
-for player in players:
-    response = requests.post(location, data=json.dumps(player), headers=headers)
+for index in xrange(len(players)):
+    response = requests.post(location,
+                             data=json.dumps(players[index]),
+                             headers=headers)
     assert response.status_code == 200, \
            "Stopped. Recieved status code {} when posting {}" \
            .format(response.status_code, player)
+
+    players[i]["token"] = response["token"]
