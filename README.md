@@ -1,4 +1,7 @@
 # Friends Against Humanity
+
+[![Build Status](https://travis-ci.org/25cf/friends-against-humanity.svg?branch=master)](https://travis-ci.org/25cf/friends-against-humanity)
+
 A card game API. The android app is [here](https://github.com/25cf/friends-against-humanity-android).
 
 ## Table of Contents
