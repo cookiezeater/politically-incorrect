@@ -64,6 +64,7 @@ def get_friends_list():
 @app.route("/players/login", methods=["GET"])
 @jsonify_assertion_error
 def login_player():
+    assert request.authorization is not None, "Invalid authentication."
     username = request.authorization.username
     password = request.authorization.password
 
