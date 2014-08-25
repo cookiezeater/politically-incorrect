@@ -42,3 +42,6 @@ class Card(db.Model):
             return "{}: {}".format("White", self.text)
         else:
             return "{}({}): {}".format("Black", self.answers, self.text)
+
+    def __eq__(self, other):
+        return self.id == other.id

@@ -370,7 +370,7 @@ def make_move(match_id):
     played = []
     for card_id in content["cards"]:
         card = Card.query.get_or_404(card_id)
-        assert card in state.hand
+        assert card in state.hand, "You can't play that card."
         played.append(card)
         state.hand.remove(card)
     state.played = played
