@@ -74,8 +74,8 @@ def login_player():
         player = Player.query.filter_by(email=username).first()
 
     if player.player_type == "default":
-        if player.verify_password(password):
-            pass
+        if not player.verify_password(password):
+            assert False, "Invalid authentication."
     elif player.player_type == "google":
         # The password must be a token generated via the Android
         # Google Plus API
