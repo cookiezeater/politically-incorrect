@@ -8,30 +8,28 @@ def get_match_info(match, player=None, state=None):
     round_status = get_round_status(match)
 
     # Get round winner username, if any
-    try:
-        round_winner_id = get_round_winner_state(match.id).player_id
-        round_winner = Player.query.get(round_winner_id).username
-    except AttributeError:
-        round_winner = None
+    round_winner_id_query = get_round_winner_state(match.id)
+    round_winner_query = None if not round_winner_id_query \
+                              else \
+                              Player.query.get(round_winner_id_query.player_id)
+    round_winner = None if not round_winner_query \
+                        else round_winner_query.username
 
     # Get match winner username
-    try:
-        match_winner = Player.query.get(match.winner_id).username
-    except:
-        match_winner = None
+    winner_id = match.winner_id if match.winner_id else None
+    match_winner_query = None if not winner_id else Player.query.get(winner_id)
+    match_winner = None if not match_winner_query \
+                        else match_winner_query.username
 
     # Get host username
-    try:
-        host = Player.query.get(match.host_id).username
-    except:
-        host = None
+    host_query = Player.query.get(match.host_id)
+    host = None if not host_query else host_query.username
 
     # Get judge username, if any
-    try:
-        judge_id = get_judge_state(match.id).player_id
-        judge = Player.query.get(judge_id).username
-    except AttributeError:
-        judge = None
+    judge_id_query = get_judge_state(match.id)
+    judge_query = None if not judge_id_query \
+                       else Player.query.get(judge_id_query.player_id)
+    judge = None if not judge_query else judge_query.username
 
     # Get the black card
     if match.black_id:
@@ -73,8 +71,8 @@ def get_match_info(match, player=None, state=None):
         # Get the requesting player's hand
         player_state = next(state for state in match.states
                             if state.player_id == player.id)
-        hand = [{"id": card.id, "text": card.text}
-                for card in player_state.hand]
+        hand = [{"id": card_id, "text": Card.query.get(card_id).text}
+                for card_id in player_state.hand]
 
         info["hand"] = hand
         info["played_cards"] = player_played_cards
@@ -103,23 +101,14 @@ def new_round(match):
         match.previous_round = get_match_info(match)
 
     # Find the current judge and increment his judged count
-    try:
-        old_judge_state = get_judge_state(match.id)
+    old_judge_state = get_judge_state(match.id)
+    if old_judge_state:
         old_judge_state.judged += 1
-        db.session.add(old_judge_state)
-    except:
-        # This just means that we are starting a new round
-        # for the first time, so the query will return a
-        # NoneType.
-        pass
 
     # Clear the round winner
-    try:
-        round_winner_state = get_round_winner_state(match.id)
+    round_winner_state = get_round_winner_state(match.id)
+    if round_winner_state:
         round_winner_state.round_winner = False
-        db.session.add(round_winner_state)
-    except:
-        pass
 
     cards_to_remove = []
     white_cards = filter(lambda card: card.white, match.deck)
@@ -138,20 +127,16 @@ def new_round(match):
         # the white_cards list to avoid duplicates. Add each
         # drawn card to cards_to_remove, which will be a list
         # of cards removed from the deck at the end of the function.
-        hand = state.hand if state.hand else []
-        while len(hand) < 10:
+        while len(state.hand) < 10:
             draw_card = white_cards[randint(0, len(white_cards) - 1)]
-            hand.append(draw_card)
-            cards_to_remove.append(draw_card)
+            state.hand.append(draw_card.id)
             white_cards.remove(draw_card)
-        state.hand = hand
-        db.session.add(state)
+            cards_to_remove.append(draw_card)
 
     # Select a new judge by finding the
     # state which has the lowest judged count.
     new_judge = min(match.states, key=lambda state: state.judged)
     new_judge.judge = True
-    db.session.add(new_judge)
 
     # Randomly select a black card and have
     # the new judge put it on the table. Add
@@ -159,14 +144,13 @@ def new_round(match):
     black_cards = filter(lambda card: not card.white, match.deck)
     black_card = black_cards[randint(0, len(black_cards) - 1)]
     match.black_id = black_card.id
-    new_judge.played = [black_card]
+    new_judge.played = [black_card.id]
     cards_to_remove.append(black_card)
 
     # Remove all drawn cards from the deck.
     for card in cards_to_remove:
         match.deck.remove(card)
 
-    db.session.add(match)
     db.session.commit()
     return jsonify(status="success")
 
@@ -181,8 +165,6 @@ def begin_match(match):
 
     match.pending = []
     match.status = "ONGOING"
-    db.session.add(match)
-    db.session.commit()
     return new_round(match)
 
 
@@ -222,8 +204,8 @@ def get_players_as_json(match, player=None):
     for index, _ in enumerate(json_players):
         player_state = next(state for state in match.states
                             if state.player_id == players[index].id)
-        played_cards = [{"id": card.id, "text": card.text}
-                        for card in player_state.played]
+        played_cards = [{"id": card_id, "text": Card.query.get(card_id).text}
+                        for card_id in player_state.played]
         _["played_cards"] = played_cards
         _["score"] = player_state.score
         json_players[index] = _
@@ -297,7 +279,6 @@ def invite_player(match_id):
            "You're already in the match!"
 
     match.pending.append(invitee)
-    db.session.add(match)
     db.session.commit()
     return jsonify(status="success")
 
@@ -323,15 +304,10 @@ def accept_invite(match_id):
     assert len(match.states) < match.max_players, "The match is full."
 
     g.player.invited.remove(match)
-
     state = State(g.player.id, match.id)
     match.states.append(state)
 
-    db.session.add(g.player)
-    db.session.add(state)
-    db.session.add(match)
     db.session.commit()
-
     if len(match.states) == match.max_players:
         return begin_match(match)
     return jsonify(status="success")
@@ -363,20 +339,17 @@ def make_move(match_id):
     assert not state.played, \
            "You've already played your card(s) for this round."
 
-    answers = judge_state.played[0].answers
+    answers = Card.query.get(judge_state.played[0]).answers
     assert len(content["cards"]) == answers, \
            "You need to play {} cards this round.".format(answers)
 
-    played = []
     for card_id in content["cards"]:
-        card = Card.query.get_or_404(card_id)
-        assert card in state.hand, "You can't play that card."
-        played.append(card)
-        state.hand.remove(card)
-    state.played = played
+        assert card_id in state.hand, "You can't play that card."
 
-    db.session.add(match)
-    db.session.add(state)
+        card = Card.query.get_or_404(card_id)
+        state.played.append(card.id)
+        state.hand.remove(card.id)
+
     db.session.commit()
     return jsonify(status="success")
 
@@ -414,10 +387,7 @@ def choose_round_winner(match_id):
     if winner_state.score == match.max_score:
         match.winner_id = winner_state.id
         match.status = "ENDED"
-        db.session.add(match)
 
-    db.session.add(judge_state)
-    db.session.add(winner_state)
     db.session.commit()
 
     if match.status == "ENDED":
@@ -462,9 +432,7 @@ def acknowledge(match_id):
     state = get_state(g.player.id, match.id)
     state.viewed_round_end = True
 
-    db.session.add(state)
     db.session.commit()
-
     if all_viewed_round_end(match):
         return new_round(match)
     return jsonify(status="success")

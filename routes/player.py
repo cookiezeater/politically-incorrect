@@ -142,7 +142,6 @@ def update_player():
     content = request.json
     username = content["username"]
     g.player.username = username
-    db.session.add(g.player)
     db.session.commit()
     return jsonify(status="success")
 
@@ -225,7 +224,6 @@ def accept_friend_request():
                                                    requestee=g.player.id,
                                                    accepted=False).first()
     friendship.accepted = True
-    db.session.add(friendship)
     db.session.commit()
     return jsonify(status="success")
 

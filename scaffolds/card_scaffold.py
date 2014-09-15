@@ -7,18 +7,13 @@ import json
 import requests
 
 
-if __name__ == "__main__":
+def main(location):
     white_cards_file = os.path.join(os.path.dirname(__file__),
                        "../cards/white.txt")
     black_cards_file = os.path.join(os.path.dirname(__file__),
                        "../cards/black.txt")
     headers = {"Content-type": "application/json",
                "Accept": "application/json"}
-    
-    if len(sys.argv) < 2:
-        location = "http://stormy-forest-6794.herokuapp.com/cards"
-    else:
-        location = sys.argv[1]
 
     with open(white_cards_file, "r") as white_cards, \
          open(black_cards_file, "r") as black_cards:
@@ -36,3 +31,10 @@ if __name__ == "__main__":
                                                       if answers
                                                       else 1}),
                           headers=headers)
+
+
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        main("http://stormy-forest-6794.herokuapp.com/cards")
+    else:
+        main(sys.argv[1])

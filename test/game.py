@@ -19,7 +19,7 @@ default_player = {"player_type": "default",
                   "last_name": "dostoevsky"}
 
 
-class PlayerTestCase(unittest.TestCase):
+class GameTestCase(unittest.TestCase):
     def setUp(self):
         self.auth = {}
         self.app = app.app.test_client()
