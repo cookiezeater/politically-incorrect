@@ -140,10 +140,13 @@ def delete_player():
 @auth.login_required
 def update_player():
     content = request.json
-    username = content["username"]
-    g.player.username = username
+    if "username" in content:
+        g.player.username = content["username"]
+    if "password" in content:
+        g.player.password = g.player.hash_password(content["password"])
     db.session.commit()
-    return jsonify(status="success")
+    return jsonify(status="success",
+                   username=g.player.username)
 
 
 @app.route("/players", methods=["POST"])
