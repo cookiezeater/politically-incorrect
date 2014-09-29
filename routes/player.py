@@ -287,8 +287,8 @@ def search_players():
                     Player.username.ilike("%{}%".format(query))).all()
     players += Player.query.filter(
                     Player.last_name.ilike("%{}%".format(query))).all()
-    players += Player.query.filter(
-                    Player.email.ilike("%{}%".format(query))).all()
+#    players += Player.query.filter(
+#                    Player.email.ilike("%{}%".format(query))).all()
 
     players = [{"username": player.username,
                 "first_name": player.first_name,
