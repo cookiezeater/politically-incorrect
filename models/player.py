@@ -1,6 +1,7 @@
 import sys
 from models.shared import *
 from passlib.apps import custom_app_context
+from validate_email import validate_email
 
 
 class FriendshipManager(db.Model):
@@ -64,14 +65,31 @@ class Player(db.Model):
                  first_name,
                  last_name):
         self.player_type = player_type
-        self.username = username
-        self.email = email
+
+        if username.isalnum():
+            self.username = username
+        else:
+            assert False, "Invalid characters in username."
+
+        if validate_email(email):
+            self.email = email
+        else:
+            assert False, "Invalid email."
+
         if password is None:
             self.password = None
         else:
             self.password = self.hash_password(password)
-        self.first_name = first_name
-        self.last_name = last_name
+
+        if first_name.isalnum():
+            self.first_name = first_name
+        else:
+            assert False, "Invalid first name."
+
+        if last_name.isalnum():
+            self.last_name = last_name
+        else:
+            assert False, "Invalid last name."
 
         self.hosting = []
         self.wins = []
