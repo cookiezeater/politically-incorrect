@@ -1,8 +1,8 @@
-# Friends Against Humanity
+# Politically Incorrect
 
-[![Build Status](https://travis-ci.org/25cf/friends-against-humanity.svg?branch=master)](https://travis-ci.org/25cf/friends-against-humanity)
+[![Build Status](https://travis-ci.org/25cf/politically-incorrect.svg?branch=master)](https://travis-ci.org/25cf/politically-incorrect)
 
-A card game API. The android app is [here](https://github.com/25cf/friends-against-humanity-android).
+A card game API. The android app is [here](https://github.com/25cf/politically-incorrect-android).
 
 ## Table of Contents
 1. [Development Setup](#development-setup)
