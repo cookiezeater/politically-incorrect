@@ -21,6 +21,16 @@ def verify_token(username, token):
     return True
 
 
+def admin_required(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        if auth.username() == "charles":
+            return func(*args, **kwargs)
+        else:
+            assert False, "You don't have permission to do that."
+    return wrapper
+
+
 def jsonify_assertion_error(func):
     @wraps(func)
     def wrapper(*args, **kwargs):

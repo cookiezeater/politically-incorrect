@@ -2,6 +2,8 @@ from routes.shared import *
 
 
 @app.route("/cards", methods=["GET"])
+@admin_required
+@auth.login_required
 def get_all_cards():
     cards = Card.query.all()
     white = {card.id: card.text for card in cards if card.white}
@@ -11,12 +13,16 @@ def get_all_cards():
 
 
 @app.route("/cards/<int:card_id>", methods=["GET"])
+@admin_required
+@auth.login_required
 def get_card(card_id):
     card = Card.query.get_or_404(card_id)
     return jsonify(status="success", card=card.text, white=card.white)
 
 
 @app.route("/cards/<int:card_id>", methods=["PUT"])
+@admin_required
+@auth.login_required
 def update_card(card_id):
     card = Card.query.get_or_404(card_id)
     content = request.json
@@ -29,6 +35,8 @@ def update_card(card_id):
 
 
 @app.route("/cards/<int:card_id>", methods=["DELETE"])
+@admin_required
+@auth.login_required
 def delete_card(card_id):
     """
     This is unstable right now because
@@ -43,6 +51,8 @@ def delete_card(card_id):
 
 
 @app.route("/cards", methods=["POST"])
+@admin_required
+@auth.login_required
 def create_card():
     content = request.json
     assert (content["white"] and "answers" not in content) or \

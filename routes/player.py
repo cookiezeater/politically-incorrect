@@ -95,6 +95,7 @@ def login_player():
 
 @app.route("/players", methods=["GET"])
 @jsonify_assertion_error
+@admin_required
 @auth.login_required
 def get_player_info():
     wins = len(Match.query.filter_by(winner_id=g.player.id).all())
@@ -127,6 +128,7 @@ def get_player_info():
 
 @app.route("/players", methods=["DELETE"])
 @jsonify_assertion_error
+@admin_required
 @auth.login_required
 def delete_player():
     """Debug purposes only."""

@@ -235,6 +235,7 @@ def all_viewed_round_end(match):
 
 @app.route("/matches", methods=["GET"])
 @jsonify_assertion_error
+@admin_required
 @auth.login_required
 def get_all_matches():
     matches = Match.query.all()
