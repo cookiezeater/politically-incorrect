@@ -68,6 +68,8 @@ class Player(db.Model):
 
         if username.isalnum():
             self.username = username
+        elif player_type == "google":
+            self.username = username
         else:
             assert False, "Invalid characters in username."
 
