@@ -24,7 +24,7 @@ def verify_token(username, token):
 def admin_required(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
-        if auth.username() == "charles":
+        if request.authorization and auth.username() == "charles":
             return func(*args, **kwargs)
         else:
             assert False, "You don't have permission to do that."
