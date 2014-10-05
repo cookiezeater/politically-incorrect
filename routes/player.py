@@ -72,6 +72,8 @@ def login_player():
 
     if player is None:
         player = Player.query.filter_by(email=username).first()
+        if player is None:
+            assert False, "Invalid username."
 
     if player.player_type == "default":
         if not player.verify_password(password):
