@@ -9,8 +9,10 @@ def create_match():
     name = content["name"]
     max_players = content["max_players"]
     max_score = content["max_score"]
-    assert 3 <= max_players <= 10
-    assert 5 <= max_score <= 20
+    assert 3 <= max_players <= 10, \
+           "Invalid number of players. (must be between 3 and 5)"
+    assert 5 <= max_score <= 20, \
+           "Invalid max score. (must be between 5 and 20)"
     match = Match(name, g.player.id, max_players, max_score)
     state = State(g.player.id, match.id)
     db.session.add(state)
