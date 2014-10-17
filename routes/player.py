@@ -144,7 +144,10 @@ def delete_player():
 def update_player():
     content = request.json
     if "username" in content:
-        g.player.username = content["username"]
+        if content["username"].isalnum():
+            g.player.username = content["username"]
+        else:
+            assert False, "Invalid characters in username."
     if "password" in content:
         g.player.password = g.player.hash_password(content["password"])
     db.session.commit()
