@@ -17,7 +17,7 @@ def create_match():
     state = State(g.player.id, match.id)
     db.session.add(state)
     match.states.append(state)
-    match.deck = Card.query.all()  # temporary
+    match.deck = Card.query.all()
     db.session.add(match)
     db.session.commit()
     return jsonify(status="success", id=match.id)
