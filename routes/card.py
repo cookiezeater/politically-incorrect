@@ -2,6 +2,7 @@ from routes.shared import *
 
 
 @app.route("/cards", methods=["GET"])
+@jsonify_assertion_error
 @admin_required
 @auth.login_required
 def get_all_cards():
@@ -13,6 +14,7 @@ def get_all_cards():
 
 
 @app.route("/cards/<int:card_id>", methods=["GET"])
+@jsonify_assertion_error
 @admin_required
 @auth.login_required
 def get_card(card_id):
@@ -21,6 +23,7 @@ def get_card(card_id):
 
 
 @app.route("/cards/<int:card_id>", methods=["PUT"])
+@jsonify_assertion_error
 @admin_required
 @auth.login_required
 def update_card(card_id):
@@ -35,6 +38,7 @@ def update_card(card_id):
 
 
 @app.route("/cards/<int:card_id>", methods=["DELETE"])
+@jsonify_assertion_error
 @admin_required
 @auth.login_required
 def delete_card(card_id):
@@ -51,6 +55,7 @@ def delete_card(card_id):
 
 
 @app.route("/cards", methods=["POST"])
+@jsonify_assertion_error
 @admin_required
 @auth.login_required
 def create_card():

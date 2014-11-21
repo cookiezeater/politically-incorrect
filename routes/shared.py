@@ -37,7 +37,11 @@ def jsonify_assertion_error(func):
         try:
             return func(*args, **kwargs)
         except AssertionError as error:
+            app.logger.exception(error)
             return jsonify(status="failure", message=error.message), 418
+        except Exception as error:
+            app.logger.exception(error)
+            return 500
     return wrapper
 
 
