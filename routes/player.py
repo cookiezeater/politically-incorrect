@@ -61,32 +61,35 @@ def get_friends_list():
             "friends": get_friends()}
 
 
-@app.route("/players/login", methods=["GET"])
-@jsonify_assertion_error
-def login_player():
-    assert request.authorization is not None, "Invalid authentication."
-    username = request.authorization.username
-    password = request.authorization.password
+def login(content, player):
+    response = requests.get(GOOGLE_URL.format(token)).json()
+    assert "error" not in response, "Invalid Google account."
+    player.phone_id = content["phone_id"]
+    db.session.commit()
+    return jsonify(status="success",
+                   username=player.username,
+                   email=player.email,
+                   token=player.generate_auth_token(),
+                   first_name=player.first_name,
+                   last_name=player.last_name)
 
-    player = Player.query.filter_by(username=username).first()
 
-    if player is None:
-        player = Player.query.filter_by(email=username).first()
-        if player is None:
-            assert False, "Invalid username."
-
-    if player.player_type == "default":
-        if not player.verify_password(password):
-            assert False, "Invalid authentication."
-    elif player.player_type == "google":
-        # The password must be a token generated via the Android
-        # Google Plus API
-        player_google_info = requests.get(GOOGLE_URL.format(password)).json()
-        assert player_google_info["given_name"] == player.first_name, \
-               "Invalid credentials."
-        assert player_google_info["family_name"] == player.last_name, \
-               "Invalid credentials."
-
+def register(content):
+    token = content["token"]
+    response = requests.get(GOOGLE_URL.format(token)).json()
+    assert "error" not in response, "Invalid Google account."
+    player = Player("google",
+                    content["email"],
+                    None,
+                    response["given_name"],
+                    response["family_name"],
+                    content["phone_id"])
+    db.session.add(player)
+    try:
+        db.session.commit()
+    except IntegrityError:
+        return jsonify(status="failure",
+                       message="Username or email in use.")
     return jsonify(status="success",
                    username=player.username,
                    email=player.email,
@@ -144,10 +147,7 @@ def delete_player():
 def update_player():
     content = request.json
     if "username" in content:
-        if content["username"].isalnum():
-            g.player.username = content["username"]
-        else:
-            assert False, "Invalid characters in username."
+        g.player.username = content["username"]
     if "password" in content:
         g.player.password = g.player.hash_password(content["password"])
     db.session.commit()
@@ -157,51 +157,14 @@ def update_player():
 
 @app.route("/players", methods=["POST"])
 @jsonify_assertion_error
-def create_player():
+def enter_player():
     content = request.json
     assert "player_type" in content, "Invalid request."
-    player_type = content["player_type"]
-    if player_type == "google":
-        token = content["token"]
-        response = requests.get(GOOGLE_URL.format(token)).json()
-        assert "error" not in response, "Invalid Google account."
-        player = Player("google",
-                        content["email"],
-                        content["email"],
-                        None,
-                        response["given_name"],
-                        response["family_name"])
-        db.session.add(player)
-        try:
-            db.session.commit()
-        except IntegrityError:
-            return jsonify(status="failure",
-                           message="Username or email in use.")
-        return jsonify(status="success",
-                       username=player.username,
-                       email=player.email,
-                       token=player.generate_auth_token(),
-                       first_name=player.first_name,
-                       last_name=player.last_name)
-
-    elif player_type == "default":
-        player = Player("default",
-                        content["username"],
-                        content["email"],
-                        content["password"],
-                        content["first_name"],
-                        content["last_name"])
-        db.session.add(player)
-        try:
-            db.session.commit()
-        except IntegrityError:
-            return jsonify(status="failure", message="Username or email in use.")
-        return jsonify(status="success",
-                       username=player.username,
-                       email=player.email,
-                       token=player.generate_auth_token(),
-                       first_name=player.first_name,
-                       last_name=player.last_name)
+    exists = Player.query.filter_by(email=content["email"]).first()
+    if exists:
+        return login(content, exists)
+    else:
+        return register(content)
 
 
 @app.route("/players/befriend", methods=["POST"])
@@ -293,8 +256,6 @@ def search_players():
                     Player.username.ilike("%{}%".format(query))).all()
     players += Player.query.filter(
                     Player.last_name.ilike("%{}%".format(query))).all()
-#    players += Player.query.filter(
-#                    Player.email.ilike("%{}%".format(query))).all()
 
     players = [{"username": player.username,
                 "first_name": player.first_name,
@@ -313,3 +274,14 @@ def search_players():
                       player["username"] != g.player.username]
     return jsonify(status="success",
                    players=players)
+
+
+@app.route("/players/befriend/start")
+@jsonify_assertion_error
+@auth.login_required
+def add_all_username_friends():
+    content = request.json
+    usernames = content["usernames"]
+    players = Player.query.filter(Player.username.in_(friends)).all()
+    # for player in players:
+

@@ -1,5 +1,13 @@
 from routes.shared import *
 from random import randint
+from gcm import *
+
+gcm = GCM(1067243427489)
+
+def notify(match, data):
+    ids = [Player.query.get(state.id).username_id for state in match.states]
+    response = gcm.json_request(data=message, registration_ids=ids)
+    print response
 
 
 def get_match_info(match, player=None, state=None):
@@ -152,6 +160,7 @@ def new_round(match):
         match.deck.remove(card)
 
     db.session.commit()
+    notify(match, {"message": "A new round has started in '{}'!".format(match.name)})
     return jsonify(status="success")
 
 
@@ -352,6 +361,7 @@ def make_move(match_id):
         state.hand.remove(card.id)
 
     db.session.commit()
+    notify(match, {"message": "Somebody played a card in the game '{}'!".format(match.name)})
     return jsonify(status="success")
 
 

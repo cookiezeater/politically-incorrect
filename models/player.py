@@ -33,11 +33,11 @@ class Player(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
     player_type = db.Column(db.String(32))
-    username = db.Column(db.String(32), unique=True)
-    password = db.Column(db.String(256), default=None)
-    email = db.Column(db.String(128), unique=True)
+    password = db.Column(db.String(64), default=None)
+    email = db.Column(db.String(64), unique=True)
     first_name = db.Column(db.String(32))
     last_name = db.Column(db.String(32))
+    username_id = db.Column(db.String(64), unique=True)
 
     # One-to-many:
     # A match only has one winner, but a winner can have many won matches.
@@ -59,19 +59,13 @@ class Player(db.Model):
 
     def __init__(self,
                  player_type,
-                 username,
                  email,
                  password,
                  first_name,
-                 last_name):
+                 last_name,
+                 username_id):
         self.player_type = player_type
-
-        if username.isalnum():
-            self.username = username
-        elif player_type == "google":
-            self.username = username
-        else:
-            assert False, "Invalid characters in username."
+        self.phone_id = phone_id
 
         if validate_email(email):
             self.email = email

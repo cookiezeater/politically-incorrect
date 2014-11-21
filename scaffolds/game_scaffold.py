@@ -37,7 +37,7 @@ players = [
         "player_type": "default"
     },
     {
-        "username"   : "hitler",
+        "username"   : "adolf",
         "email"      : "adolf@thirdreich.com",
         "password"   : "pass",
         "first_name" : "Adolf",
@@ -45,7 +45,7 @@ players = [
         "player_type": "default"
     },
     {
-        "username"   : "dostoevsky",
+        "username"   : "fyodor",
         "email"      : "fyodor@russia.ru",
         "password"   : "pass",
         "first_name" : "Fyodor",
@@ -53,7 +53,7 @@ players = [
         "player_type": "default"
     },
     {
-        "username"   : "zuckerberg",
+        "username"   : "mark",
         "email"      : "mark@facebook.com",
         "password"   : "pass",
         "first_name" : "Mark",
