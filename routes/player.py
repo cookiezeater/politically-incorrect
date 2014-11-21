@@ -91,6 +91,12 @@ def register(content):
 
 
 def get_player_info(player, token=""):
+    from gcm import GCM
+    gcm = GCM("AIzaSyCyAoooq_DCm6mE6MzAeahVbKXF8z1VbqI")
+    message = {"message": "OK"}
+    response = gcm.json_request(data=message, registration_ids=[Player.query.all()[0].phone_id])
+    app.logger.debug(response)
+
     wins = len(Match.query.filter_by(winner_id=player.id).all())
     hosting = Match.query.filter_by(host_id=player.id).all()
 

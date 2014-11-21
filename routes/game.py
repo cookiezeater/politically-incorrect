@@ -7,7 +7,7 @@ gcm = GCM(1067243427489)
 def notify(match, data):
     ids = [Player.query.get(state.id).phone_id for state in match.states]
     response = gcm.json_request(data=message, registration_ids=ids)
-    print response
+    app.logger.debug(response)
 
 
 def get_match_info(match, player=None, state=None):
