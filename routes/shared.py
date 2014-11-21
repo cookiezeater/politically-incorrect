@@ -11,10 +11,10 @@ auth = HTTPBasicAuth()
 
 
 @auth.verify_password
-def verify_token(username, token):
+def verify_token(email, token):
     player = Player.verify_auth_token(token)
     if player:
-        assert player.username == username, "Invalid auth."
+        assert player.email == email, "Invalid auth."
     else:
         return False
     g.player = player

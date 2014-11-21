@@ -5,16 +5,16 @@ from sqlalchemy.exc import IntegrityError
 GOOGLE_URL = "https://www.googleapis.com/oauth2/v1/userinfo?access_token={}"
 
 
-def get_friends():
+def get_friends(player):
     """This method is very expensive and bad."""
-    friendships = FriendshipManager.query.filter_by(requester=g.player.id,
+    friendships = FriendshipManager.query.filter_by(requester=player.id,
                                                     accepted=True).all()
-    friendships += FriendshipManager.query.filter_by(requestee=g.player.id,
+    friendships += FriendshipManager.query.filter_by(requestee=player.id,
                                                      accepted=True).all()
     friends = [friendship.requester for friendship in friendships
-               if friendship.requester != g.player.id]
+               if friendship.requester != player.id]
     friends += [friendship.requestee for friendship in friendships
-                if friendship.requestee != g.player.id]
+                if friendship.requestee != player.id]
     friends = [Player.query.get_or_404(player_id) for player_id in friends]
     return [{"email": friend.email,
              "first_name": friend.first_name,
@@ -22,13 +22,13 @@ def get_friends():
             for friend in friends]
 
 
-def get_friend_requests():
+def get_friend_requests(player):
     """
     This method returns all players that have sent
     player_id an invite. It is very expensive and bad.
     """
 
-    friendships = FriendshipManager.query.filter_by(requestee=g.player.id,
+    friendships = FriendshipManager.query.filter_by(requestee=player.id,
                                                     accepted=False).all()
     friend_requesters = [Player.query.get_or_404(friendship.requester)
                          for friendship in friendships]
@@ -38,13 +38,13 @@ def get_friend_requests():
             for requester in friend_requesters]
 
 
-def get_pending_friends():
+def get_pending_friends(player):
     """
     This method returns all players that player_id
     has sent an invite to. It is very expensive and bad.
     """
 
-    friendships = FriendshipManager.query.filter_by(requester=g.player.id,
+    friendships = FriendshipManager.query.filter_by(requester=player.id,
                                                     accepted=False).all()
     friend_requestees = [Player.query.get_or_404(friendship.requestee)
                          for friendship in friendships]
@@ -54,11 +54,11 @@ def get_pending_friends():
             for requestee in friend_requestees]
 
 
-def get_friends_list():
+def get_friends_list(player):
     """Returns sum of get_friends, friend_requests, pending_friends."""
-    return {"pending_friends": get_pending_friends(),
-            "friend_requests": get_friend_requests(),
-            "friends": get_friends()}
+    return {"pending_friends": get_pending_friends(player),
+            "friend_requests": get_friend_requests(player),
+            "friends": get_friends(player)}
 
 
 def login(content, player):
@@ -67,7 +67,7 @@ def login(content, player):
     assert "error" not in response, "Invalid Google account."
     player.phone_id = content["phone_id"]
     db.session.commit()
-    return get_player_info(player)
+    return get_player_info(player, player.generate_auth_token())
 
 
 def register(content):
@@ -91,12 +91,6 @@ def register(content):
 
 
 def get_player_info(player, token=""):
-    from gcm import GCM
-    gcm = GCM("AIzaSyCyAoooq_DCm6mE6MzAeahVbKXF8z1VbqI")
-    message = {"message": "OK"}
-    response = gcm.json_request(data=message, registration_ids=[Player.query.all()[0].phone_id])
-    app.logger.debug(response)
-
     wins = len(Match.query.filter_by(winner_id=player.id).all())
     hosting = Match.query.filter_by(host_id=player.id).all()
 
@@ -104,24 +98,30 @@ def get_player_info(player, token=""):
     states = State.query.filter_by(player_id=player.id).all()
     matches = []
     for state in states:
-        match = get_match(state.match_id)
-        matches.append(match)
-    matches = [match for match in matches if match not in hosting]
+        matches.append(state.match)
+    matches = [match for match in matches]
     return jsonify(status="success",
                    email=player.email,
                    token=token,
                    first_name=player.first_name,
                    last_name=player.last_name,
                    wins=wins,
+                   pending_friends=get_pending_friends(player),
+                   friend_requests=get_friend_requests(player),
+                   friends=get_friends(player),
                    ongoing=[{"id": match.id,
                              "name": match.name,
-                             "status": match.status}
-                            for match in matches],
-                   hosting=[{"id": match.id,
+                             "status": match.status,
+                             "player_first_names": ["Joe", "John"]}
+                            for match in matches if match.status == "ONGOING"],
+                   pending=[{"id": match.id,
                              "name": match.name,
-                             "status": match.status}
-                            for match in hosting],
-                   invites=[{"id": match.id, "name": match.name}
+                             "status": match.status,
+                             "player_first_names": ["Pending", "Poe"]}
+                            for match in matches if match.status == "PENDING"],
+                   invites=[{"id": match.id,
+                             "name": match.name,
+                             "player_first_names": ["Invited", "Ivan"]}
                             for match in player.invited])
 
 
@@ -146,6 +146,16 @@ def enter_player():
         return login(content, exists)
     else:
         return register(content)
+
+
+@app.route("/players/info", methods=["POST"])
+@jsonify_assertion_error
+@auth.login_required
+def get_info():
+    content = request.json
+    g.player.phone_id = content["phone_id"]
+    db.session.commit()
+    return get_player_info(g.player)
 
 
 @app.route("/players/befriend", methods=["POST"])
