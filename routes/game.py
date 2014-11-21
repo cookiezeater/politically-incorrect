@@ -5,7 +5,7 @@ from gcm import *
 gcm = GCM(1067243427489)
 
 def notify(match, data):
-    ids = [Player.query.get(state.id).username_id for state in match.states]
+    ids = [Player.query.get(state.id).phone_id for state in match.states]
     response = gcm.json_request(data=message, registration_ids=ids)
     print response
 

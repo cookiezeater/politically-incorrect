@@ -16,7 +16,7 @@ def get_friends():
     friends += [friendship.requestee for friendship in friendships
                 if friendship.requestee != g.player.id]
     friends = [Player.query.get_or_404(player_id) for player_id in friends]
-    return [{"username": friend.username,
+    return [{"email": friend.email,
              "first_name": friend.first_name,
              "last_name": friend.last_name}
             for friend in friends]
@@ -32,7 +32,7 @@ def get_friend_requests():
                                                     accepted=False).all()
     friend_requesters = [Player.query.get_or_404(friendship.requester)
                          for friendship in friendships]
-    return [{"username": requester.username,
+    return [{"email": requester.email,
              "first_name": requester.first_name,
              "last_name": requester.last_name}
             for requester in friend_requesters]
@@ -48,7 +48,7 @@ def get_pending_friends():
                                                     accepted=False).all()
     friend_requestees = [Player.query.get_or_404(friendship.requestee)
                          for friendship in friendships]
-    return [{"username": requestee.username,
+    return [{"email": requestee.email,
              "first_name": requestee.first_name,
              "last_name": requestee.last_name}
             for requestee in friend_requestees]
@@ -62,16 +62,12 @@ def get_friends_list():
 
 
 def login(content, player):
+    token = content["token"]
     response = requests.get(GOOGLE_URL.format(token)).json()
     assert "error" not in response, "Invalid Google account."
     player.phone_id = content["phone_id"]
     db.session.commit()
-    return jsonify(status="success",
-                   username=player.username,
-                   email=player.email,
-                   token=player.generate_auth_token(),
-                   first_name=player.first_name,
-                   last_name=player.last_name)
+    return get_player_info(player)
 
 
 def register(content):
@@ -88,37 +84,30 @@ def register(content):
     try:
         db.session.commit()
     except IntegrityError:
+        db.session.rollback()
         return jsonify(status="failure",
                        message="Username or email in use.")
-    return jsonify(status="success",
-                   username=player.username,
-                   email=player.email,
-                   token=player.generate_auth_token(),
-                   first_name=player.first_name,
-                   last_name=player.last_name)
+    return get_player_info(player, player.generate_auth_token())
 
 
-@app.route("/players", methods=["GET"])
-@jsonify_assertion_error
-@auth.login_required
-def get_player_info():
-    wins = len(Match.query.filter_by(winner_id=g.player.id).all())
-    hosting = Match.query.filter_by(host_id=g.player.id).all()
+def get_player_info(player, token=""):
+    wins = len(Match.query.filter_by(winner_id=player.id).all())
+    hosting = Match.query.filter_by(host_id=player.id).all()
 
     # There has got to be a better way to do all of this
-    states = State.query.filter_by(player_id=g.player.id).all()
+    states = State.query.filter_by(player_id=player.id).all()
     matches = []
     for state in states:
         match = get_match(state.match_id)
         matches.append(match)
     matches = [match for match in matches if match not in hosting]
     return jsonify(status="success",
-                   username=g.player.username,
-                   email=g.player.email,
-                   first_name=g.player.first_name,
-                   last_name=g.player.last_name,
+                   email=player.email,
+                   token=token,
+                   first_name=player.first_name,
+                   last_name=player.last_name,
                    wins=wins,
-                   matches=[{"id": match.id,
+                   ongoing=[{"id": match.id,
                              "name": match.name,
                              "status": match.status}
                             for match in matches],
@@ -127,7 +116,7 @@ def get_player_info():
                              "status": match.status}
                             for match in hosting],
                    invites=[{"id": match.id, "name": match.name}
-                            for match in g.player.invited])
+                            for match in player.invited])
 
 
 @app.route("/players", methods=["DELETE"])
@@ -139,20 +128,6 @@ def delete_player():
     db.session.delete(g.player)
     db.session.commit()
     return jsonify(status="success")
-
-
-@app.route("/players", methods=["PUT"])
-@jsonify_assertion_error
-@auth.login_required
-def update_player():
-    content = request.json
-    if "username" in content:
-        g.player.username = content["username"]
-    if "password" in content:
-        g.player.password = g.player.hash_password(content["password"])
-    db.session.commit()
-    return jsonify(status="success",
-                   username=g.player.username)
 
 
 @app.route("/players", methods=["POST"])
@@ -172,7 +147,7 @@ def enter_player():
 @auth.login_required
 def send_friend_request():
     content = request.json
-    requestee = get_player(content["username"])
+    requestee = get_player(content["email"])
     assert requestee.id != g.player.id
     assert FriendshipManager.query.filter_by(requestee=requestee.id,
                                              requester=g.player.id).first() \
@@ -191,7 +166,7 @@ def send_friend_request():
 @auth.login_required
 def accept_friend_request():
     content = request.json
-    requester = get_player(content["username"])
+    requester = get_player(content["email"])
     friendship = FriendshipManager.query.filter_by(requester=requester.id,
                                                    requestee=g.player.id,
                                                    accepted=False).first()
@@ -205,7 +180,7 @@ def accept_friend_request():
 @auth.login_required
 def reject_friend_request():
     content = request.json
-    requester = get_player(content["username"])
+    requester = get_player(content["email"])
     friendship = FriendshipManager.query.filter_by(requester=requester.id,
                                                    requstee=g.player.id,
                                                    accepted=False).first()
@@ -253,11 +228,11 @@ def search_players():
     players = Player.query.filter(
                     Player.first_name.ilike("%{}%".format(query))).all()
     players += Player.query.filter(
-                    Player.username.ilike("%{}%".format(query))).all()
+                    Player.email.ilike("%{}%".format(query))).all()
     players += Player.query.filter(
                     Player.last_name.ilike("%{}%".format(query))).all()
 
-    players = [{"username": player.username,
+    players = [{"email": player.email,
                 "first_name": player.first_name,
                 "last_name": player.last_name}
                for player in players]
@@ -271,7 +246,7 @@ def search_players():
 
     players = [player for player in players
                       if player not in friends_list_flattened and
-                      player["username"] != g.player.username]
+                      player["email"] != g.player.email]
     return jsonify(status="success",
                    players=players)
 
@@ -279,9 +254,9 @@ def search_players():
 @app.route("/players/befriend/start")
 @jsonify_assertion_error
 @auth.login_required
-def add_all_username_friends():
+def add_all_email_friends():
     content = request.json
-    usernames = content["usernames"]
-    players = Player.query.filter(Player.username.in_(friends)).all()
+    emails = content["emails"]
+    players = Player.query.filter(Player.email.in_(friends)).all()
     # for player in players:
 

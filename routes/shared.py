@@ -34,11 +34,12 @@ def admin_required(func):
 def jsonify_assertion_error(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
+        db.session.rollback()
         try:
             return func(*args, **kwargs)
         except AssertionError as error:
             app.logger.exception(error)
-            return jsonify(status="failure", message=error.message), 418
+            return jsonify(status="failure", message=error.message)
         except Exception as error:
             app.logger.exception(error)
             return 500

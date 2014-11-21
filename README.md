@@ -69,9 +69,9 @@ A basic Postman test suite is located in the tests directory.
 |String|Boolean|Integer|Integer|String
 
 #### Player
-|player_type|username|email |password|first_name|last_name|
-|-----------|--------|------|--------|----------|---------|
-|String     |String  |String|String  |String    |String   |
+|player_type|email |password|first_name|last_name|
+|-----------|------|--------|----------|---------|
+|String     |String|String  |String    |String   |
 
 |losses |hosting|wins |friends|states|
 |-------|-------|-----|-------|------|

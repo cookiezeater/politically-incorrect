@@ -37,7 +37,7 @@ class Player(db.Model):
     email = db.Column(db.String(64), unique=True)
     first_name = db.Column(db.String(32))
     last_name = db.Column(db.String(32))
-    username_id = db.Column(db.String(64), unique=True)
+    phone_id = db.Column(db.String(512), unique=True)
 
     # One-to-many:
     # A match only has one winner, but a winner can have many won matches.
@@ -63,7 +63,7 @@ class Player(db.Model):
                  password,
                  first_name,
                  last_name,
-                 username_id):
+                 phone_id):
         self.player_type = player_type
         self.phone_id = phone_id
 
@@ -82,7 +82,7 @@ class Player(db.Model):
         else:
             assert False, "Invalid first name."
 
-        if last_name.isalnum():
+        if last_name.replace("-", "").replace(".", "").replace(" ", "").isalnum():
             self.last_name = last_name
         else:
             assert False, "Invalid last name."
@@ -94,7 +94,7 @@ class Player(db.Model):
         self.pending_friends = []
 
     def __str__(self):
-        return "Player {}: {}".format(self.username, self.email)
+        return "Player {}".format(self.email)
 
     def hash_password(self, password):
         return custom_app_context.encrypt(password)
