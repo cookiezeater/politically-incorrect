@@ -9,6 +9,8 @@ def create_match():
     name = content["name"]
     max_players = content["max_players"]
     max_score = content["max_score"]
+    assert 1 <= len(name) <= 30, \
+           "Invalid game title."
     assert 3 <= max_players <= 10, \
            "Invalid number of players. (must be between 3 and 5)"
     assert 5 <= max_score <= 20, \
