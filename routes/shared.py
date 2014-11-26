@@ -46,8 +46,8 @@ def jsonify_assertion_error(func):
     return wrapper
 
 
-def get_player(username, password=None):
-    player = Player.query.filter_by(username=username).first()
+def get_player(email, password=None):
+    player = Player.query.filter_by(email=email).first()
     if not player:
         assert False, "Invalid user."
     if password:

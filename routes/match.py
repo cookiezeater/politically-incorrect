@@ -7,6 +7,7 @@ from routes.shared import *
 def create_match():
     content = request.json
     name = content["name"]
+    invites = content["invites"]
     max_players = content["max_players"]
     max_score = content["max_score"]
     assert 1 <= len(name) <= 30, \
@@ -20,6 +21,10 @@ def create_match():
     db.session.add(state)
     match.states.append(state)
     match.deck = Card.query.all()
+
+    for email in invites:
+        match.pending.append(get_player(email))
+
     db.session.add(match)
     db.session.commit()
     return jsonify(status="success", id=match.id)

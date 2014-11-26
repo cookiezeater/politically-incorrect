@@ -275,4 +275,3 @@ def add_all_email_friends():
     emails = content["emails"]
     players = Player.query.filter(Player.email.in_(friends)).all()
     # for player in players:
-
