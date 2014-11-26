@@ -30,8 +30,10 @@ def get_match_info(match, player=None, state=None):
                         else match_winner_query.username
 
     # Get host username
-    host_query = Player.query.get(match.host_id)
-    host = None if not host_query else host_query.username
+    host = Player.query.get(match.host_id)
+    host = None if not host else {"email": host.email,
+                                  "first_name": host.first_name,
+                                  "last_name": host.last_name}
 
     # Get judge username, if any
     judge_id_query = get_judge_state(match.id)
@@ -51,7 +53,7 @@ def get_match_info(match, player=None, state=None):
     # Get pending players from match relationship
     pending_players = [{"first_name": _.first_name,
                         "last_name": _.last_name,
-                        "username": _.username}
+                        "email": _.email}
                        for _ in match.pending]
 
     # Delete the previous round's previous round, if it exists
@@ -207,7 +209,7 @@ def get_players_as_json(match, player=None):
     # Easy stuff first
     json_players = [{"first_name": _.first_name,
                      "last_name": _.last_name,
-                     "username": _.username}
+                     "email": _.email}
                     for _ in players]
     # Add the player's played_cards from the player's match state
     for index, _ in enumerate(json_players):
