@@ -109,20 +109,17 @@ def get_player_info(player, token=""):
                    pending_friends=get_pending_friends(player),
                    friend_requests=get_friend_requests(player),
                    friends=get_friends(player),
-                   ongoing=[{"id": match.id,
-                             "name": match.name,
-                             "status": match.status,
-                             "player_first_names": ["Joe", "John"]}
-                            for match in matches if match.status == "ONGOING"],
-                   pending=[{"id": match.id,
-                             "name": match.name,
-                             "status": match.status,
-                             "player_first_names": ["Pending", "Poe"]}
-                            for match in matches if match.status == "PENDING"],
-                   invites=[{"id": match.id,
-                             "name": match.name,
-                             "player_first_names": ["Invited", "Ivan"]}
-                            for match in player.invited])
+                   ongoing=get_match_beans(matches, key=lambda match: match.status == "ONGOING"),
+                   pending=get_match_beans(matches, key=lambda match: match.status == "PENDING"),
+                   invites=get_match_beans(player.invited))
+
+
+def get_match_beans(matches, key=lambda match: True):
+    return [{"id": match.id,
+             "name": match.name,
+             "status": match.status,
+             "player_first_names": [state.player.first_name for state in match.states]}
+            for match in matches if key(match)]
 
 
 @app.route("/players", methods=["DELETE"])
