@@ -8,16 +8,13 @@ from flask.ext.script import Manager
 from flask.ext.migrate import Migrate, MigrateCommand
 
 
-__author__ = "Charles S."
-__repository__ = "https://github.com/25cf/friends-against-humanity"
-__status__ = "Development"
-
+__author__     = "Charles S."
+__repository__ = "https://github.com/25cf/politically-incorrect"
+__status__     = "development"
 
 migrate = Migrate(app, db)
-
 manager = Manager(app)
 manager.add_command('db', MigrateCommand)
-
 
 if __name__ == "__main__":
     try:

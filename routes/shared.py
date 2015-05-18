@@ -6,6 +6,7 @@ from models.match import Match
 from models.shared import app, db
 from flask.ext.httpauth import HTTPBasicAuth
 from flask import jsonify, request, g
+from sqlalchemy import or_
 
 auth = HTTPBasicAuth()
 

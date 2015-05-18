@@ -22,20 +22,17 @@ class MutableList(Mutable, list):
             return value
 
 
-class State(db.Model):
+class Player(db.Model):
     created_on = db.Column(db.DateTime, default=db.func.now())
     updated_on = db.Column(db.DateTime,
                            default=db.func.now(),
                            onupdate=db.func.now())
 
-    __tablename__ = "states"
+    __tablename__ = "players"
     id = db.Column(db.Integer, primary_key=True)
 
-    score = db.Column(db.Integer)
-    judged = db.Column(db.Integer)
-    judge = db.Column(db.Boolean)
-    round_winner = db.Column(db.Boolean)
-    viewed_round_end = db.Column(db.Boolean)
+    score            = db.Column(db.Integer)
+    judged           = db.Column(db.Integer)
 
     hand = db.Column(MutableList.as_mutable(ARRAY(db.Integer)))
     played = db.Column(MutableList.as_mutable(ARRAY(db.Integer)))
