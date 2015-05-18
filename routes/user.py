@@ -18,13 +18,30 @@ def get(content):
     if not user:
         user = User.create(token)
 
-    result = {
-        'name' : user.name,
-        'email': user.email,
-        'token': user.token,
-        'games': games
+    friends = User.get_friends()
+
+    return jsonify(**{
+        'name'   : user.name,
+        'email'  : user.email,
+        'token'  : user.token,
+        'friends': [
+            {
+                'name' : friend.name,
+                'email': friend.email
+            }
+            for friend in friends
+        ],
+        'games'  : [
+            {
+                'id'    : player.game.id,
+                'name'  : player.game.name,
+                'state' : player.game.state,
+                'seen'  : player.seen,
+                'random': player.game.random
+            }
+            for player in user.players
+        ]
     }
-    return jsonify(**result)
 
 
 @app.route('/user/friends/<action>', methods=['POST'])
@@ -46,7 +63,7 @@ def accept_or_decline(user, content):
     else:
         return jsonify(), 404
 
-    return jsonify(), 200
+    return jsonify()
 
 
 @app.route('/user/friends/search', methods=['POST'])
@@ -54,11 +71,12 @@ def accept_or_decline(user, content):
 @with_content
 def search(user, content):
     query  = content['query']
-    result = [
+    result = User.search(query)
+
+    return jsonify(result=[
         {
             'name' : user.name,
             'email': user.email
         }
-        for user in User.search(query)
-    ]
-    return jsonify(result=result), 200
+        for user in result
+    ])

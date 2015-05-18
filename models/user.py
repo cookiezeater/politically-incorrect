@@ -1,11 +1,11 @@
 """
     models.user
     ~~~~~
-    User model and model-level
-    functions. Encapsulates
+    User and Friendship
+    models. Encapsulates
     and abstracts access and
     modification functions
-    of the user store.
+    of the User store.
 """
 
 from models.shared import *
@@ -29,14 +29,15 @@ class User(Base):
 
     relationships
     ~~~~~
-    friends: user <-> user
-    players: user <-> game
+    friends: user <-> user (through Friendship table)
+    players: user <-  player
     """
 
     name    = db.Column(db.String(128), nullable=False)
     email   = db.Column(db.String(128), nullable=False, unique=True)
     picture = db.Column(db.String(255), nullable=False)
     token   = db.Column(db.String(255), nullable=False)
+    players = relationship('Player', back_populates='user')
 
     @staticmethod
     def create(oauth_token):
@@ -55,7 +56,12 @@ class User(Base):
     @staticmethod
     def get(email):
         """Get an existing user by email."""
-        return User.query.get(email=email)
+        return User.query.filter(email=email).first()
+
+    @staticmethod
+    def get_all(emails):
+        or_query = [User.email == email for email in emails]
+        return User.query.filter(or_(*or_query)).all()
 
     @staticmethod
     def auth(token):
@@ -71,7 +77,7 @@ class User(Base):
             return None
         if "email" not in data or data["email"] is None:
             return None
-        user = User.query.get(email=data["email"])
+        user = User.query.filter(email=data["email"]).first()
         return user
 
     @staticmethod
@@ -92,6 +98,18 @@ class User(Base):
             or_query.append(User.email.ilike(like))
 
         return User.query.like(or_(*or_query)).all()
+
+    def get_friends(self):
+        friendships = Friendship.get_all_valid(self)
+        friends     = []
+
+        for friendship in friendships:
+            if friendship.sender != self:
+                friends.append(friendship.sender)
+            else:
+                friends.append(friendship.receiver)
+
+        return friends
 
     def add(self, other):
         """Creates a friendship request or validates an existing one."""
@@ -115,10 +133,9 @@ class Friendship(Base):
     """A simple table of one-to-one friendships."""
     sender_id   = db.Column(db.Integer, ForeignKey('users.id'), nullable=False)
     receiver_id = db.Column(db.Integer, ForeignKey('users.id'), nullable=False)
+    sender      = relationship('User', uselist=False)
+    receiver    = relationship('User', uselist=False)
     valid       = db.Column(db.Boolean, nullable=False, default=False)
-
-    sender   = relationship('User')
-    receiver = relationship('User')
 
     __table_args__ = (UniqueConstraint('sender_id', 'receiver_id'))
 
@@ -134,12 +151,26 @@ class Friendship(Base):
     def get(first, second):
         return Friendship.query.filter(
             or_(
-                and_(Friendship.sender_id=first.id,
-                     Friendship.receiver_id=second.id),
-                and_(Friendship.sender_id=second.id,
-                     Friendship.receiver_id=first.id)
+                and_(
+                    Friendship.sender_id=first.id,
+                    Friendship.receiver_id=second.id
+                ),
+                and_(
+                    Friendship.sender_id=second.id,
+                    Friendship.receiver_id=first.id
+                )
             )
         ).first()
+
+    @staticmethod
+    def get_all_valid(user):
+        return Friendship.query.filter(
+            Friendship.valid == True,
+            or_(
+                Friendship.sender_id=user.id,
+                Friendship.receiver_id=user.id
+            )
+        ).all()
 
     def set_valid(self, valid):
         self.valid = valid

@@ -2,28 +2,12 @@ from models.shared import *
 
 
 class Card(db.Model):
-    created_on = db.Column(db.DateTime, default=db.func.now())
-    updated_on = db.Column(
-            db.DateTime,
-            default=db.func.now(),
-            onupdate=db.func.now()
-    )
-
     __tablename__ = "cards"
-    id = db.Column(db.Integer, primary_key=True)
+    id      = db.Column(db.Integer, primary_key=True)
+    text    = db.Column(db.String(255), nullable=False, unique=True)
+    answers = db.Column(db.Integer, nullable=False)
 
-    text    = db.Column(db.String(120), unique=True)
-    white   = db.Column(db.Boolean)
-    answers = db.Column(db.Integer)
-
-    def __init__(self, text, white, answers=1):
-        self.text    = text
-        self.white   = white
-        self.answers = 0 if self.white else answers
-
-    def __str__(self):
-        return "White: {}".format(self.text) if self.white else \
-               "Black({}): {}".format(self.answers, self.text)
-
-    def __eq__(self, other):
-        return self.id == other.id
+    def __repr__(self):
+        return '<card id={} text={} answers={}>'.format(
+            self.id, self.text, self.answers
+        )

@@ -20,11 +20,11 @@ def create(user, content):
     game = Game.create(
         user, name, max_points, max_players
     )
-    users   = User.get_all(emails)  # User.query.filter(or_(User.email == email for email in players)) + [user]
+    users   = User.get_all(emails) + [user]
     players = Player.create_all(users, game)
     game.invite_all(players)
 
-    result = {
+    return jsonify(**{
         'id'         : game.id,
         'name'       : game.name,
         'max_points' : game.max_points,
@@ -32,23 +32,22 @@ def create(user, content):
         'players'    : [
             {
                 'name'  : player.user.name,
-                'email' : player.email.name,
+                'email' : player.user.email,
                 'status': player.status
             }
             for player in game.players
         ],
         'status'     : game.status
-    }
-    return jsonify(**result), 200
+    })
 
 
 @app.route('/game/<int:id>/invite', methods=['POST'])
 @with_user
 @with_content
 def invite(id, user, content):
-    email   = content['email']
-    other   = User.get(email)
-    game    = Game.get(id)
+    email = content['email']
+    other = User.get(email)
+    game  = Game.get(id)
 
     assert user == game.host
     assert game.status == 'PENDING'
@@ -56,7 +55,7 @@ def invite(id, user, content):
     player = Player.create(other, game)
     game.invite(player)
 
-    return jsonify(), 200
+    return jsonify()
 
 
 @app.route('/game/<int:id>', methods=['POST'])
@@ -68,7 +67,7 @@ def get(id, user, content):
     assert player in game.players
 
     if game.status == 'PENDING':
-        result = {
+        return jsonify(**{
             'id'         : game.id,
             'name'       : game.name,
             'max_points' : game.max_points,
@@ -77,15 +76,15 @@ def get(id, user, content):
             'players'    : [
                 {
                     'name'  : player.user.name,
-                    'email' : player.email.name,
+                    'email' : player.user.email,
                     'status': player.status
                 }
                 for player in game.players
             ]
-        }
+        })
 
     elif game.status == 'ONGOING':
-        result = {
+        return jsonify(**{
             'id'         : game.id,
             'name'       : game.name,
             'max_points' : game.max_points,
@@ -117,20 +116,18 @@ def get(id, user, content):
             'players'    : [
                 {
                     'name'  : player.user.name,
-                    'email' : player.email.name,
+                    'email' : player.user.email,
                     'status': player.status
                 }
                 for player in game.players
             ],
             'previous'   : game.previous_round
-        }
+        })
 
     # TODO
     # elif game.status == 'ENDED':
-    else:
-        return jsonify(), 404
 
-    return jsonify(**result), 200
+    return jsonify(), 404
 
 
 @app.route('/game/<action>', methods=['POST'])
@@ -139,7 +136,7 @@ def get(id, user, content):
 def accept_or_decline(action, user, content):
     game    = content['id']
     player  = Player.get(user, game)
-    result  = { 'started': False }
+    started = False
 
     if action == 'add':
         player.set_status_joined()
@@ -149,7 +146,7 @@ def accept_or_decline(action, user, content):
 
         if len(joined) == game.max_players:
             game.start()
-            result['started'] = True
+            started = True
 
     elif action == 'delete':
         player.delete()
@@ -157,7 +154,7 @@ def accept_or_decline(action, user, content):
     else:
         return jsonify(), 404
 
-    return jsonify(**result), 200
+    return jsonify(started=started)
 
 
 @app.route('/game/<int:id>/play', methods=['POST'])
@@ -205,4 +202,4 @@ def play(id, user, content):
         player.play_card(card)
         player.draw()
 
-    return jsonify(), 200
+    return jsonify()
