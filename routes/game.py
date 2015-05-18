@@ -10,17 +10,16 @@ from routes.shared import *
 
 @app.route('/game/create', methods=['POST'])
 @with_user
+@with_content
 def create(user, content):
     name        = content['name']
     max_points  = content['max_points']
     max_players = content['max_players']
     emails      = content['emails']
-    status      = 'PENDING'
 
     game = Game.create(
-        user, name, max_points, max_players, status
+        user, name, max_points, max_players
     )
-
     users   = User.get_all(emails)  # User.query.filter(or_(User.email == email for email in players)) + [user]
     players = Player.create_all(users, game)
     game.invite_all(players)
@@ -45,7 +44,8 @@ def create(user, content):
 
 @app.route('/game/<int:id>/invite', methods=['POST'])
 @with_user
-def invite(user, content, id):
+@with_content
+def invite(id, user, content):
     email   = content['email']
     other   = User.get(email)
     game    = Game.get(id)
@@ -61,7 +61,8 @@ def invite(user, content, id):
 
 @app.route('/game/<int:id>', methods=['POST'])
 @with_user
-def get(user, content, id):
+@with_content
+def get(id, user, content):
     game   = Game.get(id)
     player = Player.get(user, game)
     assert player in game.players
@@ -134,7 +135,8 @@ def get(user, content, id):
 
 @app.route('/game/<action>', methods=['POST'])
 @with_user
-def accept_or_decline(user, content, action):
+@with_content
+def accept_or_decline(action, user, content):
     game    = content['id']
     player  = Player.get(user, game)
     result  = { 'started': False }
@@ -160,7 +162,8 @@ def accept_or_decline(user, content, action):
 
 @app.route('/game/<int:id>/play', methods=['POST'])
 @with_user
-def play(user, content, id):
+@with_content
+def play(id, user, content):
     """
     Handle main gameplay. If the requesting user
     is the current judge, then expect an email

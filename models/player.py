@@ -1,85 +1,67 @@
-import sys
 from models.shared import *
-from passlib.apps import custom_app_context
-from validate_email import validate_email
+from sqlalchemy.ext.mutable import Mutable
+from sqlalchemy.dialects.postgresql import ARRAY
 
 
-class FriendshipManager(db.Model):
+class MutableList(Mutable, list):
+    def append(self, value):
+        list.append(self, value)
+        self.changed()
+
+    def remove(self, value):
+        list.remove(self, value)
+        self.changed()
+
+    @classmethod
+    def coerce(cls, key, value):
+        if not isinstance(value, MutableList):
+            if isinstance(value, list):
+                return MutableList(value)
+            return Mutable.coerce(key, value)
+        else:
+            return value
+
+
+class Player(db.Model):
     created_on = db.Column(db.DateTime, default=db.func.now())
-    updated_on = db.Column(
-            db.DateTime,
-            default=db.func.now(),
-            onupdate=db.func.now()
-    )
+    updated_on = db.Column(db.DateTime,
+                           default=db.func.now(),
+                           onupdate=db.func.now())
 
-    __tablename__ = "friendship_manager"
+    __tablename__ = "players"
     id = db.Column(db.Integer, primary_key=True)
 
-    sender   = db.Column(db.Integer)
-    receiver = db.Column(db.Integer)
-    valid    = db.Column(db.Boolean, default=False)
+    score            = db.Column(db.Integer)
+    judged           = db.Column(db.Integer)
 
-    def __init__(self, sender, receiver, vaild=False):
-        self.sender   = sender
-        self.receiver = receiver
-        self.valid    = valid
+    hand = db.Column(MutableList.as_mutable(ARRAY(db.Integer)))
+    played = db.Column(MutableList.as_mutable(ARRAY(db.Integer)))
 
+    # Many-to-one:
+    # A state has one player, but a player can have many states.
+    player_id = db.Column(db.Integer, db.ForeignKey("players.id"))
 
-class User(db.Model):
-    created_on = db.Column(db.DateTime, default=db.func.now())
-    updated_on = db.Column(
-            db.DateTime,
-            default=db.func.now(),
-            onupdate=db.func.now()
-    )
+    # Many-to-one:
+    # A state has one match, but a match has many states.
+    match_id = db.Column(db.Integer, db.ForeignKey("matches.id"))
 
-    __tablename__ = "users"
-    id = db.Column(db.Integer, primary_key=True)
+    # Many-to-many:
+    # A state can have several played cards,
+    # but a card can have many states in which it is played.
 
-    email = db.Column(db.String(64), unique=True)
+    def __init__(self, player_id=None, match_id=None):
+        self.player_id = player_id
+        self.match_id = match_id
 
-    # One-to-many:
-    # A match only has one winner, but a winner can have many won matches.
-    wins = db.relationship(
-            "Match",
-            backref="winner",
-            foreign_keys="[Match.winner_id]"
-    )
-
-    # One-to-many:
-    # A user has many states, but a state can only have one user.
-    states = db.relationship(
-            "State",
-            backref="user",
-            foreign_keys="[State.user_id]"
-    )
-
-    def __init__(self, email, token):
-        assert validate_email(email)
-
-        self.email  = email
-        self.wins   = []
-        self.states = []
-
-    def generate_auth_token(self, expiration=sys.maxint):
-        cereal = Serializer(app.config["SECRET_KEY"], expires_in=expiration)
-        return cereal.dumps({ "id": self.id })
-
-    @staticmethod
-    def verify_auth_token(token):
-        cereal = Serializer(app.config["SECRET_KEY"])
-        try:
-            data = cereal.loads(token)
-        except SignatureExpired:
-            # Valid but expired token
-            return None
-        except BadSignature:
-            # Invalid token
-            return None
-        if data["id"] is None:
-            return None
-        user = User.query.get(data["id"])
-        return user
+        self.score = 0
+        self.judged = 0
+        self.judge = False
+        self.round_winner = False
+        self.viewed_round_end = False
+        self.hand = []
+        self.played = []
 
     def __str__(self):
-        return "user {}".format(self.email)
+        played = [str(card) for card in self.played]
+        return "State: Player({}) in Match({}) with score({}) and played({})" \
+               .format(self.player_id, self.match_id, self.score, str(played))

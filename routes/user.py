@@ -12,8 +12,8 @@ from routes.shared import *
 @app.route('/user', methods=['POST'])
 @with_content
 def get(content):
-    token   = content['token']
-    user    = User.auth(token)
+    token = content['token']
+    user  = User.auth(token)
 
     if not user:
         user = User.create(token)
@@ -35,7 +35,7 @@ def accept_or_decline(user, content):
     other = User.get(email)
 
     if not other:
-        return jsonify(message='User does not exist.'), 418
+        return jsonify(), 418
 
     if action == 'add':
         user.add(other)
@@ -44,7 +44,7 @@ def accept_or_decline(user, content):
         user.delete(other)
 
     else:
-        return jsonify(message='Invalid route.'), 404
+        return jsonify(), 404
 
     return jsonify(), 200
 
