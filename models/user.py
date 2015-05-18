@@ -50,7 +50,6 @@ class User(Base):
             name=name, email=email, picture=picture, token=generate_auth_token()
         )
         db.session.add(user)
-        db.session.commit()
         return user
 
     @staticmethod
@@ -60,6 +59,7 @@ class User(Base):
 
     @staticmethod
     def get_all(emails):
+        """Get a bunch of users by email."""
         or_query = [User.email == email for email in emails]
         return User.query.filter(or_(*or_query)).all()
 
@@ -100,6 +100,7 @@ class User(Base):
         return User.query.like(or_(*or_query)).all()
 
     def get_friends(self):
+        """Returns the valid friends of the user."""
         friendships = Friendship.get_all_valid(self)
         friends     = []
 
@@ -126,7 +127,7 @@ class User(Base):
             friendship.set_valid(False)
 
     def __repr__(self):
-        return "<User {}>".format(self.email)
+        return "<user {}>".format(self.email)
 
 
 class Friendship(Base):
@@ -141,14 +142,15 @@ class Friendship(Base):
 
     @staticmethod
     def create(sender, receiver):
+        """Create an invalid friendship entry."""
         assert not Friendship.get(sender, receiver)
-        friendship = Friendship(sender_id=sender.id, receiver_id=receiver.id)
+        friendship = Friendship(sender_id=sender.id, receiver_id=receiver.id, valid=False)
         db.session.add(friendship)
-        db.session.commit()
         return friendship
 
     @staticmethod
     def get(first, second):
+        """Get the existing friendship entry, regardless of validity."""
         return Friendship.query.filter(
             or_(
                 and_(
@@ -164,6 +166,7 @@ class Friendship(Base):
 
     @staticmethod
     def get_all_valid(user):
+        """Get all of a user's valid friendships."""
         return Friendship.query.filter(
             Friendship.valid == True,
             or_(
@@ -173,6 +176,11 @@ class Friendship(Base):
         ).all()
 
     def set_valid(self, valid):
+        """Change the validity of a friendship."""
         self.valid = valid
         db.session.add(self)
-        db.session.commit()
+
+    def __repr__(self):
+        return '<friendship sender={} receiver={} valid={}>'.format(
+            self.sender.email, self.receiver.email, self.valid
+        )
