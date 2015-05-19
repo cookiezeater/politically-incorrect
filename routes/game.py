@@ -30,6 +30,7 @@ def create_game(user, content):
         'name'       : game.name,
         'max_points' : game.max_points,
         'max_players': game.max_players,
+        'status'     : game.status,
         'players'    : [
             {
                 'name'  : player.user.name,
@@ -37,8 +38,7 @@ def create_game(user, content):
                 'status': player.status
             }
             for player in game.players
-        ],
-        'status'     : game.status
+        ]
     })
 
 

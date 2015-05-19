@@ -63,7 +63,9 @@ class Game(Base):
             self.status = 'ENDED'
             return jsonify()
 
-        self.used_cards.append(black_card)
+        for player in self.players:
+            self.used_cards.append(players.card)
+            players.card = None
 
         black_cards     = Card.get_all(black=True)
         self.black_card = choice(black_cards)
@@ -72,6 +74,7 @@ class Game(Base):
             self.black_card = choice(black_cards)
 
         self.judge = min(players, key=lambda player: player.judged)
+        self.judge.card = black_card
         self.judge.judged += 1
 
     def invite(self, player):
