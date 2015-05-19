@@ -11,7 +11,8 @@ from routes.shared import *
 @app.route('/game/create', methods=['POST'])
 @with_user
 @with_content
-def create(user, content):
+def create_game(user, content):
+    """Creates a pending game."""
     name        = content['name']
     max_points  = content['max_points']
     max_players = content['max_players']
@@ -45,15 +46,15 @@ def create(user, content):
 @with_user
 @with_content
 def invite(id, user, content):
-    email = content['email']
-    other = User.get(email)
-    game  = Game.get(id)
-
+    """Invites a list of users."""
+    game = Game.get(id)
     assert user == game.host
     assert game.status == 'PENDING'
 
-    player = Player.create(other, game)
-    game.invite(player)
+    emails = content['emails']
+    others = User.get(email)
+    player = Player.create_all(others, game)
+    game.invite_all(players)
 
     return jsonify()
 
@@ -61,7 +62,7 @@ def invite(id, user, content):
 @app.route('/game/<int:id>', methods=['POST'])
 @with_user
 @with_content
-def get(id, user, content):
+def get_game(id, user, content):
     game   = Game.get(id)
     player = Player.get(user, game)
     assert player in game.players
@@ -133,7 +134,7 @@ def get(id, user, content):
 @app.route('/game/<int:id>/<action>', methods=['POST'])
 @with_user
 @with_content
-def accept_or_decline(id, action, user, content):
+def accept_or_decline_game(id, action, user, content):
     player  = Player.get(user, game)
     started = False
 

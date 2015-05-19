@@ -37,7 +37,7 @@ class User(Base):
     email   = db.Column(db.String(128), nullable=False, unique=True)
     picture = db.Column(db.String(255), nullable=False)
     token   = db.Column(db.String(255), nullable=False)
-    players = relationship('Player', back_populates='user')
+    players = db.relationship('Player', back_populates='user')
 
     @staticmethod
     def create(oauth_token):
@@ -132,13 +132,13 @@ class User(Base):
 
 class Friendship(Base):
     """A simple table of one-to-one friendships."""
-    sender_id   = db.Column(db.Integer, ForeignKey('users.id'), nullable=False)
-    receiver_id = db.Column(db.Integer, ForeignKey('users.id'), nullable=False)
-    sender      = relationship('User', uselist=False)
-    receiver    = relationship('User', uselist=False)
+    sender_id   = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    receiver_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    sender      = db.relationship('User', uselist=False)
+    receiver    = db.relationship('User', uselist=False)
     valid       = db.Column(db.Boolean, nullable=False, default=False)
 
-    __table_args__ = (UniqueConstraint('sender_id', 'receiver_id'))
+    __table_args__ = (UniqueConstraint('sender_id', 'receiver_id'),)
 
     @staticmethod
     def create(sender, receiver):
@@ -154,12 +154,12 @@ class Friendship(Base):
         return Friendship.query.filter(
             or_(
                 and_(
-                    Friendship.sender_id=first.id,
-                    Friendship.receiver_id=second.id
+                    Friendship.sender_id == first.id,
+                    Friendship.receiver_id == second.id
                 ),
                 and_(
-                    Friendship.sender_id=second.id,
-                    Friendship.receiver_id=first.id
+                    Friendship.sender_id == second.id,
+                    Friendship.receiver_id == first.id
                 )
             )
         ).first()
@@ -170,8 +170,8 @@ class Friendship(Base):
         return Friendship.query.filter(
             Friendship.valid == True,
             or_(
-                Friendship.sender_id=user.id,
-                Friendship.receiver_id=user.id
+                Friendship.sender_id == user.id,
+                Friendship.receiver_id == user.id
             )
         ).all()
 

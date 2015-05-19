@@ -7,7 +7,7 @@
 
 from functools import wraps
 from flask import jsonify, request
-from common import db
+from common import app, db
 from models import (
     Card,
     Game,
@@ -17,7 +17,7 @@ from models import (
 
 
 def with_content(func):
-    @wraps
+    @wraps(func)
     def inner(*args, **kwargs):
         content = request.json
         return func(content, *args, **kwargs)
@@ -25,7 +25,7 @@ def with_content(func):
 
 
 def with_user(func):
-    @wraps
+    @wraps(func)
     @with_content
     def inner(content, *args, **kwargs):
         token = content['token']

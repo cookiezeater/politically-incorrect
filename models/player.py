@@ -32,13 +32,13 @@ class Player(Base):
 
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     game_id = db.Column(db.Integer, db.ForeignKey("games.id"), nullable=False)
-    user    = relationship('User', uselist=False, back_populates='players')
-    game    = relationship('Game', uselist=False, back_populates='players')
+    user    = db.relationship('User', uselist=False, back_populates='players')
+    game    = db.relationship('Game', uselist=False, back_populates='players')
     status  = db.Column(db.String(10), nullable=False)
     score   = db.Column(db.Integer, nullable=False)
     judged  = db.Column(db.Integer, nullable=False)
-    hand    = relationship('Card')
-    played  = relationship('Card')
+    hand    = db.relationship('Card')
+    played  = db.relationship('Card')
 
     @staticmethod
     def create(user, game):

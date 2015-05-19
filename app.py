@@ -6,7 +6,7 @@
 """
 
 from routes import *
-from common import app, db
+from common import *
 
 from flask.ext.script import Manager
 from flask.ext.migrate import Migrate, MigrateCommand

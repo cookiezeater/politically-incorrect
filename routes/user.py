@@ -11,7 +11,7 @@ from routes.shared import *
 
 @app.route('/user', methods=['POST'])
 @with_content
-def get(content):
+def get_user(content):
     token = content['token']
     user  = User.auth(token)
 
@@ -41,13 +41,13 @@ def get(content):
             }
             for player in user.players
         ]
-    }
+    })
 
 
 @app.route('/user/friends/<action>', methods=['POST'])
 @with_user
 @with_content
-def accept_or_decline(user, content):
+def accept_or_decline_friend(user, content):
     email = content['email']
     other = User.get(email)
 

@@ -21,19 +21,19 @@ class Game(Base):
     """
     STATUSES = ('PENDING', 'ONGOING', 'ENDED')
 
-    host_id        = db.Column(db.Integer, ForeignKey('users.id'), nullable=False)
-    host           = relationship('User', uselist=False)
+    host_id        = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    host           = db.relationship('User', uselist=False)
     name           = db.Column(db.String(80), nullable=False)
     max_points     = db.Column(db.Integer, nullable=False)
     max_players    = db.Column(db.Integer, nullable=False)
     status         = db.Column(db.String(7), nullable=False)
-    black_card_id  = db.Column(db.Integer, ForeignKey('cards.id'))
-    black_card     = relationship('Card', uselist=False)
-    judge_id       = db.Column(db.Integer, ForeignKey('players.id'))
-    judge          = relationship('Player', uselist=False)
-    players        = relationship('Player', back_populates('game'))
+    black_card_id  = db.Column(db.Integer, db.ForeignKey('cards.id'))
+    black_card     = db.relationship('Card', uselist=False)
+    judge_id       = db.Column(db.Integer, db.ForeignKey('players.id'))
+    judge          = db.relationship('Player', uselist=False)
+    players        = db.relationship('Player', back_populates='game')
     previous_round = db.PickleType()
-    used_cards     = relationship('Card')
+    used_cards     = db.relationship('Card')
 
     @staticmethod
     def create(host, name, max_points, max_players, status='PENDING'):

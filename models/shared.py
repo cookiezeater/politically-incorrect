@@ -1,6 +1,11 @@
 from random import choice
 from common import db
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import UniqueConstraint
+from sqlalchemy.ext.declarative import (
+    declarative_base,
+    as_declarative,
+    declared_attr
+)
 from itsdangerous import (
     SignatureExpired,
     BadSignature,
@@ -8,6 +13,7 @@ from itsdangerous import (
 )
 
 
+@as_declarative()
 class Base(object):
     """
     Base model. Default columns
@@ -21,13 +27,9 @@ class Base(object):
     def __tablename__(cls):
         return cls.__name__.lower() + 's'
 
-    id = db.Column(db.Integer, primary_key=True)
+    id         = db.Column(db.Integer, primary_key=True)
     created_on = db.Column(db.DateTime, default=db.func.now())
-    updated_on = db.Column(
-        db.DateTime,
-        default=db.func.now(),
-        onupdate=db.func.now()
-    )
+    updated_on = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now())
 
 
 Base = declarative_base(cls=Base)
