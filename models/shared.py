@@ -1,4 +1,5 @@
-from common import app, db
+from random import choice
+from common import db
 from sqlalchemy.ext.declarative import declarative_base
 from itsdangerous import (
     SignatureExpired,

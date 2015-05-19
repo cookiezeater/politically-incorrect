@@ -74,4 +74,7 @@ class Player(Base):
     def set_status_joined(self):
         """Change player status to JOINED."""
         self.status = 'JOINED'
-        db.session.add(self)
+
+    def add_points(n):
+        """Add n points to the player's score."""
+        self.points += n

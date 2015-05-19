@@ -5,9 +5,15 @@
     and convenience decorators.
 """
 
-from models.shared import app
 from functools import wraps
 from flask import jsonify, request
+from common import db
+from models import (
+    Card,
+    Game,
+    Player,
+    User
+)
 
 
 def with_content(func):

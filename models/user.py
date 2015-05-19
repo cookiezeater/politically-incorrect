@@ -178,7 +178,6 @@ class Friendship(Base):
     def set_valid(self, valid):
         """Change the validity of a friendship."""
         self.valid = valid
-        db.session.add(self)
 
     def __repr__(self):
         return '<friendship sender={} receiver={} valid={}>'.format(

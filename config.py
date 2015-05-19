@@ -1,23 +1,30 @@
-import os
+"""
+    config
+    ~~~~~
+    Contains configuration classes
+    for app initialization. Used
+    in common.py.
+"""
 
 
-class Config(object):
-    DEBUG = False
-    TESTING = False
-    CSRF_ENABLED = True
-    SECRET_KEY = "this-really-needs-to-be-changed"
-    SQLALCHEMY_DATABASE_URI = os.environ["DATABASE_URL"]
-    PROPAGATE_EXCEPTIONS = True
+class Base(object):
+    SECRET_KEY = '123456789lol'
 
 
-class ProductionConfig(Config):
-    DEBUG = False
+class Production(Base):
+    DATABASE = ''
+    USERNAME = ''
+    PASSWORD = ''
 
 
-class DevelopmentConfig(Config):
-    DEVELOPMENT = True
-    DEBUG = True
+class Development(Base):
+    DEBUG    = True
+    DATABASE = 'politically-incorrect-db'
+    USERNAME = 'Charles'
+
+    PROPAGATE_EXCEPTIONS        = True
+    JSONIFY_PRETTYPRINT_REGULAR = True
 
 
-class TestingConfig(Config):
+class Testing(Development):
     TESTING = True

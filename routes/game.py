@@ -2,7 +2,7 @@
     routes.game
     ~~~~~
     Endpoints and controller
-    logic for main gameplay.
+    logic for gameplay.
 """
 
 from routes.shared import *
@@ -110,8 +110,8 @@ def get(id, user, content):
                 for card in player.hand
             ],
             'judge'      : {
-                'name' : game.judge.name,
-                'email': game.judge.email,
+                'name' : game.judge.user.name,
+                'email': game.judge.user.email,
             },
             'players'    : [
                 {
@@ -130,19 +130,18 @@ def get(id, user, content):
     return jsonify(), 404
 
 
-@app.route('/game/<action>', methods=['POST'])
+@app.route('/game/<int:id>/<action>', methods=['POST'])
 @with_user
 @with_content
-def accept_or_decline(action, user, content):
-    game    = content['id']
+def accept_or_decline(id, action, user, content):
     player  = Player.get(user, game)
     started = False
 
     if action == 'add':
         player.set_status_joined()
-        joined = [player for player in Player.get_all(game)
+        joined = [player for player in game.players
                          if player.status == 'JOINED']
-        game = Game.get(game)
+        game = Game.get(id)
 
         if len(joined) == game.max_players:
             game.start()
