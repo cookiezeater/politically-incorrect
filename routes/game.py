@@ -200,6 +200,5 @@ def play(id, user, content):
             None
         )
         player.play_card(card)
-        player.draw()
 
     return jsonify()

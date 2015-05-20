@@ -54,33 +54,52 @@ class Game(Base):
         return Game.query.get(id)
 
     def start(self):
-        # TODO
-        pass
+        """Begins the game."""
+        self.status = 'ONGOING'
+        self.new_round()
 
     def new_round(self):
-        """Start a new round."""
+        """
+        Starts a new round.
+
+        - Fill every player's hand
+        - Discard and play a new black card
+        - Find a new judge and increment
+          his judge count
+        """
+
         if any(player.points == self.max_points for player in self.players):
             self.status = 'ENDED'
             return jsonify()
 
-        for player in self.players:
-            self.used_cards.append(players.card)
-            players.card = None
+        white_cards = Card.get_all(black=false)
 
+        # fill every player's hand
+        for player in self.players:
+            while len(player.hand) < 10:
+                white_card = choice(white_cards)
+
+                while white_card in set(self.used_cards):
+                    white_card = choice(white_cards)
+
+                player.hand.append(white_card)
+                self.used_cards.append(white_card)
+
+        # play a new black card and choose a new judge
         black_cards     = Card.get_all(black=True)
         self.black_card = choice(black_cards)
 
         while self.black_card in set(self.used_cards):
             self.black_card = choice(black_cards)
 
+        self.used_cards.append(black_card)
+
         self.judge = min(players, key=lambda player: player.judged)
         self.judge.card = black_card
         self.judge.judged += 1
 
-    def invite(self, player):
-        self.players.append(player)
-
     def invite_all(self, players):
+        """Invites a list of players to this game."""
         self.players += players
 
     def __repr__(self):

@@ -71,6 +71,11 @@ class Player(Base):
         # TODO
         pass
 
+    def play_card(self, card):
+        assert not self.card
+        self.card = card
+        self.hand.remove(card)
+
     def set_status_joined(self):
         """Change player status to JOINED."""
         self.status = 'JOINED'
