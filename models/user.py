@@ -12,7 +12,7 @@ from models.shared import *
 
 TOKEN_EXPIRATION = 696969696969
 GOOGLE_URL = \
-        "https://www.googleapis.com/oauth2/v1/userinfo?access_token="
+        "https://www.googleapis.com/oauth2/v1/userinfo?access_token={}"
 
 
 class User(Base):
@@ -37,17 +37,19 @@ class User(Base):
     email   = db.Column(db.String(128), nullable=False, unique=True)
     picture = db.Column(db.String(255), nullable=False)
     token   = db.Column(db.String(255), nullable=False)
-    players = db.relationship('Player', back_populates='user')
+    players = db.relationship('Player', backref='user')
+    hosting = db.relationship('Game', backref='host')
 
     @staticmethod
     def create(oauth_token):
         """Create and return a new user."""
         response = requests.get(GOOGLE_URL.format(oauth_token))
-        name     = response['given_name'] + ' ' + response['family_name']
-        email    = response['email']
-        picture  = response['picture']
+        content  = response.json()
+        name     = content['given_name'] + ' ' + content['family_name']
+        email    = content['email']
+        picture  = content['picture']
         user     = User(
-            name=name, email=email, picture=picture, token=generate_auth_token()
+            name=name, email=email, picture=picture, token=User.generate_auth_token(email)
         )
         db.session.add(user)
         return user
@@ -66,7 +68,7 @@ class User(Base):
     @staticmethod
     def auth(token):
         """Authorize and return an existing user."""
-        cereal = Serializer(app.config["SECRET_KEY"])
+        cereal = Serializer(app.config['SECRET_KEY'])
         try:
             data = cereal.loads(token)
         except SignatureExpired:
@@ -75,16 +77,18 @@ class User(Base):
         except BadSignature:
             # invalid token
             return None
-        if "email" not in data or data["email"] is None:
+        except Exception:
             return None
-        user = User.query.filter(email=data["email"]).first()
+        if 'email' not in data or data['email'] is None:
+            return None
+        user = User.query.filter(email=data['email']).first()
         return user
 
     @staticmethod
     def generate_auth_token(email, expiration=TOKEN_EXPIRATION):
         """Generate an auth token from a user's email."""
-        cereal = Serializer(app.config["SECRET_KEY"], expires_in=expiration)
-        return cereal.dumps({ "email": self.email })
+        cereal = Serializer(app.config['SECRET_KEY'], expires_in=expiration)
+        return cereal.dumps({ 'email': email })
 
     @staticmethod
     def search(query):
@@ -134,8 +138,8 @@ class Friendship(Base):
     """A simple table of one-to-one friendships."""
     sender_id   = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     receiver_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    sender      = db.relationship('User', uselist=False)
-    receiver    = db.relationship('User', uselist=False)
+    sender      = db.relationship('User', uselist=False, foreign_keys='Friendship.sender_id')
+    receiver    = db.relationship('User', uselist=False, foreign_keys='Friendship.receiver_id')
     valid       = db.Column(db.Boolean, nullable=False, default=False)
 
     __table_args__ = (UniqueConstraint('sender_id', 'receiver_id'),)
@@ -144,7 +148,7 @@ class Friendship(Base):
     def create(sender, receiver):
         """Create an invalid friendship entry."""
         assert not Friendship.get(sender, receiver)
-        friendship = Friendship(sender_id=sender.id, receiver_id=receiver.id, valid=False)
+        friendship = Friendship(sender=sender, receiver=receiver, valid=False)
         db.session.add(friendship)
         return friendship
 
@@ -154,12 +158,12 @@ class Friendship(Base):
         return Friendship.query.filter(
             or_(
                 and_(
-                    Friendship.sender_id == first.id,
-                    Friendship.receiver_id == second.id
+                    Friendship.sender == first,
+                    Friendship.receiver == second
                 ),
                 and_(
-                    Friendship.sender_id == second.id,
-                    Friendship.receiver_id == first.id
+                    Friendship.sender == second,
+                    Friendship.receiver == first
                 )
             )
         ).first()
@@ -170,8 +174,8 @@ class Friendship(Base):
         return Friendship.query.filter(
             Friendship.valid == True,
             or_(
-                Friendship.sender_id == user.id,
-                Friendship.receiver_id == user.id
+                Friendship.sender == user,
+                Friendship.receiver == user
             )
         ).all()
 

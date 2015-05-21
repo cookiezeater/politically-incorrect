@@ -21,6 +21,7 @@ class Development(Base):
     DEBUG    = True
     DATABASE = 'politically-incorrect-db'
     USERNAME = 'Charles'
+    SQLALCHEMY_DATABASE_URI = 'postgres://localhost/politically-incorrect-db'
 
     PROPAGATE_EXCEPTIONS        = True
     JSONIFY_PRETTYPRINT_REGULAR = True

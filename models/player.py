@@ -1,11 +1,20 @@
 """
     models.player
     ~~~~~
-    Player model, which represents
+    Player model and assoc
+    tables, which represent
     a user's state inside a game.
 """
 
 from models.shared import *
+
+
+hands = db.Table(
+    'hands',
+    Base.metadata,
+    db.Column('player', db.Integer, db.ForeignKey('players.id')),
+    db.Column('card', db.Integer, db.ForeignKey('cards.id'))
+)
 
 
 class Player(Base):
@@ -18,7 +27,7 @@ class Player(Base):
     ~~~~~
     | status | score | judged |
     |--------|-------|--------|
-    | str    | int   | int
+    | str    | int   | int    |
 
     relationships
     ~~~~~
@@ -30,21 +39,18 @@ class Player(Base):
 
     STATUSES = ('PENDING', 'JOINED')
 
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
-    game_id = db.Column(db.Integer, db.ForeignKey("games.id"), nullable=False)
-    user    = db.relationship('User', uselist=False, back_populates='players')
-    game    = db.relationship('Game', uselist=False, back_populates='players')
-    status  = db.Column(db.String(10), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    game_id = db.Column(db.Integer, db.ForeignKey('games.id'), nullable=False)
+    status  = db.Column(db.String(7), nullable=False)
     score   = db.Column(db.Integer, nullable=False)
     judged  = db.Column(db.Integer, nullable=False)
-    hand    = db.relationship('Card')
-    played  = db.relationship('Card')
+    hand    = db.relationship('Card', secondary=hands)
 
     @staticmethod
     def create(user, game):
         """Creates a single uninitialized player."""
         player = Player(
-            user_id=user.id, game_id=game.id, status='PENDING', score=0, judged=0
+            user=user, game=game, status='PENDING', score=0, judged=0
         )
         db.session.add(player)
         return player
@@ -54,7 +60,7 @@ class Player(Base):
         """Creates many players for a given game."""
         players = [
             Player(
-                user_id=user.id, game_id=game.id, status='PENDING', score=0, judged=0
+                user=user, game=game, status='PENDING', score=0, judged=0
             )
             for user in users
         ]
@@ -64,7 +70,7 @@ class Player(Base):
     @staticmethod
     def get(user, game):
         """Returns the player associated with a specific user and game."""
-        return Player.query.filter(user_id=user.id, game_id=game.id).first()
+        return Player.query.filter(user=user, game=game).first()
 
     def delete(self):
         """Deletes a player. Typically used when declining to join a game."""

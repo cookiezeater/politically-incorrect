@@ -18,7 +18,7 @@ def get_user(content):
     if not user:
         user = User.create(token)
 
-    friends = User.get_friends()
+    friends = user.get_friends()
 
     return jsonify(**{
         'name'   : user.name,

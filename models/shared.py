@@ -1,6 +1,11 @@
+import requests
+from common import app, db
 from random import choice
-from common import db
-from sqlalchemy import UniqueConstraint
+from sqlalchemy import (
+    UniqueConstraint,
+    or_,
+    and_
+)
 from sqlalchemy.ext.declarative import (
     declarative_base,
     as_declarative,
@@ -23,13 +28,15 @@ class Base(object):
     of the model name.
     """
 
-    @declared_attr
-    def __tablename__(cls):
-        return cls.__name__.lower() + 's'
-
     id         = db.Column(db.Integer, primary_key=True)
     created_on = db.Column(db.DateTime, default=db.func.now())
     updated_on = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now())
+
+    query = db.session.query_property()
+
+    @declared_attr
+    def __tablename__(cls):
+        return cls.__name__.lower() + 's'
 
 
 Base = declarative_base(cls=Base)

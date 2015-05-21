@@ -25,6 +25,12 @@ def create_game(user, content):
     players = Player.create_all(users, game)
     game.invite_all(players)
 
+    player = next(
+        (player for player in players if player.user == user),
+        None
+    )
+    player.set_status_joined()
+
     return jsonify(**{
         'id'         : game.id,
         'name'       : game.name,
@@ -70,6 +76,10 @@ def get_game(id, user, content):
     if game.status == 'PENDING':
         return jsonify(**{
             'id'         : game.id,
+            'host'       : {
+                'name' : game.host.name,
+                'email': game.host.email
+            },
             'name'       : game.name,
             'max_points' : game.max_points,
             'max_players': game.max_players,
@@ -87,6 +97,10 @@ def get_game(id, user, content):
     elif game.status == 'ONGOING':
         return jsonify(**{
             'id'         : game.id,
+            'host'       : {
+                'name' : game.host.name,
+                'email': game.host.email
+            },
             'name'       : game.name,
             'max_points' : game.max_points,
             'max_players': game.max_players,
@@ -98,10 +112,11 @@ def get_game(id, user, content):
             'table'      : [
                 {
                     'email': player.user.email,
-                    'id'   : card.id,
-                    'text' : card.text
+                    'id'   : player.card.id,
+                    'text' : player.card.text
                 }
-                for player.card in game.players if player.card
+                for player in game.players
+                if player.card and player.card.answers == 0
             ],
             'hand'       : [
                 {
@@ -186,7 +201,7 @@ def play(id, user, content):
             None
         )
         winner.add_points(1)
-        game.new_round()
+        game.new_round(winner)
 
     else:
         player = Player.get(user, game)
