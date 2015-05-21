@@ -9,7 +9,7 @@
 from models.shared import *
 
 
-class Game(Base):
+class Game(db.Model):
     """
 
 
@@ -20,8 +20,11 @@ class Game(Base):
     ~~~~~
     """
 
+    __tablename__ = 'games'
+
     STATUSES = ('PENDING', 'ONGOING', 'ENDED')
 
+    id             = db.Column(db.Integer, primary_key=True)
     host_id        = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     name           = db.Column(db.String(80), nullable=False)
     max_points     = db.Column(db.Integer, nullable=False)

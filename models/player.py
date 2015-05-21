@@ -11,13 +11,13 @@ from models.shared import *
 
 hands = db.Table(
     'hands',
-    Base.metadata,
+    db.Model.metadata,
     db.Column('player', db.Integer, db.ForeignKey('players.id')),
     db.Column('card', db.Integer, db.ForeignKey('cards.id'))
 )
 
 
-class Player(Base):
+class Player(db.Model):
     """
     Player model containing
     functions which encapsulate
@@ -37,8 +37,11 @@ class Player(Base):
     played: player  -  card
     """
 
+    __tablename__ = 'players'
+
     STATUSES = ('PENDING', 'JOINED')
 
+    id      = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     game_id = db.Column(db.Integer, db.ForeignKey('games.id'), nullable=False)
     status  = db.Column(db.String(7), nullable=False)

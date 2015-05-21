@@ -15,7 +15,7 @@ class TestUser(TestCase):
         pass
 
     def test_registration(self):
-        oauth_token = 'ya29.egGrW9rJIMs35sIPewfVbOTlFI0nurl1CbP-6PdachIN_YXKrEZrEPeRW5CgSNkLlIVf58-MgxEazw'
+        oauth_token = 'ya29.egEj1mjXGkAtbSnBuRXC7oRJMxaLfs3rQ_y8B-56akWHoP7TdAK3wJbaAG4S0weYWdmz28XbBi46mg'
         response = self.app.post(
             '/user', data=json.dumps({ 'token': oauth_token }), headers={ 'content-type': 'application/json' }
         )

@@ -12,10 +12,10 @@ from models.shared import *
 
 TOKEN_EXPIRATION = 696969696969
 GOOGLE_URL = \
-        "https://www.googleapis.com/oauth2/v1/userinfo?access_token={}"
+    "https://www.googleapis.com/oauth2/v1/userinfo?access_token={}"
 
 
-class User(Base):
+class User(db.Model):
     """
     A sqlalchemy model representing the user.
     Most information is obtained
@@ -33,6 +33,9 @@ class User(Base):
     players: user <-  player
     """
 
+    __tablename__ = 'users'
+
+    id      = db.Column(db.Integer, primary_key=True)
     name    = db.Column(db.String(128), nullable=False)
     email   = db.Column(db.String(128), nullable=False, unique=True)
     picture = db.Column(db.String(255), nullable=False)
@@ -134,15 +137,18 @@ class User(Base):
         return "<user {}>".format(self.email)
 
 
-class Friendship(Base):
+class Friendship(db.Model):
     """A simple table of one-to-one friendships."""
+    __tablename__  = 'friendships'
+    __table_args__ = (UniqueConstraint('sender_id', 'receiver_id'),)
+
+    id          = db.Column(db.Integer, primary_key=True)
     sender_id   = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     receiver_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     sender      = db.relationship('User', uselist=False, foreign_keys='Friendship.sender_id')
     receiver    = db.relationship('User', uselist=False, foreign_keys='Friendship.receiver_id')
     valid       = db.Column(db.Boolean, nullable=False, default=False)
 
-    __table_args__ = (UniqueConstraint('sender_id', 'receiver_id'),)
 
     @staticmethod
     def create(sender, receiver):

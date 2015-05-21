@@ -16,27 +16,3 @@ from itsdangerous import (
     BadSignature,
     TimedJSONWebSignatureSerializer as Serializer
 )
-
-
-@as_declarative()
-class Base(object):
-    """
-    Base model. Default columns
-    are a primary key id, created_on,
-    and updated_on columns. Default
-    tablename is set to plural lowercase
-    of the model name.
-    """
-
-    id         = db.Column(db.Integer, primary_key=True)
-    created_on = db.Column(db.DateTime, default=db.func.now())
-    updated_on = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now())
-
-    query = db.session.query_property()
-
-    @declared_attr
-    def __tablename__(cls):
-        return cls.__name__.lower() + 's'
-
-
-Base = declarative_base(cls=Base)

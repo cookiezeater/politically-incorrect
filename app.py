@@ -14,6 +14,11 @@ from flask.ext.migrate import Migrate, MigrateCommand
 
 app.config.from_object(Development)
 
+from models.card import Card
+from models.game import Game
+from models.player import Player
+from models.user import User
+
 migrate = Migrate(app, db)
 manager = Manager(app)
 manager.add_command('db', MigrateCommand)
