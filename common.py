@@ -6,11 +6,6 @@
 
 from flask import Flask
 from flask.ext.sqlalchemy import SQLAlchemy
-from config import (
-    Production,
-    Development,
-    Testing
-)
 
 
 app = Flask(__name__)

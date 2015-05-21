@@ -1,8 +1,7 @@
 import sys
 import json
-from nose.tools import with_setup
+from app import app
 from unittest import TestCase
-from app import app, db
 
 
 class TestUser(TestCase):

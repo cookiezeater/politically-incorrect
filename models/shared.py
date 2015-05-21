@@ -6,11 +6,6 @@ from sqlalchemy import (
     or_,
     and_
 )
-from sqlalchemy.ext.declarative import (
-    declarative_base,
-    as_declarative,
-    declared_attr
-)
 from itsdangerous import (
     SignatureExpired,
     BadSignature,

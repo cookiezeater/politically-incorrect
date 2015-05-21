@@ -7,17 +7,16 @@
 
 from routes import *
 from common import *
-
 from flask.ext.script import Manager
 from flask.ext.migrate import Migrate, MigrateCommand
+from config import (
+    Production,
+    Development,
+    Testing
+)
 
 
 app.config.from_object(Development)
-
-from models.card import Card
-from models.game import Game
-from models.player import Player
-from models.user import User
 
 migrate = Migrate(app, db)
 manager = Manager(app)
