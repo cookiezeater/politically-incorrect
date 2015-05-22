@@ -10,7 +10,7 @@ from flask import jsonify
 
 from common import app, db
 from util import with_content, with_user
-from models import User, Friendship
+from models import User
 
 
 @app.route('/user', methods=['POST'])
@@ -67,7 +67,7 @@ def get_user(content):
             {
                 'id'    : player.game.id,
                 'name'  : player.game.name,
-                'state' : player.game.state,
+                'status': player.game.status,
                 'seen'  : player.seen,
                 'random': player.game.random
             }

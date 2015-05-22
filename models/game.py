@@ -33,6 +33,7 @@ class Game(db.Model):
     max_points     = db.Column(db.Integer, nullable=False)
     max_players    = db.Column(db.Integer, nullable=False)
     status         = db.Column(db.String(7), nullable=False)
+    random         = db.Column(db.Boolean, nullable=False)
     black_card_id  = db.Column(db.Integer, db.ForeignKey('cards.id'))
     black_card     = db.relationship('Card')
     judge_id       = db.Column(db.Integer, db.ForeignKey('players.id'))
@@ -42,13 +43,14 @@ class Game(db.Model):
     used_cards     = db.relationship('Card')
 
     @staticmethod
-    def create(host, name, max_points, max_players, status='PENDING'):
+    def create(host, name, max_points, max_players, random, status='PENDING'):
         """Create an uninitialized (pending) match."""
         game = Game(
-            host=host,
+            host_id=host.id,
             name=name,
             max_points=max_points,
             max_players=max_players,
+            random=random,
             status=status
         )
         db.session.add(game)

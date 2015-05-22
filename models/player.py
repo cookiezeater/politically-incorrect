@@ -24,9 +24,9 @@ class Player(db.Model):
 
     columns
     ~~~~~
-    | status | score | judged |
-    |--------|-------|--------|
-    | str    | int   | int    |
+    | status | score | judged | seen |
+    |--------|-------|--------|------|
+    | str    | int   | int    | bool |
 
     relationships
     ~~~~~
@@ -46,6 +46,7 @@ class Player(db.Model):
     status  = db.Column(db.String(7), nullable=False)
     score   = db.Column(db.Integer, nullable=False)
     judged  = db.Column(db.Integer, nullable=False)
+    seen    = db.Column(db.Boolean, nullable=False, default=False)
     hand    = db.relationship('Card', secondary=hands)
 
     @staticmethod
@@ -72,7 +73,7 @@ class Player(db.Model):
     @staticmethod
     def get(user, game):
         """Returns the player associated with a specific user and game."""
-        return Player.query.filter(user=user, game=game).first()
+        return Player.query.filter_by(user=user, game=game).first()
 
     def delete(self):
         """Deletes a player. Typically used when declining to join a game."""

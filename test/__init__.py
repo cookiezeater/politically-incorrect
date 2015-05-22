@@ -18,7 +18,7 @@ class BaseTest(TestCase):
     def setUp(self):
         self.db    = db
         self.app   = app.test_client()
-        self.oauth = 'ya29.ewFrfj5PwQ37RHbvK971NdfvLWHPCbBdQWytY8iAoAaEeYpouuhksd4IO-gvtz6IbiQx3yqlvK27Dg'
+        self.oauth = 'ya29.ewFVclkECwroWAZpg3g24efb4tBw2cJPmcoZip5TW_NVucXKdnYnZTyo6tN9iOcDygHk1uqX9z0-3A'
 
         app.config.from_object(Testing)
         self.db.create_all()
