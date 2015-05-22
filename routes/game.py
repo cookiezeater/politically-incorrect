@@ -5,7 +5,15 @@
     logic for gameplay.
 """
 
-from routes.shared import *
+from flask import jsonify
+
+from common import app, db
+from util import with_content, with_user
+from models import (
+    Game,
+    Player,
+    User
+)
 
 
 @app.route('/game/create', methods=['POST'])
@@ -30,6 +38,12 @@ def create_game(user, content):
         None
     )
     player.set_status_joined()
+
+    try:
+        db.session.commit()
+    except:
+        db.session.rollback()
+        raise
 
     return jsonify(**{
         'id'         : game.id,
@@ -57,10 +71,16 @@ def invite(id, user, content):
     assert user == game.host
     assert game.status == 'PENDING'
 
-    emails = content['emails']
-    others = User.get(email)
-    player = Player.create_all(others, game)
+    emails  = content['emails']
+    users   = User.get_all(emails)
+    players = Player.create_all(users, game)
     game.invite_all(players)
+
+    try:
+        db.session.commit()
+    except:
+        db.session.rollback()
+        raise
 
     return jsonify()
 
@@ -150,6 +170,7 @@ def get_game(id, user, content):
 @with_user
 @with_content
 def accept_or_decline_game(id, action, user, content):
+    game    = Game.get(id)
     player  = Player.get(user, game)
     started = False
 
@@ -168,6 +189,12 @@ def accept_or_decline_game(id, action, user, content):
 
     else:
         return jsonify(), 404
+
+    try:
+        db.session.commit()
+    except:
+        db.session.rollback()
+        raise
 
     return jsonify(started=started)
 
@@ -215,5 +242,10 @@ def play(id, user, content):
             None
         )
         player.play_card(card)
+
+    try:
+        db.session.commit()
+    except:
+        db.session.rollback()
 
     return jsonify()

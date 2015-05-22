@@ -5,16 +5,12 @@
     Launch point for the server.
 """
 
-from routes import *
-from common import *
 from flask.ext.script import Manager
 from flask.ext.migrate import Migrate, MigrateCommand
-from config import (
-    Production,
-    Development,
-    Testing
-)
 
+from routes import *
+from common import app, db
+from config import Development
 
 app.config.from_object(Development)
 

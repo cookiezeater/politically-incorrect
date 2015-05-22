@@ -6,7 +6,10 @@
     individual games.
 """
 
-from models.shared import *
+from random import choice
+
+from common import db
+from models import Card
 
 
 class Game(db.Model):
@@ -100,9 +103,9 @@ class Game(db.Model):
 
         if any(player.points == self.max_points for player in self.players):
             self.status = 'ENDED'
-            return jsonify()
+            return
 
-        white_cards = Card.get_all(black=false)
+        white_cards = Card.get_all(black=False)
 
         # fill every player's hand
         for player in self.players:
@@ -122,10 +125,10 @@ class Game(db.Model):
         while self.black_card in set(self.used_cards):
             self.black_card = choice(black_cards)
 
-        self.used_cards.append(black_card)
+        self.used_cards.append(self.black_card)
 
-        self.judge = min(players, key=lambda player: player.judged)
-        self.judge.card = black_card
+        self.judge = min(self.players, key=lambda player: player.judged)
+        self.judge.card = self.black_card
         self.judge.judged += 1
 
     def invite_all(self, players):

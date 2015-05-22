@@ -1,26 +1,21 @@
 """
-    routes.shared
+    routes.util
     ~~~~~
-    Contains routes module required imports
-    and convenience decorators.
+    Shared util functions
+    for routes.
 """
 
 from functools import wraps
-from flask import jsonify, request
-from common import app, db
-from models import (
-    Card,
-    Game,
-    Player,
-    User
-)
+from flask import request
+
+from models import User
 
 
 def with_content(func):
     @wraps(func)
     def inner(*args, **kwargs):
         content = request.json
-        return func(content, *args, **kwargs)
+        return func(content=content, *args, **kwargs)
     return inner
 
 
@@ -30,5 +25,5 @@ def with_user(func):
     def inner(content, *args, **kwargs):
         token = content['token']
         user  = User.auth(token)
-        return func(user, *args, **kwargs)
+        return func(user=user, *args, **kwargs)
     return inner

@@ -6,7 +6,6 @@
     in common.py.
 """
 
-
 class Base(object):
     SECRET_KEY = '123456789lol'
 

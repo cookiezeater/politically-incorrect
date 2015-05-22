@@ -1,4 +1,12 @@
-from models.shared import *
+"""
+    models.card
+    ~~~~~
+    A card model. Not
+    much else to say
+    here...
+"""
+
+from common import db
 
 
 class Card(db.Model):

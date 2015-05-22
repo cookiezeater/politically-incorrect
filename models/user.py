@@ -8,7 +8,15 @@
     of the User store.
 """
 
-from models.shared import *
+import requests
+from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
+from sqlalchemy import (
+    UniqueConstraint,
+    or_,
+    and_
+)
+
+from common import app, db
 
 TOKEN_EXPIRATION = 696969696969
 GOOGLE_URL = \
@@ -48,19 +56,24 @@ class User(db.Model):
         """Create and return a new user."""
         response = requests.get(GOOGLE_URL.format(oauth_token))
         content  = response.json()
-        name     = content['given_name'] + ' ' + content['family_name']
-        email    = content['email']
-        picture  = content['picture']
-        user     = User(
-            name=name, email=email, picture=picture, token=User.generate_auth_token(email)
-        )
-        db.session.add(user)
+
+        try:
+            name    = content['given_name'] + ' ' + content['family_name']
+            email   = content['email']
+            picture = content['picture']
+            user    = User(
+                name=name, email=email, picture=picture, token=User.generate_auth_token(email)
+            )
+            db.session.add(user)
+        except:
+            return None
+
         return user
 
     @staticmethod
     def get(email):
         """Get an existing user by email."""
-        return User.query.filter(email=email).first()
+        return User.query.filter_by(email=email).first()
 
     @staticmethod
     def get_all(emails):
@@ -74,17 +87,17 @@ class User(db.Model):
         cereal = Serializer(app.config['SECRET_KEY'])
         try:
             data = cereal.loads(token)
-        except SignatureExpired:
-            # valid but expired token
+            if 'email' not in data or data['email'] is None:
+                return None
+
+        except:
+            response = requests.get(GOOGLE_URL.format(token))
+            data     = response.json()
+
+        if 'email' not in data:
             return None
-        except BadSignature:
-            # invalid token
-            return None
-        except Exception:
-            return None
-        if 'email' not in data or data['email'] is None:
-            return None
-        user = User.query.filter(email=data['email']).first()
+
+        user = User.query.filter_by(email=data['email']).first()
         return user
 
     @staticmethod
@@ -106,18 +119,9 @@ class User(db.Model):
 
         return User.query.like(or_(*or_query)).all()
 
-    def get_friends(self):
+    def get_friendships(self):
         """Returns the valid friends of the user."""
-        friendships = Friendship.get_all_valid(self)
-        friends     = []
-
-        for friendship in friendships:
-            if friendship.sender != self:
-                friends.append(friendship.sender)
-            else:
-                friends.append(friendship.receiver)
-
-        return friends
+        return Friendship.get_all(self)
 
     def add(self, other):
         """Creates a friendship request or validates an existing one."""
@@ -127,11 +131,11 @@ class User(db.Model):
         else:
             Friendship.create(self, other)
 
-    def remove(self, other):
+    def delete(self, other):
         """Sets an friendship to invalid."""
         friendship = Friendship.get(self, other)
         if friendship:
-            friendship.set_valid(False)
+            db.session.delete(friendship)
 
     def __repr__(self):
         return "<user {}>".format(self.email)
@@ -148,7 +152,6 @@ class Friendship(db.Model):
     sender      = db.relationship('User', uselist=False, foreign_keys='Friendship.sender_id')
     receiver    = db.relationship('User', uselist=False, foreign_keys='Friendship.receiver_id')
     valid       = db.Column(db.Boolean, nullable=False, default=False)
-
 
     @staticmethod
     def create(sender, receiver):
@@ -175,10 +178,9 @@ class Friendship(db.Model):
         ).first()
 
     @staticmethod
-    def get_all_valid(user):
-        """Get all of a user's valid friendships."""
+    def get_all(user):
+        """Get all of a user's friendships."""
         return Friendship.query.filter(
-            Friendship.valid == True,
             or_(
                 Friendship.sender == user,
                 Friendship.receiver == user

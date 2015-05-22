@@ -6,7 +6,11 @@
     and friendship management.
 """
 
-from routes.shared import *
+from flask import jsonify
+
+from common import app, db
+from util import with_content, with_user
+from models import User, Friendship
 
 
 @app.route('/user', methods=['POST'])
@@ -14,23 +18,51 @@ from routes.shared import *
 def get_user(content):
     token = content['token']
     user  = User.auth(token)
+    user  = user if user else User.create(token)
 
     if not user:
-        user = User.create(token)
+        return jsonify(), 418
 
-    friends = user.get_friends()
+    try:
+        db.session.commit()
+    except:
+        db.session.rollback()
+        raise
+
+    friendships = user.get_friendships()
+    friends     = []
+
+    for friendship in friendships:
+        friend = \
+            friendship.sender if friendship.sender != user else \
+            friendship.receiver
+
+        if friendship.valid:
+            friends.append({
+                'name'  : friend.name,
+                'email' : friend.email,
+                'status': 'VALID'
+            })
+
+        else:
+            if friend == friendship.sender:
+                friends.append({
+                    'name'  : friend.name,
+                    'email' : friend.email,
+                    'status': 'REQUEST'
+                })
+            else:
+                friends.append({
+                    'name'  : friend.name,
+                    'email' : friend.email,
+                    'status': 'PENDING'
+                })
 
     return jsonify(**{
         'name'   : user.name,
         'email'  : user.email,
         'token'  : user.token,
-        'friends': [
-            {
-                'name' : friend.name,
-                'email': friend.email
-            }
-            for friend in friends
-        ],
+        'friends': friends,
         'games'  : [
             {
                 'id'    : player.game.id,
@@ -44,10 +76,10 @@ def get_user(content):
     })
 
 
-@app.route('/user/friends/<action>', methods=['POST'])
+@app.route('/user/friend/<action>', methods=['POST'])
 @with_user
 @with_content
-def accept_or_decline_friend(user, content):
+def accept_or_decline_friend(action, user, content):
     email = content['email']
     other = User.get(email)
 
@@ -63,10 +95,16 @@ def accept_or_decline_friend(user, content):
     else:
         return jsonify(), 404
 
+    try:
+        db.session.commit()
+    except:
+        db.session.rollback()
+        raise
+
     return jsonify()
 
 
-@app.route('/user/friends/search', methods=['POST'])
+@app.route('/user/friend/search', methods=['POST'])
 @with_user
 @with_content
 def search(user, content):

@@ -1,28 +1,45 @@
-import sys
-import json
-from app import app
-from unittest import TestCase
+"""
+    test.user
+    ~~~~~
+    Tests user routes,
+    including oauth
+    registration and login.
+"""
+
+from test import BaseTest
+from models import User
 
 
-class TestUser(TestCase):
+class TestRegistration(BaseTest):
+    def test_registration(self):
+        content, status = self.post('/user', { 'token': self.oauth })
+
+        self.assertEqual(status, 200)
+        self.assertEqual(content['email'], 'dolphinsandfriends@gmail.com')
+        self.assertNotEqual(content['token'], self.oauth)
+
+    def test_invalid_registration(self):
+        content, status = self.post('/user', { 'token': 'lol' })
+
+        self.assertNotEqual(status, 200)
+
+
+class TestLogin(BaseTest):
     def setUp(self):
-        self.app = app.test_client()
+        super(TestLogin, self).setUp()
+        self.user  = User.create(self.oauth)
+        self.db.session.commit()
 
-    def tearDown(self):
-        pass
+    def test_existing_oauth_login(self):
+        content, status = self.post('/user', { 'token': self.oauth })
 
-    def test_new_registration(self):
-        oauth_token = 'ya29.egEj1mjXGkAtbSnBuRXC7oRJMxaLfs3rQ_y8B-56akWHoP7TdAK3wJbaAG4S0weYWdmz28XbBi46mg'
-        response = self.app.post(
-            '/user', data=json.dumps({ 'token': oauth_token }), headers={ 'content-type': 'application/json' }
-        )
-        content  = json.loads(response.data)
+        self.assertEqual(status, 200)
+        self.assertEqual(content['email'], 'dolphinsandfriends@gmail.com')
+        self.assertNotEqual(content['token'], self.oauth)
 
-        assert content['email'] == 'dolphinsandfriends@gmail.com'
-        assert content['token'] != oauth_token
+    def test_existing_token_login(self):
+        content, status = self.post_as(self.user.token, '/user', {})
 
-    def test_existing_registration(self):
-        pass
-
-    def test_login(self):
-        pass
+        self.assertEqual(status, 200)
+        self.assertEqual(content['email'], 'dolphinsandfriends@gmail.com')
+        self.assertEqual(content['token'], self.user.token)
