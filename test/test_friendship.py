@@ -42,7 +42,7 @@ class TestFriendshipRequest(BaseFriendshipTest):
         content, status = self.post_as(self.bill['token'], '/user', {})
         self.assertEqual(status, 200)
         self.assertEqual(content['friends'][0]['email'], self.steve['email'])
-        self.assertEqual(content['friends'][0]['status'], REQUEST)
+        self.assertEqual(content['friends'][0]['status'], Friendship.REQUEST)
 
 
 class TestFriendshipAcceptReject(BaseFriendshipTest):

@@ -10,7 +10,7 @@ from flask import jsonify
 
 from common import app, db
 from util import with_content, with_user
-from models import User
+from models import User, Friendship
 
 
 @app.route('/user', methods=['POST'])

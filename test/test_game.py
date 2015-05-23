@@ -84,7 +84,7 @@ class TestCreateGame(BaseGameTest):
 
         content, status = self.post_as(self.users['obama']['token'], '/user', {})
         self.assertEqual(len(content['games']), 1)
-        self.assertEqual(content['games'][0]['status'], Player.PENDING)
+        self.assertEqual(content['games'][0]['status'], Game.PENDING)
 
 
 class TestGameAcceptInvite(BaseGameTest):

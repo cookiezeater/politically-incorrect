@@ -9,7 +9,7 @@
 from random import choice
 
 from common import db
-from models import Card
+from models import Card, Player
 
 
 class Game(db.Model):
@@ -45,7 +45,7 @@ class Game(db.Model):
     used_cards     = db.relationship('Card', uselist=True)
 
     @staticmethod
-    def create(host, name, max_points, max_players, random, status=Game.PENDING):
+    def create(host, name, max_points, max_players, random):
         """Create an uninitialized (pending) match."""
         game = Game(
             host_id=host.id,
@@ -53,7 +53,7 @@ class Game(db.Model):
             max_points=max_points,
             max_players=max_players,
             random=random,
-            status=status,
+            status=Game.PENDING,
             previous_round={},
             used_cards=[]
         )
@@ -67,9 +67,9 @@ class Game(db.Model):
 
     def start(self):
         """Begins the game."""
-        self.status = Game.ONGOING
-        [player.delete() for player in self.players if player.status == Game.PENDING]
-        self.players = [player for player in self.players if player.status != Game.PENDING]
+        self.status = self.ONGOING
+        [player.delete() for player in self.players if player.status != Player.JOINED]
+        self.players = [player for player in self.players if player.status == Player.JOINED]
         self.new_round(None)
 
     def new_round(self, winner):
