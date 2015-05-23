@@ -245,9 +245,6 @@ class TestGameAcceptInvite(BaseGameTest):
                 self.users[player]['token'], '/game/{}'.format(self.game['id']), {}
             )
             self.assertEqual(status, 200)
-            print(player)
-            print(content['hand'])
-            print('\n\n\n')
 
             if content['judge']['name'] == self.users[player]['name']:
                 judge = player
@@ -258,6 +255,23 @@ class TestGameAcceptInvite(BaseGameTest):
                     { 'card_id': content['hand'][0]['id'] }
                 )
                 self.assertEqual(status, 200)
+
+        # try to play a card twice in the same round
+        for player in players:
+            content, status = self.post_as(
+                self.users[player]['token'], '/game/{}'.format(self.game['id']), {}
+            )
+            self.assertEqual(status, 200)
+
+            if content['judge']['name'] == self.users[player]['name']:
+                judge = player
+            else:
+                content, status = self.post_as(
+                    self.users[player]['token'],
+                    '/game/{}/play'.format(self.game['id']),
+                    { 'card_id': content['hand'][0]['id'] }
+                )
+                self.assertEqual(status, 418)
 
         # judge chooses winner
 
