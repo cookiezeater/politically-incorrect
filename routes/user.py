@@ -41,7 +41,7 @@ def get_user(content):
             friends.append({
                 'name'  : friend.name,
                 'email' : friend.email,
-                'status': 'VALID'
+                'status': Friendship.VALID
             })
 
         else:
@@ -49,13 +49,13 @@ def get_user(content):
                 friends.append({
                     'name'  : friend.name,
                     'email' : friend.email,
-                    'status': 'REQUEST'
+                    'status': Friendship.REQUEST
                 })
             else:
                 friends.append({
                     'name'  : friend.name,
                     'email' : friend.email,
-                    'status': 'PENDING'
+                    'status': Friendship.PENDING
                 })
 
     return jsonify(**{

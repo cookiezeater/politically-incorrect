@@ -25,14 +25,16 @@ class Game(db.Model):
 
     __tablename__ = 'games'
 
-    STATUSES = ('PENDING', 'ONGOING', 'ENDED')
+    ONGOING = 0
+    PENDING = 1
+    ENDED   = 2
 
     id             = db.Column(db.Integer, primary_key=True)
     host_id        = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     name           = db.Column(db.String(80), nullable=False)
     max_points     = db.Column(db.Integer, nullable=False)
     max_players    = db.Column(db.Integer, nullable=False)
-    status         = db.Column(db.String(7), nullable=False)
+    status         = db.Column(db.Integer, nullable=False)
     random         = db.Column(db.Boolean, nullable=False)
     black_card_id  = db.Column(db.Integer, db.ForeignKey('cards.id'))
     black_card     = db.relationship('Card')
@@ -43,7 +45,7 @@ class Game(db.Model):
     used_cards     = db.relationship('Card', uselist=True)
 
     @staticmethod
-    def create(host, name, max_points, max_players, random, status='PENDING'):
+    def create(host, name, max_points, max_players, random, status=Game.PENDING):
         """Create an uninitialized (pending) match."""
         game = Game(
             host_id=host.id,
@@ -65,9 +67,9 @@ class Game(db.Model):
 
     def start(self):
         """Begins the game."""
-        self.status = 'ONGOING'
-        [player.delete() for player in self.players if player.status == 'PENDING']
-        self.players = [player for player in self.players if player.status != 'PENDING']
+        self.status = Game.ONGOING
+        [player.delete() for player in self.players if player.status == Game.PENDING]
+        self.players = [player for player in self.players if player.status != Game.PENDING]
         self.new_round(None)
 
     def new_round(self, winner):
@@ -114,7 +116,7 @@ class Game(db.Model):
         self.winner = None
 
         if any(player.score == self.max_points for player in self.players):
-            self.status = 'ENDED'
+            self.status = Game.ENDED
             return
 
         white_cards = Card.get_all(black=False)

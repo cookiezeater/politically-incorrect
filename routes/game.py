@@ -70,7 +70,7 @@ def invite(id, user, content):
     """Invites a list of users."""
     game = Game.get(id)
     assert user == game.host
-    assert game.status == 'PENDING'
+    assert game.status == Game.PENDING
 
     emails  = content['emails']
     users   = User.get_all(emails)
@@ -94,7 +94,7 @@ def get_game(id, user, content):
     player = Player.get(user, game)
     assert player in game.players
 
-    if game.status == 'PENDING':
+    if game.status == Game.PENDING:
         return jsonify(**{
             'id'         : game.id,
             'host'       : {
@@ -115,7 +115,7 @@ def get_game(id, user, content):
             ]
         })
 
-    elif game.status == 'ONGOING':
+    elif game.status == Game.ONGOING:
         return jsonify(**{
             'id'         : game.id,
             'host'       : {
@@ -167,7 +167,7 @@ def get_game(id, user, content):
         })
 
     # TODO
-    # elif game.status == 'ENDED':
+    # elif game.status == Game.ENDED:
 
     return jsonify(), 404
 
