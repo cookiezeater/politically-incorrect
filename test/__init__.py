@@ -18,7 +18,7 @@ class BaseTest(TestCase):
     def setUp(self):
         self.db    = db
         self.app   = app.test_client()
-        self.oauth = 'ya29.ewFVclkECwroWAZpg3g24efb4tBw2cJPmcoZip5TW_NVucXKdnYnZTyo6tN9iOcDygHk1uqX9z0-3A'
+        self.oauth = 'ya29.fAH7RL2rvJPMYJ_M5jV2_orF54CozB2XvtJVmuh0hweaZBTMgSl7Lg7DkDNLdUnXExXryjzUijQvtA'
 
         app.config.from_object(Testing)
         self.db.create_all()
@@ -36,8 +36,4 @@ class BaseTest(TestCase):
 
     def post_as(self, token, url, data):
         data['token'] = token
-        data          = json.dumps(data)
-        headers       = { 'content-type': 'application/json' }
-        response      = self.app.post(url, data=data, headers=headers)
-        content       = json.loads(response.data)
-        return content, response.status_code
+        return self.post(url, data)

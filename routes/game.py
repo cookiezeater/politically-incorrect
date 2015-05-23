@@ -179,7 +179,6 @@ def accept_or_decline_game(id, action, user, content):
         player.set_status_joined()
         joined = [player for player in game.players
                          if player.status == 'JOINED']
-        game = Game.get(id)
 
         if len(joined) == game.max_players:
             game.start()

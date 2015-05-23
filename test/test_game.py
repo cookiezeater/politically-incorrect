@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*- 
 """
     test.game
     ~~~~~
@@ -12,6 +13,9 @@ from models import (
     Player,
     User
 )
+
+PENDING = 'PENDING'
+JOINED  = 'JOINED'
 
 
 class BaseGameTest(BaseTest):
@@ -79,4 +83,168 @@ class TestCreateGame(BaseGameTest):
             (player for player in content['players'] if player['name'] == 'barack obama'),
             None
         )
-        self.assertEqual(obama['status'], 'PENDING')
+        self.assertEqual(obama['status'], PENDING)
+
+        content, status = self.post_as(self.users['obama']['token'], '/user', {})
+        self.assertEqual(len(content['games']), 1)
+        self.assertEqual(content['games'][0]['status'], PENDING)
+
+
+class TestGameAcceptInvite(BaseGameTest):
+    def setUp(self):
+        super(TestGameAcceptInvite, self).setUp()
+        invites = ['obama@usa.gov', 'pg@ycombinator.com', 'mark@facebook.com']
+        game    = {
+            'name'       : 'first game ever',
+            'max_points' : 10,
+            'max_players': 5,
+            'random'     : True,
+            'emails'     : invites
+        }
+        content, status = self.post_as(self.users['steve']['token'], '/game/create', game)
+        self.assertEqual(status, 200)
+        self.assertEqual(len(content['players']), len(invites) + 1)
+        self.assertIn('id', content)
+        self.game = content
+
+    def test_send_invite(self):
+        content, status = self.post_as(
+            self.users['steve']['token'], '/game/{}/invite'.format(self.game['id']), { 'emails': ['bill@microsoft.com'] }
+        )
+        self.assertEqual(status, 200)
+
+        content, status = self.post_as(
+            self.users['steve']['token'], '/game/{}'.format(self.game['id']), {}
+        )
+        self.assertEqual(status, 200)
+        self.assertEqual(len(content['players']), 5)
+
+        player_statuses = [player['status'] for player in content['players']]
+        self.assertEqual(player_statuses.count(JOINED), 1)
+        self.assertEqual(player_statuses.count(PENDING), len(player_statuses) - 1)
+
+        content, status = self.post_as(self.users['bill']['token'], '/user', {})
+        self.assertEqual(status, 200)
+        self.assertEqual(len(content['games']), 1)
+
+        content, status = self.post_as(
+            self.users['bill']['token'], '/game/{}'.format(self.game['id']), {}
+        )
+        self.assertEqual(status, 200)
+        self.assertEqual(content['name'], self.game['name'])
+
+    def test_accept_invite(self):
+        content, status = self.post_as(
+            self.users['steve']['token'], '/game/{}/invite'.format(self.game['id']), { 'emails': ['bill@microsoft.com'] }
+        )
+        self.assertEqual(status, 200)
+
+        content, status = self.post_as(
+            self.users['bill']['token'], '/game/{}/add'.format(self.game['id']), {}
+        )
+        self.assertEqual(status, 200)
+        self.assertEqual(content['started'], False)
+
+        content, status = self.post_as(
+            self.users['obama']['token'], '/game/{}/add'.format(self.game['id']), {}
+        )
+        self.assertEqual(status, 200)
+        self.assertEqual(content['started'], False)
+
+        content, status = self.post_as(
+            self.users['steve']['token'], '/game/{}'.format(self.game['id']), {}
+        )
+        self.assertEqual(status, 200)
+
+        player_statuses = [player['status'] for player in content['players']]
+        self.assertEqual(player_statuses.count(JOINED), 3)
+        self.assertEqual(player_statuses.count(PENDING), len(player_statuses) - 3)
+
+        content, status = self.post_as(
+            self.users['bill']['token'], '/game/{}'.format(self.game['id']), {}
+        )
+        self.assertEqual(status, 200)
+
+        player_statuses = [player['status'] for player in content['players']]
+        self.assertEqual(player_statuses.count(JOINED), 3)
+        self.assertEqual(player_statuses.count(PENDING), len(player_statuses) - 3)
+
+
+class TestGameAcceptInvite(BaseGameTest):
+    def setUp(self):
+        super(TestGameAcceptInvite, self).setUp()
+
+        # load cards
+        with open('cards/black.txt') as black, \
+             open('cards/white.txt') as white:
+            black_text = list(set(black.readlines()))
+            white_text = list(set(white.readlines()))
+
+        white_cards = [
+            Card(text=text, answers=0) for text in white_text
+        ]
+        black_cards = [
+            Card(text=text, answers=text.count('████')) for text in black_text
+        ]
+        self.db.session.add_all(white_cards + black_cards)
+        self.db.session.commit()
+
+    def test_full_game(self):
+        # create initial pending game
+        invites = ['obama@usa.gov', 'pg@ycombinator.com', 'mark@facebook.com']
+        game    = {
+            'name'       : 'first game ever',
+            'max_points' : 2,
+            'max_players': 3,
+            'random'     : True,
+            'emails'     : invites
+        }
+        content, status = self.post_as(self.users['steve']['token'], '/game/create', game)
+        self.assertEqual(status, 200)
+        self.assertEqual(len(content['players']), len(invites) + 1)
+        self.assertIn('id', content)
+        self.game = content
+
+        # invite and accept
+        content, status = self.post_as(
+            self.users['steve']['token'], '/game/{}/invite'.format(self.game['id']), { 'emails': ['bill@microsoft.com'] }
+        )
+        self.assertEqual(status, 200)
+
+        content, status = self.post_as(
+            self.users['bill']['token'], '/game/{}/add'.format(self.game['id']), {}
+        )
+        self.assertEqual(status, 200)
+        self.assertEqual(content['started'], False)
+
+        content, status = self.post_as(
+            self.users['obama']['token'], '/game/{}/add'.format(self.game['id']), {}
+        )
+        self.assertEqual(status, 200)
+        self.assertEqual(content['started'], True)
+
+        content, status = self.post_as(
+            self.users['steve']['token'], '/game/{}'.format(self.game['id']), {}
+        )
+        self.assertEqual(status, 200)
+        self.assertEqual(len(content['players']), 3)
+        self.assertEqual(len(content['hand']), 10)
+
+        content, status = self.post_as(
+            self.users['bill']['token'], '/game/{}'.format(self.game['id']), {}
+        )
+        self.assertEqual(status, 200)
+        self.assertEqual(len(content['players']), 3)
+        self.assertEqual(len(content['hand']), 10)
+
+        print(content)
+
+        # non-judge players play their cards
+
+        # judge chooses winner
+
+        # non-judge players play their cards
+
+        # judge chooses winner
+
+        # game ended

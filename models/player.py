@@ -48,6 +48,8 @@ class Player(db.Model):
     judged  = db.Column(db.Integer, nullable=False)
     seen    = db.Column(db.Boolean, nullable=False, default=False)
     hand    = db.relationship('Card', secondary=hands)
+    card_id = db.Column(db.Integer, db.ForeignKey('cards.id'))
+    card    = db.relationship('Card')
 
     @staticmethod
     def create(user, game):
@@ -77,8 +79,7 @@ class Player(db.Model):
 
     def delete(self):
         """Deletes a player. Typically used when declining to join a game."""
-        # TODO
-        pass
+        db.session.delete(self)
 
     def play_card(self, card):
         assert not self.card
@@ -92,3 +93,8 @@ class Player(db.Model):
     def add_points(self, n):
         """Add n points to the player's score."""
         self.points += n
+
+    def __repr__(self):
+        return '<player email={} game={} status={}>'.format(
+            self.user.email, self.game.id, self.status
+        )

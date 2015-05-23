@@ -37,10 +37,10 @@ class Game(db.Model):
     black_card_id  = db.Column(db.Integer, db.ForeignKey('cards.id'))
     black_card     = db.relationship('Card')
     judge_id       = db.Column(db.Integer, db.ForeignKey('players.id'))
-    judge          = db.relationship('Player', foreign_keys='Game.judge_id')
+    judge          = db.relationship('Player', foreign_keys='Game.judge_id', post_update=True)
     players        = db.relationship('Player', backref='game', foreign_keys='Player.game_id')
-    previous_round = db.PickleType()
-    used_cards     = db.relationship('Card')
+    previous_round = db.Column(db.PickleType)
+    used_cards     = db.relationship('Card', uselist=True)
 
     @staticmethod
     def create(host, name, max_points, max_players, random, status='PENDING'):
@@ -51,7 +51,9 @@ class Game(db.Model):
             max_points=max_points,
             max_players=max_players,
             random=random,
-            status=status
+            status=status,
+            previous_round={},
+            used_cards=[]
         )
         db.session.add(game)
         return game
@@ -64,6 +66,8 @@ class Game(db.Model):
     def start(self):
         """Begins the game."""
         self.status = 'ONGOING'
+        [player.delete() for player in self.players if player.status == 'PENDING']
+        self.players = [player for player in self.players if player.status != 'PENDING']
         self.new_round(None)
 
     def new_round(self, winner):
@@ -103,7 +107,7 @@ class Game(db.Model):
 
         self.winner = None
 
-        if any(player.points == self.max_points for player in self.players):
+        if any(player.score == self.max_points for player in self.players):
             self.status = 'ENDED'
             return
 
