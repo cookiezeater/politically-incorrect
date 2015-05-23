@@ -45,12 +45,14 @@ class Player(db.Model):
 
     __tablename__ = 'players'
 
-    STATUSES = ('PENDING', 'JOINED')
+    PENDING  = 0
+    JOINED   = 1
+    REJECTED = 2
 
     id      = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id', name='user_to_player'), nullable=False)
     game_id = db.Column(db.Integer, db.ForeignKey('games.id', name='game_to_player'), nullable=False)
-    status  = db.Column(db.String(7), nullable=False)
+    status  = db.Column(db.Integer, nullable=False)
     score   = db.Column(db.Integer, nullable=False)
     judged  = db.Column(db.Integer, nullable=False)
     seen    = db.Column(db.Boolean, nullable=False, default=False)
@@ -61,7 +63,7 @@ class Player(db.Model):
     def create(user, game):
         """Creates a single uninitialized player."""
         player = Player(
-            user=user, game=game, status='PENDING', score=0, judged=0
+            user=user, game=game, status=Player.PENDING, score=0, judged=0
         )
         db.session.add(player)
         return player
@@ -71,7 +73,7 @@ class Player(db.Model):
         """Creates many players for a given game."""
         players = [
             Player(
-                user=user, game=game, status='PENDING', score=0, judged=0
+                user=user, game=game, status=Player.PENDING, score=0, judged=0
             )
             for user in users
         ]
@@ -94,7 +96,11 @@ class Player(db.Model):
 
     def set_status_joined(self):
         """Change player status to JOINED."""
-        self.status = 'JOINED'
+        self.status = Player.JOINED
+
+    def set_status_denied(self):
+        """Change player status to DENIED."""
+        self.status = Player.DENIED
 
     def add_points(self, n):
         """Add n points to the player's score."""

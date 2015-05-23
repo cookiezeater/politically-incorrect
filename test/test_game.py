@@ -14,9 +14,6 @@ from models import (
     User
 )
 
-PENDING = 'PENDING'
-JOINED  = 'JOINED'
-
 
 class BaseGameTest(BaseTest):
     def setUp(self):
@@ -83,11 +80,11 @@ class TestCreateGame(BaseGameTest):
             (player for player in content['players'] if player['name'] == 'barack obama'),
             None
         )
-        self.assertEqual(obama['status'], PENDING)
+        self.assertEqual(obama['status'], Player.PENDING)
 
         content, status = self.post_as(self.users['obama']['token'], '/user', {})
         self.assertEqual(len(content['games']), 1)
-        self.assertEqual(content['games'][0]['status'], PENDING)
+        self.assertEqual(content['games'][0]['status'], Player.PENDING)
 
 
 class TestGameAcceptInvite(BaseGameTest):
@@ -120,8 +117,8 @@ class TestGameAcceptInvite(BaseGameTest):
         self.assertEqual(len(content['players']), 5)
 
         player_statuses = [player['status'] for player in content['players']]
-        self.assertEqual(player_statuses.count(JOINED), 1)
-        self.assertEqual(player_statuses.count(PENDING), len(player_statuses) - 1)
+        self.assertEqual(player_statuses.count(Player.JOINED), 1)
+        self.assertEqual(player_statuses.count(Player.PENDING), len(player_statuses) - 1)
 
         content, status = self.post_as(self.users['bill']['token'], '/user', {})
         self.assertEqual(status, 200)
@@ -157,8 +154,8 @@ class TestGameAcceptInvite(BaseGameTest):
         self.assertEqual(status, 200)
 
         player_statuses = [player['status'] for player in content['players']]
-        self.assertEqual(player_statuses.count(JOINED), 3)
-        self.assertEqual(player_statuses.count(PENDING), len(player_statuses) - 3)
+        self.assertEqual(player_statuses.count(Player.JOINED), 3)
+        self.assertEqual(player_statuses.count(Player.PENDING), len(player_statuses) - 3)
 
         content, status = self.post_as(
             self.users['bill']['token'], '/game/{}'.format(self.game['id']), {}
@@ -166,8 +163,8 @@ class TestGameAcceptInvite(BaseGameTest):
         self.assertEqual(status, 200)
 
         player_statuses = [player['status'] for player in content['players']]
-        self.assertEqual(player_statuses.count(JOINED), 3)
-        self.assertEqual(player_statuses.count(PENDING), len(player_statuses) - 3)
+        self.assertEqual(player_statuses.count(Player.JOINED), 3)
+        self.assertEqual(player_statuses.count(Player.PENDING), len(player_statuses) - 3)
 
 
 class TestGameAcceptInvite(BaseGameTest):

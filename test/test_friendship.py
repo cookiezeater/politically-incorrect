@@ -7,10 +7,6 @@
 from test import BaseTest
 from models import User, Friendship
 
-PENDING = 'PENDING'
-REQUEST = 'REQUEST'
-VALID   = 'VALID'
-
 
 class BaseFriendshipTest(BaseTest):
     def setUp(self):
@@ -41,7 +37,7 @@ class TestFriendshipRequest(BaseFriendshipTest):
         content, status = self.post_as(self.steve['token'], '/user', {})
         self.assertEqual(status, 200)
         self.assertEqual(content['friends'][0]['email'], self.bill['email'])
-        self.assertEqual(content['friends'][0]['status'], PENDING)
+        self.assertEqual(content['friends'][0]['status'], Friendship.PENDING)
 
         content, status = self.post_as(self.bill['token'], '/user', {})
         self.assertEqual(status, 200)
@@ -65,12 +61,12 @@ class TestFriendshipAcceptReject(BaseFriendshipTest):
         content, status = self.post_as(self.steve['token'], '/user', {})
         self.assertEqual(status, 200)
         self.assertEqual(content['friends'][0]['email'], self.bill['email'])
-        self.assertEqual(content['friends'][0]['status'], VALID)
+        self.assertEqual(content['friends'][0]['status'], Friendship.VALID)
 
         content, status = self.post_as(self.bill['token'], '/user', {})
         self.assertEqual(status, 200)
         self.assertEqual(content['friends'][0]['email'], self.steve['email'])
-        self.assertEqual(content['friends'][0]['status'], VALID)
+        self.assertEqual(content['friends'][0]['status'], Friendship.VALID)
 
     def test_reject_friend(self):
         content, status = self.post_as(

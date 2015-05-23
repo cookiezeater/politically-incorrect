@@ -92,7 +92,7 @@ def invite(id, user, content):
 def get_game(id, user, content):
     game   = Game.get(id)
     player = Player.get(user, game)
-    assert player in game.players
+    assert player in [p for p in game.players if p.status != Player.REJECTED]
 
     if game.status == Game.PENDING:
         return jsonify(**{
@@ -183,14 +183,14 @@ def accept_or_decline_game(id, action, user, content):
     if action == 'add':
         player.set_status_joined()
         joined = [player for player in game.players
-                         if player.status == 'JOINED']
+                         if player.status == Player.JOINED]
 
         if len(joined) == game.max_players:
             game.start()
             started = True
 
     elif action == 'delete':
-        player.delete()
+        player.set_status_denied()
 
     else:
         return jsonify(), 404
