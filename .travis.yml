@@ -2,8 +2,6 @@ language: python
 python:
   - "2.7"
 install: "pip install -r requirements.txt"
-env:
-  - APP_SETTINGS=config.TestingConfig DATABASE_URL=postgresql://localhost/fah_test
 before_script:
-  - psql -c "create database fah_test;" -U postgres
-script: nosetests test/*
+  - psql -c "create database politically-incorrect-db;" -U postgres
+script: nosetests
