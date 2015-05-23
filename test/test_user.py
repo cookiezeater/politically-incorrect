@@ -27,7 +27,7 @@ class TestRegistration(BaseTest):
 class TestLogin(BaseTest):
     def setUp(self):
         super(TestLogin, self).setUp()
-        self.user  = User.create(self.oauth)
+        self.user = User.create(self.oauth)
         self.db.session.commit()
 
     def test_existing_oauth_login(self):

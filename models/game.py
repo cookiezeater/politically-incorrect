@@ -97,11 +97,17 @@ class Game(db.Model):
                 },
                 'table'     : [
                     {
-                        'email': player.user.email,
-                        'text' : player.card.text
+                        'email' : player.user.email,
+                        'played': [
+                            {
+                                'id'  : card.id,
+                                'text': card.text
+                            }
+                            for card in player.played
+                        ]
                     }
                     for player in self.players
-                    if player.card and player.card.answers == 0
+                    if player.hand and all(card.answers == 0 for card in player.hand)
                 ]
             }
 
@@ -113,8 +119,10 @@ class Game(db.Model):
 
         white_cards = Card.get_all(black=False)
 
-        # fill every player's hand
+        # fill every player's hand and remove their played card
         for player in self.players:
+            player.played = []
+
             while len(player.hand) < 10:
                 white_card = choice(white_cards)
 
@@ -134,7 +142,7 @@ class Game(db.Model):
         self.used_cards.append(self.black_card)
 
         self.judge = min(self.players, key=lambda player: player.judged)
-        self.judge.card = self.black_card
+        self.judge.played = [self.black_card]
         self.judge.judged += 1
 
     def invite_all(self, players):

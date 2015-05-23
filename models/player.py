@@ -15,6 +15,13 @@ hands = db.Table(
     db.Column('card', db.Integer, db.ForeignKey('cards.id'))
 )
 
+played = db.Table(
+    'played',
+    db.Model.metadata,
+    db.Column('player', db.Integer, db.ForeignKey('players.id')),
+    db.Column('card', db.Integer, db.ForeignKey('cards.id'))
+)
+
 
 class Player(db.Model):
     """
@@ -48,8 +55,7 @@ class Player(db.Model):
     judged  = db.Column(db.Integer, nullable=False)
     seen    = db.Column(db.Boolean, nullable=False, default=False)
     hand    = db.relationship('Card', secondary=hands)
-    card_id = db.Column(db.Integer, db.ForeignKey('cards.id'))
-    card    = db.relationship('Card')
+    played  = db.relationship('Card', secondary=played)
 
     @staticmethod
     def create(user, game):
@@ -81,10 +87,10 @@ class Player(db.Model):
         """Deletes a player. Typically used when declining to join a game."""
         db.session.delete(self)
 
-    def play_card(self, card):
-        assert not self.card
-        self.card = card
-        self.hand.remove(card)
+    def play_cards(self, cards):
+        assert not self.played
+        self.played = cards
+        [self.hand.remove(card) for card in cards]
 
     def set_status_joined(self):
         """Change player status to JOINED."""
@@ -92,7 +98,7 @@ class Player(db.Model):
 
     def add_points(self, n):
         """Add n points to the player's score."""
-        self.points += n
+        self.score += n
 
     def __repr__(self):
         return '<player email={} game={} status={}>'.format(

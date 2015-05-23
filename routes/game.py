@@ -133,11 +133,16 @@ def get_game(id, user, content):
             'table'      : [
                 {
                     'email': p.user.email,
-                    'id'   : p.card.id,
-                    'text' : p.card.text
+                    'cards': [
+                        {
+                            'id'  : card.id,
+                            'text': card.text
+                        }
+                        for card in p.played
+                    ]
                 }
                 for p in game.players
-                if p.card and p.card.answers == 0
+                if p.played and all(card.answers == 0 for card in p.played)
             ],
             'hand'       : [
                 {
@@ -233,15 +238,15 @@ def play(id, user, content):
     else:
         player = Player.get(user, game)
 
-        if player.card:
+        if player.played:
             return jsonify(), 418
 
-        card_id = content['card_id']
-        card    = next(
-            (card for card in player.hand if card.id == card_id),
-            None
-        )
-        player.play_card(card)
+        cards = content['cards']
+        map   = {card.id: card for card in player.hand}
+        cards = [map[id] for id in cards]
+        assert len(cards) == game.black_card.answers
+
+        player.play_cards(cards)
 
     try:
         db.session.commit()

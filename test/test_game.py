@@ -237,9 +237,9 @@ class TestGameAcceptInvite(BaseGameTest):
         self.assertEqual(len(content['players']), 3)
         self.assertEqual(len(content['hand']), 10)
 
-        # non-judge players play their cards
         players = ['steve', 'bill', 'obama']
 
+        # non-judge players play their cards
         for player in players:
             content, status = self.post_as(
                 self.users[player]['token'], '/game/{}'.format(self.game['id']), {}
@@ -252,9 +252,16 @@ class TestGameAcceptInvite(BaseGameTest):
                 content, status = self.post_as(
                     self.users[player]['token'],
                     '/game/{}/play'.format(self.game['id']),
-                    { 'card_id': content['hand'][0]['id'] }
+                    { 'cards': [content['hand'][0]['id']] }
                 )
                 self.assertEqual(status, 200)
+
+        # table is now filled up
+        content, status = self.post_as(
+            self.users[player]['token'], '/game/{}'.format(self.game['id']), {}
+        )
+        self.assertEqual(status, 200)
+        self.assertEqual(len(content['table']), 2)
 
         # try to play a card twice in the same round
         for player in players:
@@ -269,14 +276,66 @@ class TestGameAcceptInvite(BaseGameTest):
                 content, status = self.post_as(
                     self.users[player]['token'],
                     '/game/{}/play'.format(self.game['id']),
-                    { 'card_id': content['hand'][0]['id'] }
+                    { 'cards': [content['hand'][0]['id']] }
                 )
                 self.assertEqual(status, 418)
 
         # judge chooses winner
+        winner = next(
+            (player for player in players if player != judge),
+            None
+        )
+        content, status = self.post_as(
+            self.users[judge]['token'],
+            '/game/{}/play'.format(self.game['id']),
+            { 'email': self.users[winner]['email'] }
+        )
+        self.assertEqual(status, 200)
+
+        # check previous round
+        content, status = self.post_as(
+            self.users[player]['token'], '/game/{}'.format(self.game['id']), {}
+        )
+        self.assertEqual(status, 200)
+        self.assertEqual(len(content['table']), 0)
+
+        # new round begins, check for new judge
+        content, status = self.post_as(
+            self.users[players[0]]['token'],
+            '/game/{}'.format(self.game['id']),
+            {}
+        )
+        self.assertNotEqual(judge, content['judge']['name'].split(' ')[0])
+        self.assertIn(content['judge']['name'].split(' ')[0], players)
+        judge = content['judge']['name'].split(' ')[0]
 
         # non-judge players play their cards
+        for player in players:
+            content, status = self.post_as(
+                self.users[player]['token'], '/game/{}'.format(self.game['id']), {}
+            )
+            self.assertEqual(status, 200)
+
+            if content['judge']['name'] == self.users[player]['name']:
+                judge = player
+            else:
+                content, status = self.post_as(
+                    self.users[player]['token'],
+                    '/game/{}/play'.format(self.game['id']),
+                    { 'cards': [content['hand'][0]['id']] }
+                )
+                self.assertEqual(status, 200)
 
         # judge chooses winner
+        winner = next(
+            (player for player in players if player != judge),
+            None
+        )
+        content, status = self.post_as(
+            self.users[judge]['token'],
+            '/game/{}/play'.format(self.game['id']),
+            { 'email': self.users[winner]['email'] }
+        )
+        self.assertEqual(status, 200)
 
         # game ended
