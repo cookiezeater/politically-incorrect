@@ -132,12 +132,12 @@ def get_game(id, user, content):
             },
             'table'      : [
                 {
-                    'email': player.user.email,
-                    'id'   : player.card.id,
-                    'text' : player.card.text
+                    'email': p.user.email,
+                    'id'   : p.card.id,
+                    'text' : p.card.text
                 }
-                for player in game.players
-                if player.card and player.card.answers == 0
+                for p in game.players
+                if p.card and p.card.answers == 0
             ],
             'hand'       : [
                 {
@@ -233,7 +233,7 @@ def play(id, user, content):
     else:
         player = Player.get(user, game)
 
-        if not player.card:
+        if player.card:
             return jsonify(), 418
 
         card_id = content['card_id']

@@ -237,9 +237,27 @@ class TestGameAcceptInvite(BaseGameTest):
         self.assertEqual(len(content['players']), 3)
         self.assertEqual(len(content['hand']), 10)
 
-        print(content)
-
         # non-judge players play their cards
+        players = ['steve', 'bill', 'obama']
+
+        for player in players:
+            content, status = self.post_as(
+                self.users[player]['token'], '/game/{}'.format(self.game['id']), {}
+            )
+            self.assertEqual(status, 200)
+            print(player)
+            print(content['hand'])
+            print('\n\n\n')
+
+            if content['judge']['name'] == self.users[player]['name']:
+                judge = player
+            else:
+                content, status = self.post_as(
+                    self.users[player]['token'],
+                    '/game/{}/play'.format(self.game['id']),
+                    { 'card_id': content['hand'][0]['id'] }
+                )
+                self.assertEqual(status, 200)
 
         # judge chooses winner
 

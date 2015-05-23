@@ -9,16 +9,18 @@
 """
 
 import json
+from unittest import TestCase
+
 from common import app, db
 from config import Testing
-from unittest import TestCase
 
 
 class BaseTest(TestCase):
     def setUp(self):
         self.db    = db
         self.app   = app.test_client()
-        self.oauth = 'ya29.fAH7RL2rvJPMYJ_M5jV2_orF54CozB2XvtJVmuh0hweaZBTMgSl7Lg7DkDNLdUnXExXryjzUijQvtA'
+        self.oauth = \
+            'ya29.fAH7RL2rvJPMYJ_M5jV2_orF54CozB2XvtJVmuh0hweaZBTMgSl7Lg7DkDNLdUnXExXryjzUijQvtA'
 
         app.config.from_object(Testing)
         self.db.create_all()

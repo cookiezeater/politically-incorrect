@@ -26,6 +26,6 @@ class Card(db.Model):
         return Card.query.filter(query).all()
 
     def __repr__(self):
-        return '<card id={} text={} answers={}>'.format(
-            self.id, self.text, self.answers
+        return '<card id={} answers={}>'.format(
+            self.id, self.answers
         )
