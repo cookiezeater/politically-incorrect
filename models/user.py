@@ -117,7 +117,7 @@ class User(db.Model):
             or_query.append(User.name.ilike(like))
             or_query.append(User.email.ilike(like))
 
-        return User.query.like(or_(*or_query)).all()
+        return User.query.filter(or_(*or_query)).all()
 
     def get_friendships(self):
         """Returns the valid friends of the user."""

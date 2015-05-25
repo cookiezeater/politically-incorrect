@@ -20,7 +20,7 @@ class BaseTest(TestCase):
         self.db    = db
         self.app   = app.test_client()
         self.oauth = \
-            'ya29.fAHjqCqBy8DaddoEuLv1ukK5EenKWXns0Nc61cgAGhptnIE8TLoDciqQcVdBKtyV_EaqRwTWh-1ong'
+            'ya29.fgG9ipDtpHouPIXm-gqpmg3Ga39mY1jH9tnpWo2gD3luZVCI9ahTu5eGifaGH_rEu-3ivcLn7MPKhA'
 
         app.config.from_object(Testing)
         self.db.create_all()

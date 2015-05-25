@@ -27,6 +27,15 @@ class BaseFriendshipTest(BaseTest):
         self.db.session.commit()
 
 
+class TestFriendshipSearch(BaseFriendshipTest):
+    def test_search(self):
+        content, status = self.post_as(
+            self.steve['token'], '/user/friend/search', { 'query': 'bill' }
+        )
+        self.assertEqual(status, 200)
+        self.assertEqual(content['results'][0]['name'], self.bill['name'])
+
+
 class TestFriendshipRequest(BaseFriendshipTest):
     def test_add_friend(self):
         content, status = self.post_as(

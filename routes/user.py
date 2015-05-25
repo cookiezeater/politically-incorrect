@@ -65,11 +65,12 @@ def get_user(content):
         'friends': friends,
         'games'  : [
             {
-                'id'    : player.game.id,
-                'name'  : player.game.name,
-                'status': player.game.status,
-                'seen'  : player.seen,
-                'random': player.game.random
+                'id'         : player.game.id,
+                'name'       : player.game.name,
+                'description': player.game.get_description(),
+                'status'     : player.game.status,
+                'seen'       : player.seen,
+                'random'     : player.game.random
             }
             for player in user.players
         ]
@@ -111,7 +112,7 @@ def search(user, content):
     query  = content['query']
     result = User.search(query)
 
-    return jsonify(result=[
+    return jsonify(results=[
         {
             'name' : user.name,
             'email': user.email

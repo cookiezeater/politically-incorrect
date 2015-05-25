@@ -151,6 +151,20 @@ class Game(db.Model):
         """Invites a list of players to this game."""
         self.players += players
 
+    def get_description(self):
+        others = sorted(self.players, key=lambda p: p.user.name)
+        names  = [player.user.name.split(' ')[0] for player in others]
+        count  = len(self.players)
+
+        if count == 1:
+            return 'You\'re the only one in this game.'
+        elif count <= 3:
+            return 'There are {} people in this game.'.format(count)
+
+        return '{}, {}, and {} others...'.format(
+            names[0], names[1], count - 2
+        )
+
     def __repr__(self):
         return '<game id={} players={}>'.format(
             self.id, [player.user.id for player in self.players]
