@@ -109,13 +109,19 @@ def accept_or_decline_friend(action, user, content):
 @with_user
 @with_content
 def search(user, content):
-    query  = content['query']
-    result = User.search(query)
+    query   = content['query']
+    results = User.search(query)
+
+    friendships = user.get_friendships()
+    friends  = set(friendship.sender for friendship in friendships)
+    friends |= set(friendship.receiver for friendship in friendships)
+
+    results = [result for result in results if result not in friends]
 
     return jsonify(results=[
         {
             'name' : user.name,
             'email': user.email
         }
-        for user in result
+        for user in results
     ])
