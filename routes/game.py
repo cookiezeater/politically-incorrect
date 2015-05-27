@@ -127,6 +127,7 @@ def get_game(id, user, content):
             'max_players': game.max_players,
             'status'     : game.status,
             'black_card' : {
+                'id'     : game.black_card.id,
                 'text'   : game.black_card.text,
                 'answers': game.black_card.answers
             },
