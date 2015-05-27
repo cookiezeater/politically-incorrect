@@ -65,12 +65,13 @@ def get_user(content):
         'friends': friends,
         'games'  : [
             {
-                'id'         : player.game.id,
-                'name'       : player.game.name,
-                'description': player.game.get_description(),
-                'status'     : player.game.status,
-                'seen'       : player.seen,
-                'random'     : player.game.random
+                'id'           : player.game.id,
+                'name'         : player.game.name,
+                'description'  : player.game.get_description(),
+                'status'       : player.game.status,
+                'player_status': player.status,
+                'seen'         : player.seen,
+                'random'       : player.game.random
             }
             for player in user.players
         ]

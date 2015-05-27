@@ -33,7 +33,7 @@ class Player(db.Model):
     ~~~~~
     | status | score | judged | seen |
     |--------|-------|--------|------|
-    | str    | int   | int    | bool |
+    | enum   | int   | int    | bool |
 
     relationships
     ~~~~~
