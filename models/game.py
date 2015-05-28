@@ -94,6 +94,7 @@ class Game(db.Model):
                     'email': winner.user.email
                 },
                 'black_card': {
+                    'id'     : self.black_card.id,
                     'text'   : self.black_card.text,
                     'answers': self.black_card.answers
                 },

@@ -109,7 +109,8 @@ def get_game(id, user, content):
                 {
                     'name'  : player.user.name,
                     'email' : player.user.email,
-                    'status': player.status
+                    'status': player.status,
+                    'points': 0
                 }
                 for player in game.players
             ]
@@ -160,8 +161,8 @@ def get_game(id, user, content):
                 {
                     'name'  : player.user.name,
                     'email' : player.user.email,
-                    'points': player.score,
-                    'status': player.status
+                    'status': player.status,
+                    'points': player.score
                 }
                 for player in game.players
             ],
