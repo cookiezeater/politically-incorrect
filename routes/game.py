@@ -117,6 +117,15 @@ def get_game(id, user, content):
         })
 
     elif game.status == Game.ONGOING:
+        if not player.seen:
+            player.seen = True
+
+            try:
+                db.session.commit()
+            except:
+                db.session.rollback()
+                raise
+
         return jsonify(**{
             'id'         : game.id,
             'host'       : {
@@ -228,7 +237,8 @@ def play(id, user, content):
         })
     """
 
-    game = Game.get(id)
+    game   = Game.get(id)
+    player = Player.get(user, game)
 
     if user == game.judge.user:
         email  = content['email']
@@ -240,7 +250,6 @@ def play(id, user, content):
         game.new_round(winner)
 
     else:
-        player = Player.get(user, game)
 
         if player.played:
             return jsonify(), 418
@@ -251,6 +260,11 @@ def play(id, user, content):
         assert len(cards) == game.black_card.answers
 
         player.play_cards(cards)
+
+    for p in game.players:
+        p.seen = False
+
+    player.seen = True
 
     try:
         db.session.commit()

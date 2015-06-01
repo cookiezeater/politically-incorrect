@@ -14,13 +14,21 @@ from models import Card, Player
 
 class Game(db.Model):
     """
-
+    The game model.
 
     columns
     ~~~~~
+    | name | max_points | max_players | status | random | previous_round |
+    |------|------------|-------------|--------|--------|----------------|
+    | str  | int        | int         | enum   | bool   | pickle         |
 
     relationships
     ~~~~~
+    host      : user    -> game
+    black_card: card    -> game
+    judge     : player  -> game
+    players   : player <-  game
+    used_cards: card   <-> game
     """
 
     __tablename__ = 'games'

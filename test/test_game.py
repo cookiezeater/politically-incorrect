@@ -303,7 +303,7 @@ class TestGameAcceptInvite(BaseGameTest):
             {}
         )
         self.assertNotEqual(judge, content['judge']['name'].split(' ')[0])
-        self.assertIn(content['judge']['name'].split(' ')[0], players)
+        self.assertIn(content['judge']['name'].split(' ')[1], players)
         judge = content['judge']['name'].split(' ')[0]
 
         # non-judge players play their cards
