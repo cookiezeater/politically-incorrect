@@ -38,8 +38,15 @@ class TestLogin(BaseTest):
         self.assertNotEqual(content['token'], self.oauth)
 
     def test_existing_token_login(self):
-        content, status = self.post_as(self.user.token, '/user', {})
+        content, status = self.post('/user', { 'token': self.oauth })
 
         self.assertEqual(status, 200)
         self.assertEqual(content['email'], 'dolphinsandfriends@gmail.com')
-        self.assertEqual(content['token'], self.user.token)
+        self.assertNotEqual(content['token'], self.oauth)
+
+        token = content['token']
+        content, status = self.post_as(token, '/user', {})
+
+        self.assertEqual(status, 200)
+        self.assertEqual(content['email'], 'dolphinsandfriends@gmail.com')
+        self.assertEqual(content['token'], token)

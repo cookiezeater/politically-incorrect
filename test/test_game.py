@@ -47,7 +47,8 @@ class BaseGameTest(BaseTest):
         }
 
         for name, user in self.users.items():
-            self.users[name]['token'] = User.generate_auth_token(self.users[name]['email'])
+            self.users[name]['token']      = User.generate_auth_token(self.users[name]['email'])
+            self.users[name]['num_random'] = 0
 
         self.db.session.add_all([User(**user) for name, user in self.users.items()])
         self.db.session.commit()
@@ -85,6 +86,52 @@ class TestCreateGame(BaseGameTest):
         content, status = self.post_as(self.users['obama']['token'], '/user', {})
         self.assertEqual(len(content['games']), 1)
         self.assertEqual(content['games'][0]['status'], Game.PENDING)
+
+
+class TestGameRandom(BaseGameTest):
+    def setUp(self):
+        super(TestGameRandom, self).setUp()
+
+        # load cards
+        with open('cards/black.txt') as black, \
+             open('cards/white.txt') as white:
+            black_text = list(set(black.readlines()))
+            white_text = list(set(white.readlines()))
+
+        white_cards = [
+            Card(text=text, answers=0) for text in white_text
+        ]
+        black_cards = [
+            Card(text=text, answers=text.count('████')) for text in black_text
+        ]
+        self.db.session.add_all(white_cards + black_cards)
+        self.db.session.commit()
+
+    def test_join_random_game(self):
+        invites = ['obama@usa.gov', 'pg@ycombinator.com']
+        game    = {
+            'name'       : 'first game ever',
+            'max_points' : 10,
+            'max_players': 3,
+            'random'     : True,
+            'emails'     : invites
+        }
+        content, status = self.post_as(self.users['steve']['token'], '/game/create', game)
+        self.assertEqual(status, 200)
+        self.assertEqual(len(content['players']), len(invites) + 1)
+        self.assertIn('id', content)
+
+        id = content['id']
+
+        content, status = self.post_as(self.users['obama']['token'], '/game/{}/add'.format(id), {})
+        self.assertEqual(status, 200)
+
+        content, status = self.post_as(self.users['mark']['token'], '/game/random', {})
+        self.assertEqual(content['success'], True)
+
+        content, status = self.post_as(self.users['obama']['token'], '/game/{}'.format(id), {})
+        self.assertEqual(status, 200)
+        self.assertEqual(content['status'], Game.ONGOING)
 
 
 class TestGameAcceptInvite(BaseGameTest):

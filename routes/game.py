@@ -32,7 +32,7 @@ def create_game(user, content):
     )
     users   = User.get_all(emails) + [user]
     players = Player.create_all(users, game)
-    game.invite_all(players)
+#    game.invite_all(players)
 
     player = next(
         (player for player in players if player.user == user),
@@ -185,6 +185,42 @@ def get_game(id, user, content):
     return jsonify(), 404
 
 
+@app.route('/game/random', methods=['POST'])
+@with_user
+def join_random(user):
+    if user.num_random > 4:
+        return jsonify(success=False)
+
+    games = Game.query.filter(
+        Game.random == True,  # this is not a mistake
+        Game.status == Game.PENDING,
+        ~Game.players.any(Player.user_id == user.id)
+    ).all()
+    game = max(
+        games,
+        key=lambda g: len([p for p in g.players if p.status == Player.JOINED])
+    )
+
+    player = Player.create(user, game)
+#    game.invite(player)
+    player.set_status_joined()
+    user.num_random += 1
+
+    joined = [p for p in game.players
+                if p.status == Player.JOINED]
+
+    if len(joined) == game.max_players:
+        game.start()
+
+    try:
+        db.session.commit()
+    except:
+        db.session.rollback()
+        raise
+
+    return jsonify(success=True)
+
+
 @app.route('/game/<int:id>/<action>', methods=['POST'])
 @with_user
 @with_content
@@ -195,8 +231,8 @@ def accept_or_decline_game(id, action, user, content):
 
     if action == 'add':
         player.set_status_joined()
-        joined = [player for player in game.players
-                         if player.status == Player.JOINED]
+        joined = [p for p in game.players
+                    if p.status == Player.JOINED]
 
         if len(joined) == game.max_players:
             game.start()

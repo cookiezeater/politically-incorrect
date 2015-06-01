@@ -161,6 +161,10 @@ class Game(db.Model):
         """Invites a list of players to this game."""
         self.players += players
 
+    def invite(self, player):
+        """Invites a single player to this game."""
+        self.players.append(player)
+
     def get_description(self):
         others = sorted(self.players, key=lambda p: p.user.name)
         names  = [player.user.name.split(' ')[0] for player in others]

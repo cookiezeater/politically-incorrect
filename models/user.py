@@ -31,9 +31,9 @@ class User(db.Model):
 
     columns
     ~~~~~
-    | name | email | picture | token |
-    |------|-------|---------|-------|
-    | str  | str   | str     | str   |
+    | name | email | picture | token | num_random |
+    |------|-------|---------|-------|------------|
+    | str  | str   | str     | str   | int        |
 
     relationships
     ~~~~~
@@ -43,13 +43,14 @@ class User(db.Model):
 
     __tablename__ = 'users'
 
-    id      = db.Column(db.Integer, primary_key=True)
-    name    = db.Column(db.String(128), nullable=False)
-    email   = db.Column(db.String(128), nullable=False, unique=True)
-    picture = db.Column(db.String(255), nullable=False)
-    token   = db.Column(db.String(255), nullable=False)
-    players = db.relationship('Player', backref='user')
-    hosting = db.relationship('Game', backref='host')
+    id         = db.Column(db.Integer, primary_key=True)
+    name       = db.Column(db.String(128), nullable=False)
+    email      = db.Column(db.String(128), nullable=False, unique=True)
+    picture    = db.Column(db.String(255), nullable=False)
+    token      = db.Column(db.String(255), nullable=False)
+    players    = db.relationship('Player', backref='user')
+    hosting    = db.relationship('Game', backref='host')
+    num_random = db.Column(db.Integer, nullable=False)
 
     @staticmethod
     def create(oauth_token):
@@ -62,7 +63,11 @@ class User(db.Model):
             email   = content['email']
             picture = content['picture']
             user    = User(
-                name=name, email=email, picture=picture, token=User.generate_auth_token(email)
+                name=name,
+                email=email,
+                picture=picture,
+                token=User.generate_auth_token(email),
+                num_random=0
             )
             db.session.add(user)
         except:

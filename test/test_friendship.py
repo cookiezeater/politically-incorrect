@@ -12,16 +12,18 @@ class BaseFriendshipTest(BaseTest):
     def setUp(self):
         super(BaseFriendshipTest, self).setUp()
         self.steve = {
-            'name'   : 'steve jobs',
-            'email'  : 'steve@apple.com',
-            'picture': 'steve_jobs.jpg',
-            'token'  : User.generate_auth_token('steve@apple.com')
+            'name'      : 'steve jobs',
+            'email'     : 'steve@apple.com',
+            'picture'   : 'steve_jobs.jpg',
+            'token'     : User.generate_auth_token('steve@apple.com'),
+            'num_random': 0
         }
         self.bill = {
-            'name'   : 'bill gates',
-            'email'  : 'bill@microsoft.com',
-            'picture': 'bill_gates.jpg',
-            'token'  : User.generate_auth_token('bill@microsoft.com')
+            'name'      : 'bill gates',
+            'email'     : 'bill@microsoft.com',
+            'picture'   : 'bill_gates.jpg',
+            'token'     : User.generate_auth_token('bill@microsoft.com'),
+            'num_random': 0
         }
         self.db.session.add_all([User(**self.steve), User(**self.bill)])
         self.db.session.commit()
