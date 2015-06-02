@@ -83,6 +83,9 @@ class User(db.Model):
     @staticmethod
     def get_all(emails):
         """Get a bunch of users by email."""
+        if not emails:
+            return []
+
         or_query = [User.email == email for email in emails]
         return User.query.filter(or_(*or_query)).all()
 
