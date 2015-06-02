@@ -37,26 +37,20 @@ def get_user(content):
             friendship.sender if friendship.sender != user else \
             friendship.receiver
 
-        if friendship.valid:
-            friends.append({
-                'name'  : friend.name,
-                'email' : friend.email,
-                'status': Friendship.VALID
-            })
+        friend_json = {
+            'name'   : friend.name,
+            'email'  : friend.email,
+            'picture': friend.picture
+        }
 
+        if friendship.valid:
+            friend_json['status'] = Friendship.VALID
+        elif friend == friendship.sender:
+            friend_json['status'] = Friendship.REQUEST
         else:
-            if friend == friendship.sender:
-                friends.append({
-                    'name'  : friend.name,
-                    'email' : friend.email,
-                    'status': Friendship.REQUEST
-                })
-            else:
-                friends.append({
-                    'name'  : friend.name,
-                    'email' : friend.email,
-                    'status': Friendship.PENDING
-                })
+            friend_json['status'] = Friendship.PENDING
+
+        friends.append(friend_json)
 
     return jsonify(**{
         'name'   : user.name,
@@ -121,8 +115,9 @@ def search(user, content):
 
     return jsonify(results=[
         {
-            'name' : user.name,
-            'email': user.email
+            'name'   : user.name,
+            'email'  : user.email,
+            'picture': user.picture
         }
         for user in results
     ])
