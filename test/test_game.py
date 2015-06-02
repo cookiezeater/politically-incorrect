@@ -116,6 +116,10 @@ class TestGameRandom(BaseGameTest):
             'random'     : True,
             'emails'     : invites
         }
+
+        content, status = self.post_as(self.users['mark']['token'], '/game/random', {})
+        self.assertEqual(status, 418)
+
         content, status = self.post_as(self.users['steve']['token'], '/game/create', game)
         self.assertEqual(status, 200)
         self.assertEqual(len(content['players']), len(invites) + 1)
@@ -127,7 +131,7 @@ class TestGameRandom(BaseGameTest):
         self.assertEqual(status, 200)
 
         content, status = self.post_as(self.users['mark']['token'], '/game/random', {})
-        self.assertEqual(content['success'], True)
+        self.assertEqual(status, 200)
 
         content, status = self.post_as(self.users['obama']['token'], '/game/{}'.format(id), {})
         self.assertEqual(status, 200)
@@ -216,7 +220,7 @@ class TestGameAcceptInvite(BaseGameTest):
 
 class TestGameFull(BaseGameTest):
     def setUp(self):
-        super(TestGameAcceptInvite, self).setUp()
+        super(TestGameFull, self).setUp()
 
         # load cards
         with open('cards/black.txt') as black, \

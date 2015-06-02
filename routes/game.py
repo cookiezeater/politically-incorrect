@@ -32,7 +32,6 @@ def create_game(user, content):
     )
     users   = User.get_all(emails) + [user]
     players = Player.create_all(users, game)
-#    game.invite_all(players)
 
     player = next(
         (player for player in players if player.user == user),
@@ -189,20 +188,14 @@ def get_game(id, user, content):
 @with_user
 def join_random(user):
     if user.num_random > 4:
-        return jsonify(success=False)
+        return jsonify(), 418
 
-    games = Game.query.filter(
-        Game.random == True,  # this is not a mistake
-        Game.status == Game.PENDING,
-        ~Game.players.any(Player.user_id == user.id)
-    ).all()
-    game = max(
-        games,
-        key=lambda g: len([p for p in g.players if p.status == Player.JOINED])
-    )
+    game = Game.find_random(user)
+
+    if not game:
+        return jsonify(), 418
 
     player = Player.create(user, game)
-#    game.invite(player)
     player.set_status_joined()
     user.num_random += 1
 
@@ -218,7 +211,7 @@ def join_random(user):
         db.session.rollback()
         raise
 
-    return jsonify(success=True)
+    return jsonify()
 
 
 @app.route('/game/<int:id>/<action>', methods=['POST'])

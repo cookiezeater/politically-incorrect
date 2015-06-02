@@ -73,6 +73,24 @@ class Game(db.Model):
         """Get a game by id."""
         return Game.query.get(id)
 
+    @staticmethod
+    def find_random(user):
+        games = Game.query.filter(
+            Game.random == True,  # this is not a mistake
+            Game.status == Game.PENDING,
+            ~Game.players.any(Player.user_id == user.id)
+        ).all()
+
+        try:
+            game = max(
+                games,
+                key=lambda g: len([p for p in g.players if p.status == Player.JOINED])
+            )
+        except ValueError:
+            game = None
+
+        return game
+
     def start(self):
         """Begins the game."""
         self.status = self.ONGOING
