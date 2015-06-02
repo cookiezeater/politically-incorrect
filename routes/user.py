@@ -55,6 +55,7 @@ def get_user(content):
     return jsonify(**{
         'name'   : user.name,
         'email'  : user.email,
+        'picture': user.picture,
         'token'  : user.token,
         'friends': friends,
         'games'  : [
