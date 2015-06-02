@@ -214,7 +214,7 @@ class TestGameAcceptInvite(BaseGameTest):
         self.assertEqual(player_statuses.count(Player.PENDING), len(player_statuses) - 3)
 
 
-class TestGameAcceptInvite(BaseGameTest):
+class TestGameFull(BaseGameTest):
     def setUp(self):
         super(TestGameAcceptInvite, self).setUp()
 
