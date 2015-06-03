@@ -28,7 +28,7 @@ def create_game(user, content):
     emails      = content['emails']
 
     game = Game.create(
-        user, name, max_points, max_players, random
+        user, name, max_points, min(max_players, len(emails) + 1), random
     )
     users   = User.get_all(emails) + [user]
     players = Player.create_all(users, game)
