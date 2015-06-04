@@ -53,11 +53,11 @@ def create_game(user, content):
         'status'     : game.status,
         'players'    : [
             {
-                'name'  : player.user.name,
-                'email' : player.user.email,
-                'status': player.status
+                'name'  : p.user.name,
+                'email' : p.user.email,
+                'status': p.status
             }
-            for player in game.players
+            for p in game.players
         ]
     })
 
@@ -89,6 +89,7 @@ def invite(id, user, content):
 @with_user
 @with_content
 def get_game(id, user, content):
+    """Returns a game in a format dependent on the game's status."""
     game   = Game.get(id)
     player = Player.get(user, game)
     assert player in [p for p in game.players if p.status != Player.REJECTED]
@@ -106,13 +107,13 @@ def get_game(id, user, content):
             'status'     : game.status,
             'players'    : [
                 {
-                    'name'   : player.user.name,
-                    'email'  : player.user.email,
-                    'picture': player.user.picture,
-                    'status' : player.status,
+                    'name'   : p.user.name,
+                    'email'  : p.user.email,
+                    'picture': p.user.picture,
+                    'status' : p.status,
                     'points' : 0
                 }
-                for player in game.players
+                for p in game.players
             ]
         })
 
@@ -169,26 +170,49 @@ def get_game(id, user, content):
             },
             'players'    : [
                 {
-                    'name'   : player.user.name,
-                    'email'  : player.user.email,
-                    'picture': player.user.picture,
-                    'status' : player.status,
-                    'points' : player.score
+                    'name'   : p.user.name,
+                    'email'  : p.user.email,
+                    'picture': p.user.picture,
+                    'status' : p.status,
+                    'points' : p.score
                 }
-                for player in game.players
+                for p in game.players
             ],
             'previous'   : game.previous_round
         })
 
-    # TODO
-    # elif game.status == Game.ENDED:
+    elif game.status == Game.ENDED:
+        return jsonify(**{
+            'id'         : game.id,
+            'host'       : {
+                'name' : game.host.name,
+                'email': game.host.email
+            },
+            'name'       : game.name,
+            'max_points' : game.max_points,
+            'max_players': game.max_players,
+            'status'     : game.status,
+            'players'    : [
+                {
+                    'name'   : p.user.name,
+                    'email'  : p.user.email,
+                    'picture': p.user.picture,
+                    'status' : p.status,
+                    'points' : p.score
+                }
+                for p in game.players
+            ],
+            'previous'   : game.previous_round
+        })
 
-    return jsonify(), 404
+    return jsonify(), 418
 
 
 @app.route('/game/random', methods=['POST'])
 @with_user
 def join_random(user):
+    """Finds and joins the optimal random game."""
+
     if user.num_random > 4:
         return jsonify(), 418
 
@@ -220,6 +244,7 @@ def join_random(user):
 @with_user
 @with_content
 def accept_or_decline_game(id, action, user, content):
+    """Join/invite/decline actions for games."""
     game    = Game.get(id)
     player  = Player.get(user, game)
     started = False
@@ -257,12 +282,12 @@ def play(id, user, content):
     is the current judge, then expect an email
     in the request body and interpret it as
     the round winner chosen by the judge. Otherwise,
-    the request body should contain a card id in the
+    the request body should contain card ids in the
     user's hand, which should be placed on the table.
 
     request :=
         POST ({
-            'card_id': int
+            'cards': [int]
         } | {
             'email': str
         })
@@ -281,13 +306,12 @@ def play(id, user, content):
         game.new_round(winner)
 
     else:
-
         if player.played:
             return jsonify(), 418
 
         cards = content['cards']
         map   = {card.id: card for card in player.hand}
-        cards = [map[id] for id in cards]
+        cards = [map[card_id] for card_id in cards]
         assert len(cards) == game.black_card.answers
 
         player.play_cards(cards)

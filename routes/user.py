@@ -16,6 +16,11 @@ from models import User, Friendship
 @app.route('/user', methods=['POST'])
 @with_content
 def get_user(content):
+    """
+    Find and return the user's info, or
+    create the user if he doesn't exist.
+    """
+
     token = content['token']
     user  = User.auth(token)
     user  = user if user else User.create(token)
@@ -77,6 +82,7 @@ def get_user(content):
 @with_user
 @with_content
 def accept_or_decline_friend(action, user, content):
+    """Request/accept/decline friend requests."""
     email = content['email']
     other = User.get(email)
 
@@ -105,6 +111,7 @@ def accept_or_decline_friend(action, user, content):
 @with_user
 @with_content
 def search(user, content):
+    """Super naive search on users."""
     query   = content['query']
     results = User.search(query)
 
@@ -116,9 +123,9 @@ def search(user, content):
 
     return jsonify(results=[
         {
-            'name'   : user.name,
-            'email'  : user.email,
-            'picture': user.picture
+            'name'   : u.name,
+            'email'  : u.email,
+            'picture': u.picture
         }
-        for user in results
+        for u in results
     ])

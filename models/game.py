@@ -75,6 +75,14 @@ class Game(db.Model):
 
     @staticmethod
     def find_random(user):
+        """
+        Finds a valid optimal random game
+        for the user. This is very inefficient
+        and there is a better way to do this.
+
+        TODO: optimize this
+        """
+
         games = Game.query.filter(
             Game.random == True,  # this is not a mistake
             Game.status == Game.PENDING,
@@ -184,6 +192,7 @@ class Game(db.Model):
         self.players.append(player)
 
     def get_description(self):
+        """Returns the description of the game."""
         others = sorted(self.players, key=lambda p: p.user.name)
         names  = [player.user.name.split(' ')[0] for player in others]
         count  = len(self.players)
