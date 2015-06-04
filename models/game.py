@@ -193,18 +193,45 @@ class Game(db.Model):
 
     def get_description(self):
         """Returns the description of the game."""
-        others = sorted(self.players, key=lambda p: p.user.name)
-        names  = [player.user.name.split(' ')[0] for player in others]
-        count  = len(self.players)
+        if self.status == Game.ONGOING:
+            players = sorted(self.players, key=lambda p: p.user.name)
+            names   = [player.user.name.split(' ')[0] for player in players]
+            count   = len(names)
 
-        if count == 1:
-            return 'You\'re the only one in this game.'
-        elif count <= 3:
-            return 'There are {} people in this game.'.format(count)
+            return '{}, {}, and {} others...'.format(
+                names[0], names[1], count - 2
+            )
 
-        return '{}, {}, and {} others...'.format(
-            names[0], names[1], count - 2
-        )
+        elif self.status == Game.PENDING:
+            joined = [player for player in self.players
+                             if player.status == Player.JOINED]
+            names  = [player.user.name.split(' ')[0] for player in joined]
+            count  = len(names)
+
+            if count == 1:
+                return 'This game is hosted by {}!'.format(names[0])
+            elif count == 2:
+                return '{} and {} have joined this game!'.format(
+                    names[0], names[1]
+                )
+            elif count == 3:
+                return '{}, {}, and {} have joined this game!'.format(
+                    names[0], names[1], names[3]
+                )
+
+            return '{}, {}, and {} others have joined this game!'.format(
+                names[0], names[1], count - 2
+            )
+
+        elif self.status == Game.ENDED:
+            winner = max(self.players, key=lambda p: p.points)
+            name   = winner.name.split(' ')[0]
+
+            return '{} won the game with {} points!'.format(
+                name, winner.points
+            )
+
+        return 'Something went horribly wrong...'
 
     def __repr__(self):
         return '<game id={} players={}>'.format(
