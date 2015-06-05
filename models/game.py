@@ -142,11 +142,10 @@ class Game(db.Model):
                                 'text': card.text
                             }
                             for card in player.get_played()
-                            if player != self.judge
                         ]
                     }
                     for player in self.players
-                    if player.hand and all(card.answers == 0 for card in player.hand)
+                    if player.hand and player != self.judge
                 ]
             }
 
