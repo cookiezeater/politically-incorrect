@@ -13,10 +13,10 @@ def add_cards():
         white_text = list(set(white.readlines()))
 
     white_cards = [
-        Card(text=text, answers=0) for text in white_text
+        Card(text=text.strip(), answers=0) for text in white_text
     ]
     black_cards = [
-        Card(text=text, answers=max(text.count('████'), 1)) for text in black_text
+        Card(text=text.strip(), answers=max(text.count('████'), 1)) for text in black_text
     ]
     db.session.add_all(white_cards + black_cards)
     db.session.commit()
