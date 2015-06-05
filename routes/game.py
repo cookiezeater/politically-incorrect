@@ -144,9 +144,10 @@ def get_game(id, user, content):
             },
             'table'      : [
                 {
-                    'name' : p.user.name,
-                    'email': p.user.email,
-                    'cards': [
+                    'name'   : p.user.name,
+                    'email'  : p.user.email,
+                    'picture': p.user.picture,
+                    'cards'  : [
                         {
                             'id'  : card.id,
                             'text': card.text
