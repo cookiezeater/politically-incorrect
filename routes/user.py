@@ -7,7 +7,7 @@
 """
 
 from flask import jsonify
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from common import app, db
 from util import with_content, with_user
@@ -76,7 +76,7 @@ def get_user(content):
                 'random'       : p.game.random
             }
             for p in user.players
-            if not p.game.end_time or p.game.end_time < now
+            if not p.game.end_time or p.game.end_time + timedelta(weeks=1) > now
         ]
     })
 
