@@ -231,7 +231,7 @@ class Game(db.Model):
 
         elif self.status == Game.ENDED:
             winner = max(self.players, key=lambda p: p.score)
-            name   = winner.name.split(' ')[0]
+            name   = winner.user.name.split(' ')[0]
 
             return '{} won the game with {} points!'.format(
                 name, winner.score
