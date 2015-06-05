@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*- 
 
 import json
 
@@ -7,8 +8,8 @@ from app import app, db
 
 
 def add_cards():
-    with open('../cards/black.txt') as black, \
-         open('../cards/white.txt') as white:
+    with open('cards/black.txt') as black, \
+         open('cards/white.txt') as white:
         black_text = list(set(black.readlines()))
         white_text = list(set(white.readlines()))
 
@@ -23,11 +24,11 @@ def add_cards():
 
 
 def add_users():
-    with open('users.json') as users:
+    with open('fixtures/users.json') as users:
         users = json.loads(users.read())
 
     users = [
-        User(**user, token=User.generate_auth_token(user['email']), num_random=0)
+        User(token=User.generate_auth_token(user['email']), num_random=0, **user)
         for user in users
     ]
     db.session.add_all(users)
