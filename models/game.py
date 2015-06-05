@@ -216,7 +216,7 @@ class Game(db.Model):
                 )
             elif count == 3:
                 return '{}, {}, and {} have joined this game!'.format(
-                    names[0], names[1], names[3]
+                    names[0], names[1], names[2]
                 )
 
             return '{}, {}, and {} others have joined this game!'.format(
