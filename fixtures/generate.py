@@ -3,8 +3,8 @@
 
 import json
 
+from app import db
 from models import *
-from app import app, db
 
 def add_cards():
     with open('cards/black.txt') as black, \

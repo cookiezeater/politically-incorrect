@@ -7,6 +7,7 @@
 """
 
 from random import choice
+from datetime import datetime
 
 from common import db
 from models import Card, Player
@@ -51,6 +52,7 @@ class Game(db.Model):
     players        = db.relationship('Player', backref='game', foreign_keys='Player.game_id')
     previous_round = db.Column(db.PickleType)
     used_cards     = db.relationship('Card', uselist=True)
+    end_time       = db.Column(db.DateTime, nullable=True)
 
     @staticmethod
     def create(host, name, max_points, max_players, random):
@@ -106,6 +108,10 @@ class Game(db.Model):
         self.players = [player for player in self.players if player.status == Player.JOINED]
         self.new_round(None)
 
+    def end(self):
+        self.status   = Game.ENDED
+        self.end_time = datetime.now()
+
     def new_round(self, winner):
         """
         Starts a new round.
@@ -152,7 +158,7 @@ class Game(db.Model):
         self.winner = None
 
         if any(player.score == self.max_points for player in self.players):
-            self.status = Game.ENDED
+            self.end()
             return
 
         white_cards = Card.get_all(black=False)

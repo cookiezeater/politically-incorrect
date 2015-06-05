@@ -7,6 +7,7 @@
 """
 
 from flask import jsonify
+from datetime import datetime
 
 from common import app, db
 from util import with_content, with_user
@@ -22,6 +23,7 @@ def get_user(content):
     """
 
     token = content['token']
+    now   = datetime.now()
     user  = User.auth(token)
     user  = user if user else User.create(token)
 
@@ -65,15 +67,16 @@ def get_user(content):
         'friends': friends,
         'games'  : [
             {
-                'id'           : player.game.id,
-                'name'         : player.game.name,
-                'description'  : player.game.get_description(),
-                'status'       : player.game.status,
-                'player_status': player.status,
-                'seen'         : player.seen,
-                'random'       : player.game.random
+                'id'           : p.game.id,
+                'name'         : p.game.name,
+                'description'  : p.game.get_description(),
+                'status'       : p.game.status,
+                'player_status': p.status,
+                'seen'         : p.seen,
+                'random'       : p.game.random
             }
-            for player in user.players
+            for p in user.players
+            if not p.game.end_time or p.game.end_time < now
         ]
     })
 
