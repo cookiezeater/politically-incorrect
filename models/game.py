@@ -140,9 +140,10 @@ class Game(db.Model):
                 },
                 'table'     : [
                     {
-                        'name' : player.user.name,
-                        'email': player.user.email,
-                        'cards': [
+                        'name'   : player.user.name,
+                        'email'  : player.user.email,
+                        'picture': player.user.picture,
+                        'cards'  : [
                             {
                                 'id'  : card.id,
                                 'text': card.text
