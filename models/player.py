@@ -6,17 +6,13 @@
     a user's state inside a game.
 """
 
+from sqlalchemy import or_
+
 from common import db
+from models import Card
 
 hands = db.Table(
     'hands',
-    db.Model.metadata,
-    db.Column('player', db.Integer, db.ForeignKey('players.id')),
-    db.Column('card', db.Integer, db.ForeignKey('cards.id'))
-)
-
-played = db.Table(
-    'played',
     db.Model.metadata,
     db.Column('player', db.Integer, db.ForeignKey('players.id')),
     db.Column('card', db.Integer, db.ForeignKey('cards.id'))
@@ -31,16 +27,15 @@ class Player(db.Model):
 
     columns
     ~~~~~
-    | status | score | judged | seen |
-    |--------|-------|--------|------|
-    | enum   | int   | int    | bool |
+    | status | score | judged | seen | played |
+    |--------|-------|--------|------|--------|
+    | enum   | int   | int    | bool | pickle |
 
     relationships
     ~~~~~
     user  : user   <-  player
     game  : game   <-  player
     hand  : player  -  card
-    played: player  -  card
     """
 
     __tablename__ = 'players'
@@ -56,8 +51,8 @@ class Player(db.Model):
     score   = db.Column(db.Integer, nullable=False)
     judged  = db.Column(db.Integer, nullable=False)
     seen    = db.Column(db.Boolean, nullable=False, default=False)
+    played  = db.Column(db.PickleType, nullable=True)
     hand    = db.relationship('Card', secondary=hands)
-    played  = db.relationship('Card', secondary=played)
 
     @staticmethod
     def create(user, game):
@@ -89,9 +84,34 @@ class Player(db.Model):
         """Deletes a player. Typically used when declining to join a game."""
         db.session.delete(self)
 
+    def get_played(self):
+        """
+        Store the player's played cards as a list of
+        card ids. This is necessary for efficiently
+        enforcing played order. The nested loop below
+        is still faster than making one query for each card.
+        """
+
+        if not self.played:
+            return []
+
+        cards  = Card.query.filter(
+            or_(Card.id == card_id for card_id in self.played)
+        ).all()
+        played = []
+
+        for card_id in self.played:
+            card = next(
+                (c for c in cards if c.id == card_id),
+                None
+            )
+            played.append(card)
+
+        return played
+
     def play_cards(self, cards):
         assert not self.played
-        self.played = cards
+        self.played = [card.id for card in cards]
         [self.hand.remove(card) for card in cards]
 
     def set_status_joined(self):

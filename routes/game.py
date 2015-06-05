@@ -151,11 +151,11 @@ def get_game(id, user, content):
                             'id'  : card.id,
                             'text': card.text
                         }
-                        for card in p.played
+                        for card in p.get_played()
                     ]
                 }
                 for p in game.players
-                if p.played and all(card.answers == 0 for card in p.played)
+                if p.played and p != game.judge
             ],
             'hand'       : [
                 {
@@ -311,7 +311,7 @@ def play(id, user, content):
 
         cards = content['cards']
         map   = {card.id: card for card in player.hand}
-        cards = [map[card_id] for card_id in cards]
+        cards = [map[card] for card in cards]
         assert len(cards) == game.black_card.answers
 
         player.play_cards(cards)

@@ -141,7 +141,8 @@ class Game(db.Model):
                                 'id'  : card.id,
                                 'text': card.text
                             }
-                            for card in player.played
+                            for card in player.get_played()
+                            if player != self.judge
                         ]
                     }
                     for player in self.players
@@ -180,7 +181,7 @@ class Game(db.Model):
         self.used_cards.append(self.black_card)
 
         self.judge = min(self.players, key=lambda player: player.judged)
-        self.judge.played = [self.black_card]
+        self.judge.played = [self.black_card.id]
         self.judge.judged += 1
 
     def invite_all(self, players):
