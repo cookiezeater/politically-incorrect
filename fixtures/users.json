@@ -1,0 +1,37 @@
+[
+    {
+        "name": "Steve Jobs",
+        "email": "steve@apple.com",
+        "picture": "http://upload.wikimedia.org/wikipedia/en/e/e4/Steve_Jobs_by_Walter_Isaacson.jpg"
+    },
+    {
+        "name": "Bill Gates",
+        "email": "bill@microsoft.com",
+        "picture": "http://upload.wikimedia.org/wikipedia/commons/0/01/Bill_Gates_July_2014.jpg"
+    },
+    {
+        "name": "Barack Obama",
+        "email": "obama@whitehouse.gov",
+        "picture": "http://a5.files.biography.com/image/upload/c_fill,cs_srgb,dpr_1.0,g_face,h_300,q_80,w_300/MTE4MDAzNDEwNzg5ODI4MTEw.jpg"
+    },
+    {
+        "name": "Bernie Sanders",
+        "email": "bernie@gmail.com",
+        "picture": "http://upload.wikimedia.org/wikipedia/commons/d/de/Bernie_Sanders.jpg"
+    },
+    {
+        "name": "Bill Burr",
+        "email": "bill@burr.com",
+        "picture": "http://ia.media-imdb.com/images/M/MV5BMTQwNDgwODg3NV5BMl5BanBnXkFtZTcwMTY5OTM3MQ@@._V1_SY317_CR10,0,214,317_AL_.jpg"
+    },
+    {
+        "name": "Larry Page",
+        "email": "larry@google.com",
+        "picture": "https://9to5google.files.wordpress.com/2013/05/0x600.jpg"
+    },
+    {
+        "name": "Sergey Brin",
+        "email": "sergey@google.com",
+        "picture": "http://hdwallpapersfit.com/wp-content/uploads/2015/02/smile-sergey-brin-wallpapers.jpg"
+    }
+]

@@ -232,7 +232,7 @@ class TestGameFull(BaseGameTest):
             Card(text=text, answers=0) for text in white_text
         ]
         black_cards = [
-            Card(text=text, answers=text.count('████')) for text in black_text
+            Card(text=text, answers=max(text.count('████'), 1)) for text in black_text
         ]
         self.db.session.add_all(white_cards + black_cards)
         self.db.session.commit()
