@@ -22,10 +22,13 @@ from models import (
 def create_game(user, content):
     """Creates a pending game."""
     name        = content['name']
-    max_points  = content['max_points']
+    max_points  = max(content['max_points'], 5)
     max_players = content['max_players']
     random      = content['random']
     emails      = content['emails']
+
+    if len(emails) < 3:
+        return jsonify(message='You need to invite more people!'), 418
 
     game = Game.create(
         user, name, max_points, min(max_players, len(emails) + 1), random
@@ -68,8 +71,9 @@ def create_game(user, content):
 def invite(id, user, content):
     """Invites a list of users."""
     game = Game.get(id)
-    assert user == game.host
-    assert game.status == Game.PENDING
+
+    if not (user == game.host and game.status == Game.PENDING):
+        return jsonify(message='I can\'t let you do that, Dave.'), 418
 
     emails  = content['emails']
     users   = User.get_all(emails)
@@ -92,7 +96,11 @@ def get_game(id, user, content):
     """Returns a game in a format dependent on the game's status."""
     game   = Game.get(id)
     player = Player.get(user, game)
-    assert player in [p for p in game.players if p.status != Player.REJECTED]
+
+    if player not in [p for p in game.players if p.status != Player.REJECTED]:
+        return jsonify(
+            message='You can\'t see this game because you\'re not in it!'
+        ), 418
 
     if game.status == Game.PENDING:
         return jsonify(**{
@@ -213,7 +221,6 @@ def get_game(id, user, content):
 @with_user
 def join_random(user):
     """Finds and joins the optimal random game."""
-
     if user.num_random > 4:
         return jsonify(), 418
 
@@ -297,6 +304,9 @@ def play(id, user, content):
     game   = Game.get(id)
     player = Player.get(user, game)
 
+    if game.status != Game.ONGOING:
+        return jsonify(message='This game isn\'t in-progress.'), 418
+
     if user == game.judge.user:
         email  = content['email']
         winner = next(
@@ -313,7 +323,9 @@ def play(id, user, content):
         cards = content['cards']
         map   = {card.id: card for card in player.hand}
         cards = [map[card] for card in cards]
-        assert len(cards) == game.black_card.answers
+
+        if len(cards) != game.black_card.answers:
+            return jsonify(message='Invalid play, mate.'), 418
 
         player.play_cards(cards)
 

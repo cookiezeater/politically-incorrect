@@ -6,6 +6,7 @@ import json
 from app import db
 from models import *
 
+
 def add_cards():
     with open('cards/black.txt') as black, \
          open('cards/white.txt') as white:

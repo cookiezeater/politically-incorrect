@@ -119,10 +119,11 @@ def search(user, content):
     results = User.search(query)
 
     friendships = user.get_friendships()
-    friends  = set(friendship.sender for friendship in friendships)
-    friends |= set(friendship.receiver for friendship in friendships)
+    friends     = set(friendship.sender for friendship in friendships)
+    friends    |= set(friendship.receiver for friendship in friendships)
+    friends    |= set([user])
 
-    results = [result for result in results if result not in friends | set([user]) ]
+    results = [result for result in results if result not in friends]
 
     return jsonify(results=[
         {

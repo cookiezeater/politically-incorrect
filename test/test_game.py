@@ -108,7 +108,7 @@ class TestGameRandom(BaseGameTest):
         self.db.session.commit()
 
     def test_join_random_game(self):
-        invites = ['obama@usa.gov', 'pg@ycombinator.com']
+        invites = ['obama@usa.gov', 'pg@ycombinator.com', 'bill@microsoft.com']
         game    = {
             'name'       : 'first game ever',
             'max_points' : 10,
