@@ -101,6 +101,25 @@ class Game(db.Model):
 
         return game
 
+    @staticmethod
+    def find_n_random(n, user):
+        """Finds the top n optimal random games. TODO: optimize THE SHIT OUT OF THIS"""
+        games = Game.query.filter(
+            Game.random == True,  # this is not a mistake
+            Game.status == Game.PENDING,
+            ~Game.players.any(Player.user_id == user.id)
+        ).all()
+
+        try:
+            games = sorted(
+                games,
+                key=lambda g: len([p for p in g.players if p.status == Player.JOINED])
+            )
+        except ValueError:
+            games = []
+
+        return games if len(games) < n else games[:n]
+
     def start(self):
         """Begins the game."""
         self.status = self.ONGOING
@@ -109,6 +128,11 @@ class Game(db.Model):
         self.new_round(None)
 
     def end(self):
+        """Ends the game."""
+        for player in self.players:
+            if player.user.num_random > 0:
+                player.user.num_random -= 1
+
         self.status   = Game.ENDED
         self.end_time = datetime.now()
 

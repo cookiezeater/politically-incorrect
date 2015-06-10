@@ -25,10 +25,22 @@ def get_user(content):
     token = content['token']
     now   = datetime.now()
     user  = User.auth(token)
-    user  = user if user else User.create(token)
 
     if not user:
-        return jsonify(), 418
+        user = User.create(token)
+
+        if not user:
+            return jsonify(), 418
+        else:
+            games   = Game.find_n_random(3, user)
+            players = Player.create_all(user, games)
+            [player.set_status_joined() for player in players]
+
+            for game in games:
+                joined = [p for p in game.players
+                            if p.status == Player.JOINED]
+                if len(joined) == game.max_players:
+                    game.start()
 
     try:
         db.session.commit()
