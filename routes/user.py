@@ -20,6 +20,9 @@ def get_user(content):
     """
     Find and return the user's info, or
     create the user if he doesn't exist.
+    If the user doesn't exist, enter
+    the user into 3 random games and
+    add 5 random friends.
     """
 
     token  = content['token']
@@ -33,7 +36,7 @@ def get_user(content):
         if not user:
             return jsonify(), 418
 
-        else:
+        else:  # give the new user 3 random games and 5 random friends
             games   = Game.find_n_random(3, user)
             players = [Player.create(user, game) for game in games]
             [player.set_status_joined() for player in players]
@@ -43,6 +46,10 @@ def get_user(content):
                             if p.status == Player.JOINED]
                 if len(joined) == game.max_players:
                     game.start()
+
+            friends = User.find_n_random(5, user)
+            [f.add(user) for f in friends]
+            [user.add(f) for f in friends]
 
     user.device = device
 
@@ -119,6 +126,13 @@ def accept_or_decline_friend(action, user, content):
 
     if action == 'add':
         user.add(other)
+
+        if other.device:
+            notify(
+                [other.device],
+                'Politically Incorrect',
+                '{} added you as a friend!'.format(user.name)
+            )
 
     elif action == 'delete':
         user.delete(other)

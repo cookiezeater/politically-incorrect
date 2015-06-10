@@ -10,6 +10,7 @@
 
 import requests
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
+from sqlalchemy.sql.expression import func
 from sqlalchemy import (
     UniqueConstraint,
     or_,
@@ -127,6 +128,13 @@ class User(db.Model):
             or_query.append(User.email.ilike(like))
 
         return User.query.filter(or_(*or_query)).all()
+
+    @staticmethod
+    def find_n_random(n, user):
+        if User.query.count() < n:
+            return User.query.all()
+
+        return User.query.order_by(func.random()).limit(n)
 
     def get_friendships(self):
         """Returns the valid friends of the user."""
