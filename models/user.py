@@ -142,6 +142,9 @@ class User(db.Model):
 
     def add(self, other):
         """Creates a friendship request or validates an existing one."""
+        if self == other:
+            return
+
         friendship = Friendship.get(self, other)
         if friendship:
             friendship.set_valid(True)
