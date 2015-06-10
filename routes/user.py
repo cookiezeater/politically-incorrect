@@ -69,11 +69,20 @@ def get_user(content):
             {
                 'id'           : p.game.id,
                 'name'         : p.game.name,
-                'description'  : p.game.get_description(),
                 'status'       : p.game.status,
                 'player_status': p.status,
                 'seen'         : p.seen,
-                'random'       : p.game.random
+                'random'       : p.game.random,
+                'players'      : [
+                    {
+                        'name'   : _p.user.name,
+                        'email'  : _p.user.email,
+                        'picture': _p.user.picture,
+                        'status' : _p.status,
+                        'points' : _p.score
+                    }
+                    for _p in p.game.players
+                ]
             }
             for p in user.players
             if not p.game.end_time or p.game.end_time + timedelta(weeks=1) > now
