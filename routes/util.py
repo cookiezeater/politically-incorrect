@@ -5,15 +5,16 @@
     for routes.
 """
 
-import requests
+import os
 import json
+import requests
 from functools import wraps
 from flask import request
 
 from models import User
 
 GCM_URL = 'https://gcm-http.googleapis.com/gcm/send'
-GCM_KEY = open('gcm_key').read().strip()
+GCM_KEY = os.getenv('GCM_KEY', '').strip()
 
 
 def with_content(func):
