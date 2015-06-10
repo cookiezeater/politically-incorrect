@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 
 from common import app, db
 from util import with_content, with_user
-from models import Game, User, Friendship
+from models import Game, Player, User, Friendship
 
 
 @app.route('/user', methods=['POST'])
@@ -22,18 +22,20 @@ def get_user(content):
     create the user if he doesn't exist.
     """
 
-    token = content['token']
-    now   = datetime.now()
-    user  = User.auth(token)
+    token  = content['token']
+    device = content['device']
+    now    = datetime.now()
+    user   = User.auth(token)
 
     if not user:
         user = User.create(token)
 
         if not user:
             return jsonify(), 418
+
         else:
             games   = Game.find_n_random(3, user)
-            players = Player.create_all(user, games)
+            players = [Player.create(user, game) for game in games]
             [player.set_status_joined() for player in players]
 
             for game in games:
@@ -41,6 +43,8 @@ def get_user(content):
                             if p.status == Player.JOINED]
                 if len(joined) == game.max_players:
                     game.start()
+
+    user.device = device
 
     try:
         db.session.commit()

@@ -48,6 +48,7 @@ class User(db.Model):
     email      = db.Column(db.String(128), nullable=False, unique=True)
     picture    = db.Column(db.String(255), nullable=False)
     token      = db.Column(db.String(255), nullable=False)
+    device     = db.Column(db.String(255), nullable=True)
     players    = db.relationship('Player', backref='user')
     hosting    = db.relationship('Game', backref='host')
     num_random = db.Column(db.Integer, nullable=False)
