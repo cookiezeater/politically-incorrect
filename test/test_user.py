@@ -12,14 +12,14 @@ from models import User
 
 class TestRegistration(BaseTest):
     def test_registration(self):
-        content, status = self.post('/user', { 'token': self.oauth })
+        content, status = self.post('/user', { 'token': self.oauth, 'device': 'bla' })
 
         self.assertEqual(status, 200)
         self.assertEqual(content['email'], 'dolphinsandfriends@gmail.com')
         self.assertNotEqual(content['token'], self.oauth)
 
     def test_invalid_registration(self):
-        content, status = self.post('/user', { 'token': 'lol' })
+        content, status = self.post('/user', { 'token': 'lol', 'device': 'lol' })
 
         self.assertNotEqual(status, 200)
 
@@ -31,14 +31,14 @@ class TestLogin(BaseTest):
         self.db.session.commit()
 
     def test_existing_oauth_login(self):
-        content, status = self.post('/user', { 'token': self.oauth })
+        content, status = self.post('/user', { 'token': self.oauth, 'device': 'new device!' })
 
         self.assertEqual(status, 200)
         self.assertEqual(content['email'], 'dolphinsandfriends@gmail.com')
         self.assertNotEqual(content['token'], self.oauth)
 
     def test_existing_token_login(self):
-        content, status = self.post('/user', { 'token': self.oauth })
+        content, status = self.post('/user', { 'token': self.oauth, 'device': 'new device2' })
 
         self.assertEqual(status, 200)
         self.assertEqual(content['email'], 'dolphinsandfriends@gmail.com')

@@ -37,5 +37,6 @@ class BaseTest(TestCase):
         return content, response.status_code
 
     def post_as(self, token, url, data):
-        data['token'] = token
+        data['token']  = token
+        data['device'] = 'ok'
         return self.post(url, data)
