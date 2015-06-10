@@ -42,6 +42,12 @@ def create_game(user, content):
     )
     player.set_status_joined()
 
+    notify(
+        [u.device for u in users if u != user],
+        'Politically Incorrect',
+        'You\'ve been invited to a game: "{}"!'.format(name)
+    )
+
     try:
         db.session.commit()
     except:
