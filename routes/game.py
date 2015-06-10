@@ -8,7 +8,7 @@
 from flask import jsonify
 
 from common import app, db
-from util import with_content, with_user
+from util import notify, with_content, with_user
 from models import (
     Game,
     Player,
@@ -263,6 +263,11 @@ def accept_or_decline_game(id, action, user, content):
                     if p.status == Player.JOINED]
 
         if len(joined) == game.max_players:
+            notify(
+                [p.user.device for p in game.players if p.user.device and p != player],
+                'Politically Incorrect',
+                'The game "{}" has started!'.format(game.name)
+            )
             game.start()
             started = True
 
@@ -328,6 +333,12 @@ def play(id, user, content):
             return jsonify(message='Invalid play, mate.'), 418
 
         player.play_cards(cards)
+
+    notify(
+        [p.user.device for p in game.players if p.user.device and p != player],
+        'Politically Incorrect',
+        'Something happened in "{}"!'.format(game.name)
+    )
 
     for p in game.players:
         p.seen = False

@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 
 from common import app, db
 from util import with_content, with_user
-from models import Game, Player, User, Friendship
+from models import Friendship, Game, Player, User
 
 
 @app.route('/user', methods=['POST'])

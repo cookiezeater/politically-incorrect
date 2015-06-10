@@ -41,7 +41,7 @@ def notify(devices, title, text):
         'Content-Type' : 'application/json'
     }
     body = {
-        'notification': {
+        'data': {
             'title': title,
             'text' : text
         },
@@ -50,4 +50,4 @@ def notify(devices, title, text):
 
     # TODO: log this
     response = requests.post(GCM_URL, headers=headers, data=json.dumps(body))
-    print(response)
+    return response
