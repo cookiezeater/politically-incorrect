@@ -118,14 +118,14 @@ def get_user(content):
 @with_content
 def accept_or_decline_friend(action, user, content):
     """Request/accept/decline friend requests."""
-    email = content['email']
-    other = User.get(email)
+    emails = content['emails']
+    others = User.get_all(emails)
 
-    if not other:
+    if not others:
         return jsonify(), 418
 
     if action == 'add':
-        user.add(other)
+        [user.add(other) for other in others]
 
         if other.device:
             notify(
@@ -135,7 +135,7 @@ def accept_or_decline_friend(action, user, content):
             )
 
     elif action == 'delete':
-        user.delete(other)
+        [user.delete(other) for other in others]
 
     else:
         return jsonify(), 404

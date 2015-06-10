@@ -41,7 +41,7 @@ class TestFriendshipSearch(BaseFriendshipTest):
 class TestFriendshipRequest(BaseFriendshipTest):
     def test_add_friend(self):
         content, status = self.post_as(
-            self.steve['token'], '/user/friend/add', { 'email': self.bill['email'] }
+            self.steve['token'], '/user/friend/add', { 'emails': [self.bill['email']] }
         )
         self.assertEqual(status, 200)
 
@@ -66,7 +66,7 @@ class TestFriendshipAcceptReject(BaseFriendshipTest):
 
     def test_accept_friend(self):
         content, status = self.post_as(
-            self.bill['token'], '/user/friend/add', { 'email': self.steve['email'] }
+            self.bill['token'], '/user/friend/add', { 'emails': [self.steve['email']] }
         )
 
         content, status = self.post_as(self.steve['token'], '/user', {})
@@ -81,7 +81,7 @@ class TestFriendshipAcceptReject(BaseFriendshipTest):
 
     def test_reject_friend(self):
         content, status = self.post_as(
-            self.bill['token'], '/user/friend/delete', { 'email': self.steve['email'] }
+            self.bill['token'], '/user/friend/delete', { 'emails': [self.steve['email']] }
         )
 
         content, status = self.post_as(self.steve['token'], '/user', {})
