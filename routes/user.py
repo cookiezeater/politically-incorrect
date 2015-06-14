@@ -10,7 +10,7 @@ from flask import jsonify
 from datetime import datetime, timedelta
 
 from common import app, db
-from util import with_content, with_user
+from util import notify, with_content, with_user
 from models import Friendship, Game, Player, User
 
 
